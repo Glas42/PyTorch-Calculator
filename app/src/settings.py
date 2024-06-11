@@ -25,12 +25,12 @@ def Get(category:str, name:str, value:any=None):
         return settings[category][name]
     except:
         if value != None:
-            Create(category, name, value)
+            Set(category, name, value)
             return value
         else:
             pass
 
-def Create(category:str, name:str, data:any):
+def Set(category:str, name:str, data:any):
     try:
         EnsureFile(f"{variables.PATH}settings.json")
         with open(f"{variables.PATH}settings.json", "r") as f:

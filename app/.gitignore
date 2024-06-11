@@ -1,0 +1,5 @@
+# Ignore the pycache
+**/__pycache__
+
+# Ignore the settings
+/settings.json
