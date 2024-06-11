@@ -1,0 +1,1 @@
+This folder contains the codes to train an AI model for this app.
