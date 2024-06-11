@@ -1,0 +1,3 @@
+# Ignore the dataset files
+/dataset/*
+!/dataset/info.txt
