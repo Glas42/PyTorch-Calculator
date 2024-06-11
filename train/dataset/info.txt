@@ -1,2 +1,0 @@
-This folder should contain the training images with corresponding label text files.
-The label text files should be named with the image name and .txt extension.
