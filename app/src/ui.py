@@ -16,9 +16,7 @@ def Initialize():
                             y_pos=settings.Get("Window", "Y", variables.SCREEN_HEIGHT // 4),
                             width=settings.Get("Window", "Width", variables.SCREEN_WIDTH // 2),
                             height=settings.Get("Window", "Height", variables.SCREEN_HEIGHT // 2),
-                            small_icon=f"{variables.PATH}icon.ico",
                             large_icon=f"{variables.PATH}icon.ico")
-        dpg.set_viewport_always_top(True)
         dpg.setup_dearpygui()
         dpg.show_viewport()
 

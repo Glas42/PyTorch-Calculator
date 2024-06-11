@@ -27,7 +27,7 @@ def update_check():
             print(f"{variables.RED}Failed to update: {variables.NORMAL}\n" + str(traceback.format_exc()))
     else:
         print("No update available, current version: " + variables.VERSION)
-threading.Thread(target=update_check).start()
+threading.Thread(target=update_check, daemon=True).start()
 
 ui.Initialize()
 while variables.RUN:
