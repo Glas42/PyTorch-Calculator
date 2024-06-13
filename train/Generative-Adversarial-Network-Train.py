@@ -381,8 +381,33 @@ def main():
     # Save the generator model
     print(timestamp() + "Saving the generator model...")
 
-    metadata = (f"image_width#{IMG_WIDTH}",
-                f"image_height#{IMG_HEIGHT}")
+    metadata_optimizer = str(generator_optimizer).replace('\n', '')
+    metadata_criterion = str(criterion).replace('\n', '')
+    metadata_model = str(generator).replace('\n', '')
+    metadata = (f"epochs#{epoch+1}",
+                f"batch#{BATCH_SIZE}",
+                f"classes#{CLASSES}",
+                f"outputs#{CLASSES}",
+                f"image_count#{IMG_COUNT}",
+                f"image_width#{IMG_WIDTH}",
+                f"image_height#{IMG_HEIGHT}",
+                f"learning_rate#{LEARNING_RATE}",
+                f"number_of_workers#{NUM_WORKERS}",
+                f"shuffle#{SHUFFLE}",
+                f"pin_memory#{PIN_MEMORY}",
+                f"training_time#{TRAINING_TIME}",
+                f"training_date#{TRAINING_DATE}",
+                f"training_device#{DEVICE}",
+                f"training_os#{os.name}",
+                f"architecture#{metadata_model}",
+                f"torch_version#{torch.__version__}",
+                f"numpy_version#{np.__version__}",
+                f"pil_version#{Image.__version__}",
+                f"transform#{transform}",
+                f"optimizer#{metadata_optimizer}",
+                f"loss_function#{metadata_criterion}",
+                f"dataset_size#{len(dataset)}",
+                f"loss#{generator_loss}")
     metadata = {"data": metadata}
     metadata = {data: str(value).encode("ascii") for data, value in metadata.items()}
 
@@ -400,8 +425,33 @@ def main():
     # Save the discriminator model
     print(timestamp() + "Saving the discriminator model...")
 
-    metadata = (f"image_width#{IMG_WIDTH}",
-                f"image_height#{IMG_HEIGHT}")
+    metadata_optimizer = str(discriminator_optimizer).replace('\n', '')
+    metadata_criterion = str(criterion).replace('\n', '')
+    metadata_model = str(discriminator).replace('\n', '')
+    metadata = (f"epochs#{epoch+1}",
+                f"batch#{BATCH_SIZE}",
+                f"classes#{CLASSES}",
+                f"outputs#{CLASSES}",
+                f"image_count#{IMG_COUNT}",
+                f"image_width#{IMG_WIDTH}",
+                f"image_height#{IMG_HEIGHT}",
+                f"learning_rate#{LEARNING_RATE}",
+                f"number_of_workers#{NUM_WORKERS}",
+                f"shuffle#{SHUFFLE}",
+                f"pin_memory#{PIN_MEMORY}",
+                f"training_time#{TRAINING_TIME}",
+                f"training_date#{TRAINING_DATE}",
+                f"training_device#{DEVICE}",
+                f"training_os#{os.name}",
+                f"architecture#{metadata_model}",
+                f"torch_version#{torch.__version__}",
+                f"numpy_version#{np.__version__}",
+                f"pil_version#{Image.__version__}",
+                f"transform#{transform}",
+                f"optimizer#{metadata_optimizer}",
+                f"loss_function#{metadata_criterion}",
+                f"dataset_size#{len(dataset)}",
+                f"loss#{discriminator_loss}")
     metadata = {"data": metadata}
     metadata = {data: str(value).encode("ascii") for data, value in metadata.items()}
 
