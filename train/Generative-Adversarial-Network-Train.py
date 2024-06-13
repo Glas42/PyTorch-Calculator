@@ -29,8 +29,8 @@ BATCH_SIZE = 10
 LATENT_DIM = 10
 BETA1 = 0.9
 BETA2 = 0.9
-IMG_WIDTH = 64
-IMG_HEIGHT = 64
+IMG_WIDTH = 256
+IMG_HEIGHT = 256
 LEARNING_RATE = 0.001
 NUM_WORKERS = 0
 SHUFFLE = True
@@ -152,7 +152,13 @@ class Generator(nn.Module):
             nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            nn.ConvTranspose2d(64, 1, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(64, 32, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(32, 16, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(16, 1, 4, 2, 1, bias=False),
             nn.Tanh()
         )
 
@@ -176,7 +182,13 @@ class Discriminator(nn.Module):
             nn.Conv2d(128, 256, 4, 2, 1, bias=False),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(256, NUM_CLASSES, 4, 1, 0, bias=False),
+            nn.Conv2d(256, 512, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(512, 1024, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(1024),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(1024, NUM_CLASSES, 4, 1, 0, bias=False),
             nn.Sigmoid()
         )
 
