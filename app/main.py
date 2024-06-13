@@ -8,6 +8,8 @@ import traceback
 import threading
 import requests
 import win32gui
+import ctypes
+import mouse
 import os
 
 if settings.Get("Console", "HideConsole", False):
@@ -31,6 +33,22 @@ def update_check():
         print("No update available, current version: " + variables.VERSION)
 threading.Thread(target=update_check, daemon=True).start()
 
+
+def get_current_speed():
+    get_mouse_speed = 112   # 0x0070 for SPI_GETMOUSESPEED
+    speed = ctypes.c_int()
+    ctypes.windll.user32.SystemParametersInfoA(get_mouse_speed, 0, ctypes.byref(speed), 0)
+
+    return speed.value
+print(get_current_speed())
+def change_speed(speed):
+    #   1 - slow
+    #   10 - standard
+    #   20 - fast
+    set_mouse_speed = 113   # 0x0071 for SPI_SETMOUSESPEED
+    ctypes.windll.user32.SystemParametersInfoA(set_mouse_speed, 0, speed, 0)
+
+
 def mouse_scroll_handler():
     def on_scroll(x, y, dx, dy):
         window_x, window_y, window_w, window_h = ui.dpg.get_viewport_pos()[0], ui.dpg.get_viewport_pos()[1], ui.dpg.get_viewport_width(), ui.dpg.get_viewport_height()
@@ -38,10 +56,6 @@ def mouse_scroll_handler():
             if ctypes.windll.user32.GetForegroundWindow() == ctypes.windll.user32.FindWindowW(None, variables.WINDOWNAME):
                 global zoom
                 zoom -= dy/100
-                ctypes.windll.user32.ShowCursor(False)  # Hide the cursor
-        else:
-            ctypes.windll.user32.ShowCursor(True)  # Show the cursor
-
     def on_click(x, y, button, pressed):
         window_x, window_y, window_w, window_h = ui.dpg.get_viewport_pos()[0], ui.dpg.get_viewport_pos()[1], ui.dpg.get_viewport_width(), ui.dpg.get_viewport_height()
         if window_x < x < window_x + window_w and window_y < y < window_y + window_h:
@@ -50,12 +64,12 @@ def mouse_scroll_handler():
                 global right_clicked
                 if str(button) == "Button.left":
                     left_clicked = pressed
+                if pressed:
+                    set_mouse_sensitivity(0.5)  # Set mouse sensitivity to half
+                else:
+                    set_mouse_sensitivity(1.0)  # Reset mouse sensitivity to normal
                 if str(button) == "Button.right":
                     right_clicked = pressed
-                ctypes.windll.user32.ShowCursor(False)  # Hide the cursor
-        else:
-            ctypes.windll.user32.ShowCursor(True)  # Show the cursor
-
     with Listener(on_click=on_click, on_scroll=on_scroll) as listener:
         listener.join()
 threading.Thread(target=mouse_scroll_handler, daemon=True).start()
@@ -70,9 +84,6 @@ hwnd = None
 last_mouse_x = None
 last_mouse_y = None
 last_window = None, None, None, None
-
-import ctypes
-import mouse
 
 ui.Initialize()
 while variables.RUN:
@@ -120,3 +131,4 @@ while variables.RUN:
 if settings.Get("Console", "HideConsole", False):
     console.RestoreConsole()
     console.CloseConsole()
+restore_default_mouse_sensitivity()

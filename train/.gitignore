@@ -1,3 +1,6 @@
 # Ignore the dataset and model files
 /dataset/*
 /models/*
+
+# Ignore the tensorboard logs
+/logs/*
