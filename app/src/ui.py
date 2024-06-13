@@ -1,5 +1,7 @@
 import src.variables as variables
 import src.settings as settings
+import src.console as console
+import src.mouse as mouse
 
 import dearpygui.dearpygui as dpg
 
@@ -37,4 +39,8 @@ def Update():
         settings.Set("Window", "Y", dpg.get_viewport_pos()[1])
         settings.Set("Window", "Width", dpg.get_viewport_width())
         settings.Set("Window", "Height", dpg.get_viewport_height())
+        if settings.Get("Console", "HideConsole", False):
+            console.RestoreConsole()
+            console.CloseConsole()
+            mouse.set_speed(variables.MOUSE_DEFAULT_SPEED)
     dpg.render_dearpygui_frame()
