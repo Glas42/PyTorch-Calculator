@@ -55,6 +55,7 @@ while variables.RUN:
 
     if left_clicked:
         ui.pygame.draw.line(ui.pygame.display.get_surface(), (255, 255, 255), (last_mouse_x, last_mouse_y), (mouse_x, mouse_y), 3)
+        ui.pygame.draw.circle(ui.pygame.display.get_surface(), (255, 255, 255), (mouse_x, mouse_y), 1)
 
     last_mouse_x, last_mouse_y = mouse_x, mouse_y
 

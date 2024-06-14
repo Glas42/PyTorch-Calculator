@@ -4,3 +4,6 @@
 
 # Ignore the tensorboard logs
 /logs/*
+
+# Ignore the raw images
+/raw/*
