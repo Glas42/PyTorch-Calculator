@@ -1,4 +1,4 @@
-This folder contains the codes to train an AI model for this app.
+This folder contains the codes to train the machine learning models for this app.
 
 The dataset folder should contain the training images with corresponding label text files.
 The label text files should be named with the image name and .txt extension.

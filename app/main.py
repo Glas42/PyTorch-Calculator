@@ -45,7 +45,6 @@ last_mouse_x = None
 last_mouse_y = None
 
 while variables.RUN:
-    ui.Update()
 
     mouse_x, mouse_y, mouse_x_relative, mouse_y_relative, left_clicked, right_clicked, zoom = mouse.get_position()
 
@@ -61,6 +60,8 @@ while variables.RUN:
             ui.dpg.draw_line([mouse_x, mouse_y], [last_mouse_x, last_mouse_y], thickness=3, color=[255, 255, 255, 255])
 
     last_mouse_x, last_mouse_y = mouse_x, mouse_y
+
+    ui.Update()
 
 if settings.Get("Console", "HideConsole", False):
     console.RestoreConsole()
