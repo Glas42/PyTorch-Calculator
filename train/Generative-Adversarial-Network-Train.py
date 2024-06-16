@@ -22,7 +22,7 @@ import cv2
 # Constants
 PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(PATH, "dataset")
-MODEL_PATH = os.path.join(PATH, "test")
+MODEL_PATH = os.path.join(PATH, "models")
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_EPOCHS = 10000
 BATCH_SIZE = 50
