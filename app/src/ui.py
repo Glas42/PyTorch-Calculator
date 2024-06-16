@@ -3,9 +3,11 @@ import src.settings as settings
 import src.console as console
 
 import win32gui
-import pygame
 import ctypes
 import os
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 
 def Initialize():
     try:

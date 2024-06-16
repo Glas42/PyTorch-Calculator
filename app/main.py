@@ -6,7 +6,6 @@ import src.ui as ui
 import traceback
 import threading
 import requests
-import win32gui
 import os
 
 if settings.Get("Console", "HideConsole", False):
