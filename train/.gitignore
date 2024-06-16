@@ -7,3 +7,5 @@
 
 # Ignore the tensorboard logs
 /logs/*
+
+/test

@@ -22,16 +22,16 @@ import cv2
 # Constants
 PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(PATH, "dataset")
-MODEL_PATH = os.path.join(PATH, "model")
+MODEL_PATH = os.path.join(PATH, "test")
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_EPOCHS = 10000
-BATCH_SIZE = 10
+BATCH_SIZE = 50
 LATENT_DIM = 10
 BETA1 = 0.9
 BETA2 = 0.9
 IMG_WIDTH = 256
 IMG_HEIGHT = 256
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.01
 NUM_WORKERS = 0
 SHUFFLE = True
 PIN_MEMORY = False
@@ -46,10 +46,7 @@ CLASSES = {
     "6": 6,
     "7": 7,
     "8": 8,
-    "9": 9,
-    "x": 10,
-    "y": 11,
-    "z": 12,
+    "9": 9
 }
 NUM_CLASSES = len(CLASSES)
 
@@ -107,8 +104,8 @@ def load_data():
                     if content.isdigit() and 0 <= int(content) < NUM_CLASSES:
                         user_input = [0] * NUM_CLASSES
                         user_input[int(content)] = 1
-                images.append(img)
-                user_inputs.append(user_input)
+                        images.append(img)
+                        user_inputs.append(user_input)
             else:
                 pass
 
@@ -135,35 +132,122 @@ class CustomDataset(Dataset):
         return image, torch.as_tensor(user_input, dtype=torch.float32)
 
 
+class ChannelAttention(nn.Module):
+    def __init__(self, in_planes, ratio=16):
+        super(ChannelAttention, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.fc = nn.Sequential(nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False),
+                               nn.ReLU(),
+                               nn.Conv2d(in_planes // ratio, in_planes, 1, bias=False))
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_out = self.fc(self.avg_pool(x))
+        max_out = self.fc(self.max_pool(x))
+        out = avg_out + max_out
+        return self.sigmoid(out)
+
+class SpatialAttention(nn.Module):
+    def __init__(self, kernel_size=7):
+        super(SpatialAttention, self).__init__()
+        self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_pool = torch.mean(x, dim=1, keepdim=True)
+        max_pool, _ = torch.max(x, dim=1, keepdim=True)
+        attention = torch.cat([avg_pool, max_pool], dim=1)
+        attention = self.conv(attention)
+        return self.sigmoid(attention)
+
+
 # Define the generator
 class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
-        self.main = nn.Sequential(
-            nn.ConvTranspose2d(LATENT_DIM + NUM_CLASSES, 512, 4, 1, 0, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(64, 32, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(32),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(32, 16, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(16),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(16, 1, 4, 2, 1, bias=False),
-            nn.Tanh()
-        )
+        self.conv1 = nn.ConvTranspose2d(LATENT_DIM + NUM_CLASSES, 1024, 4, 1, 0, bias=False)
+        self.bn1 = nn.BatchNorm2d(1024)
+        self.relu1 = nn.ReLU(True)
+
+        self.conv2 = nn.ConvTranspose2d(1024, 512, 4, 2, 1, bias=False)
+        self.bn2 = nn.BatchNorm2d(512)
+        self.relu2 = nn.ReLU(True)
+
+        self.conv3 = nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False)
+        self.bn3 = nn.BatchNorm2d(256)
+        self.relu3 = nn.ReLU(True)
+
+        self.conv4 = nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False)
+        self.bn4 = nn.BatchNorm2d(128)
+        self.relu4 = nn.ReLU(True)
+
+        self.conv5 = nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False)
+        self.bn5 = nn.BatchNorm2d(64)
+        self.relu5 = nn.ReLU(True)
+
+        self.conv6 = nn.ConvTranspose2d(64, 32, 4, 2, 1, bias=False)
+        self.bn6 = nn.BatchNorm2d(32)
+        self.relu6 = nn.ReLU(True)
+
+        self.conv7 = nn.ConvTranspose2d(32, 1, 4, 2, 1, bias=False)
+        self.tanh = nn.Tanh()
+
+        self.ca1 = ChannelAttention(1024)
+        self.ca2 = ChannelAttention(512)
+        self.ca3 = ChannelAttention(256)
+        self.ca4 = ChannelAttention(128)
+        self.ca5 = ChannelAttention(64)
+        self.ca6 = ChannelAttention(32)
+
+        self.sa1 = SpatialAttention()
+        self.sa2 = SpatialAttention()
+        self.sa3 = SpatialAttention()
+        self.sa4 = SpatialAttention()
+        self.sa5 = SpatialAttention()
+        self.sa6 = SpatialAttention()
 
     def forward(self, input):
-        return self.main(input)
+        x = self.conv1(input)
+        x = self.bn1(x)
+        x = self.relu1(x)
+        x = self.ca1(x) * x
+
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu2(x)
+        x = self.ca2(x) * x
+
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.relu3(x)
+        x = self.ca3(x) * x
+
+        x = self.conv4(x)
+        x = self.bn4(x)
+        x = self.relu4(x)
+        x = self.ca4(x) * x
+
+        x = self.conv5(x)
+        x = self.bn5(x)
+        x = self.relu5(x)
+        x = self.ca5(x) * x
+
+        x = self.conv6(x)
+        x = self.bn6(x)
+        x = self.relu6(x)
+        x = self.ca6(x) * x
+
+        x = self.conv7(x)
+        x = self.sa1(x) * x
+        x = self.sa2(x) * x
+        x = self.sa3(x) * x
+        x = self.sa4(x) * x
+        x = self.sa5(x) * x
+        x = self.sa6(x) * x
+        x = self.tanh(x)
+
+        return x
 
 
 # Define the discriminator
@@ -171,10 +255,7 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.main = nn.Sequential(
-            nn.Conv2d(1, 32, 4, 2, 1, bias=False),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(32, 64, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(1, 64, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(64, 128, 4, 2, 1, bias=False),
             nn.BatchNorm2d(128),
@@ -188,7 +269,10 @@ class Discriminator(nn.Module):
             nn.Conv2d(512, 1024, 4, 2, 1, bias=False),
             nn.BatchNorm2d(1024),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(1024, NUM_CLASSES, 4, 1, 0, bias=False),
+            nn.Conv2d(1024, 2048, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(2048),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(2048, NUM_CLASSES, 4, 1, 0, bias=False),
             nn.Sigmoid()
         )
 
@@ -346,7 +430,7 @@ def main():
 
         epoch_total_time = time.time() - epoch_total_start_time
 
-        if epoch % 100 == 0:
+        if epoch % 10 == 0:
             num_classes = NUM_CLASSES
             num_rows = int(np.ceil(np.sqrt(num_classes)))
             num_cols = num_rows

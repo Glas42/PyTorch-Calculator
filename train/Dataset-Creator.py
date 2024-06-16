@@ -253,7 +253,7 @@ while RUN:
             os.makedirs(f"{DATA_FOLDER}")
         with open(f"{DATA_FOLDER}{len(os.listdir(f'{DATA_FOLDER}'))}.txt", "w", encoding="utf-8") as f:
             AMOUNT[current_class_index] += 1
-            f.write(f"{CLASSES[current_class_index]}#{list}")
+            f.write(f"{current_class_index}#{list}")
             f.close()
         drawlist = list.copy()
         ClearFrame(list=drawlist)
