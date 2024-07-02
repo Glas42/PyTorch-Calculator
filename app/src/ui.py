@@ -1,58 +1,88 @@
+import src.uicomponents as uicomponents
 import src.variables as variables
 import src.settings as settings
 import src.console as console
 
-import win32gui
-import ctypes
+from tkinter import ttk
+import tkinter
+import sv_ttk
 import os
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
+def initialize():
+    width = settings.Get("UI", "width", 1000)
+    height = settings.Get("UI", "height", 600)
+    x = settings.Get("UI", "x", 0)
+    y = settings.Get("UI", "y", 0)
+    theme = settings.Get("UI", "theme", "dark")
+    resizable = settings.Get("UI", "resizable", False)
+    if os.name == "nt":
+        from ctypes import windll, byref, sizeof, c_int
 
-def Initialize():
-    try:
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (settings.Get("Window", "X", variables.SCREEN_WIDTH // 4), settings.Get("Window", "Y", variables.SCREEN_HEIGHT // 4))
-        pygame.init()
-        frame = pygame.display.set_mode(size=(settings.Get("Window", "Width", variables.SCREEN_WIDTH // 2), settings.Get("Window", "Height", variables.SCREEN_HEIGHT // 2)), flags=pygame.RESIZABLE, vsync=True)
-        frame.fill((0, 0, 0))
-        pygame.display.set_caption(variables.WINDOWNAME)
-        variables.HWND = pygame.display.get_wm_info()["window"]
+    variables.ROOT = tkinter.Tk()
+    variables.ROOT.title("PyTorch-Calculator")
+    variables.ROOT.geometry(f"{width}x{height}+{x}+{y}")
+    variables.ROOT.update()
+    sv_ttk.set_theme(theme, variables.ROOT)
+    variables.ROOT.protocol("WM_DELETE_WINDOW", close)
+    variables.ROOT.resizable(resizable, resizable)
 
-        if variables.OS == "nt":
-            import win32gui, win32con
+    if os.name == "nt":
+        variables.HWND = windll.user32.GetParent(variables.ROOT.winfo_id())
+        windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0xE7E7E7 if theme == "light" else 0x2F2F2F)), sizeof(c_int))
+        if theme == "light":
+            variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_light.ico")
+        else:
+            variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_dark.ico")
+
+def close():
+    settings.Set("UI", "width", variables.ROOT.winfo_width())
+    settings.Set("UI", "height", variables.ROOT.winfo_height())
+    settings.Set("UI", "x", variables.ROOT.winfo_x())
+    settings.Set("UI", "y", variables.ROOT.winfo_y())
+    console.RestoreConsole()
+    console.CloseConsole()
+    variables.ROOT.destroy()
+    variables.BREAK = True
+
+def createUI():
+    style = ttk.Style()
+    style.layout("Tab",[('Notebook.tab',{'sticky':'nswe','children':[('Notebook.padding',{'side':'top','sticky':'nswe','children':[('Notebook.label',{'side':'top','sticky':''})],})],})])
+
+    tabControl = ttk.Notebook(variables.ROOT)
+    tabControl.pack(expand = 1, fill ="both")
+
+    tab_draw = ttk.Frame(tabControl)
+    tabControl.add(tab_draw, text ='Draw')
+
+    tab_settings = ttk.Frame(tabControl)
+    tabControl.add(tab_settings, text ='Settings')
+
+
+    uicomponents.MakeLabel(tab_settings, "Set the theme:", row=0, column=0, padx=20, pady=20, sticky="nw", font=("Segoe UI", 11))
+    def ChangeTheme(theme):
+        settings.Set("UI", "theme", theme)
+        sv_ttk.set_theme(theme, variables.ROOT)
+        if os.name == "nt":
             from ctypes import windll, byref, sizeof, c_int
-            windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
+            variables.HWND = windll.user32.GetParent(variables.ROOT.winfo_id())
+            windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0xE7E7E7 if theme == "light" else 0x2F2F2F)), sizeof(c_int))
+            if theme == "light":
+                variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_light.ico")
+            else:
+                variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_dark.ico")
+    theme = tkinter.StringVar(value=settings.Get("UI", "theme", "dark"))
+    ttk.Radiobutton(tab_settings, text="Dark", command=lambda: ChangeTheme("dark"), variable=theme, value="dark").grid(row=0, column=1)
+    ttk.Radiobutton(tab_settings, text="Light", command=lambda: ChangeTheme("light"), variable=theme, value="light").grid(row=0, column=2)
 
-            hicon = win32gui.LoadImage(None, f"{variables.PATH}icon.ico", win32con.IMAGE_ICON, 0, 0, win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE)
-            win32gui.SendMessage(variables.HWND, win32con.WM_SETICON, win32con.ICON_SMALL, hicon)
-            win32gui.SendMessage(variables.HWND, win32con.WM_SETICON, win32con.ICON_BIG, hicon)
-    except:
-        import traceback
-        print(traceback.format_exc())
+    def ChangeResizable():
+        resizable = settings.Get("UI", "resizable", False)
+        variables.ROOT.resizable(resizable, resizable)
+        ChangeTheme(settings.Get("UI", "theme", "dark"))
+    uicomponents.MakeCheckButton(tab_settings, "Resizeable", "UI", "resizable", row=1, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeResizable())
 
-def GetMouseSpeed():
-    speed = ctypes.c_int()
-    ctypes.windll.user32.SystemParametersInfoA(112, 0, ctypes.byref(speed), 0)
-    return speed.value
-
-def SetMouseSpeed(speed):
-    ctypes.windll.user32.SystemParametersInfoA(113, 0, speed, 0)
-
-def GetPosition():
-    rect = win32gui.GetClientRect(variables.HWND)
-    tl = win32gui.ClientToScreen(variables.HWND, (rect[0], rect[1]))
-    br = win32gui.ClientToScreen(variables.HWND, (rect[2], rect[3]))
-    window_x, window_y, window_width, window_height = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-    return window_x, window_y, window_width, window_height
-
-def Update():
-    if variables.RUN == False:
-        settings.Set("Window", "X", GetPosition()[0])
-        settings.Set("Window", "Y", GetPosition()[1])
-        settings.Set("Window", "Width", GetPosition()[2])
-        settings.Set("Window", "Height", GetPosition()[3])
-        if settings.Get("Console", "HideConsole", False):
+    def ChangeHideConsole():
+        if settings.Get("Console", "HideConsole"):
+            console.HideConsole()
+        else:
             console.RestoreConsole()
-            console.CloseConsole()
-        SetMouseSpeed(variables.MOUSE_DEFAULT_SPEED)
-    pygame.display.update()
+    uicomponents.MakeCheckButton(tab_settings, "Hide Console", "Console", "HideConsole", row=2, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeHideConsole())

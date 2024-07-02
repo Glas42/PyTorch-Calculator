@@ -1,6 +1,9 @@
 import mss
 import os
 
+ROOT = None
+HWND = None
+BREAK = False
 PATH = os.path.dirname(__file__).replace("src", "")
 
 OS = os.name
