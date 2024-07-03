@@ -39,9 +39,6 @@ ui.createUI()
 frame = ui.background.copy()
 current_tab = None
 last_tab = None
-position = 0, 0
-zoom = 1
-points = []
 
 def WindowMover():
     last_window_position = None, None, None, None
@@ -70,9 +67,6 @@ threading.Thread(target=WindowMover, daemon=True).start()
 def DrawHandler():
     import ctypes
     import mouse
-    global zoom
-    global points
-    global position
     smooth_lines = settings.Get("Draw", "SmoothLines", False)
     last_left_clicked = False
     last_right_clicked = False
@@ -94,50 +88,49 @@ def DrawHandler():
         with pynput.mouse.Events() as events:
             event = events.get()
             if isinstance(event, pynput.mouse.Events.Scroll):
-                zoom *= 1.1 if event.dy > 0 else 0.9
-                if zoom > 100000: zoom = 100000
-                print(f"zoom: {zoom}")
+                variables.CANVAS_ZOOM *= 1.1 if event.dy > 0 else 0.9
+                if variables.CANVAS_ZOOM > 100000: variables.CANVAS_ZOOM = 100000
+                print(f"zoom: {variables.CANVAS_ZOOM}")
 
         if right_clicked == False:
-            move_start = mouse_x - position[0], mouse_y - position[1]
+            move_start = mouse_x - variables.CANVAS_POSITION[0], mouse_y - variables.CANVAS_POSITION[1]
         else:
-            position = (mouse_x - move_start[0]), (mouse_y - move_start[1])
+            variables.CANVAS_POSITION = (mouse_x - move_start[0]), (mouse_y - move_start[1])
 
-        if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in points:
-            points.append(((mouse_x - window_x - position[0]) * 1/zoom, (mouse_y - window_y - position[1]) * 1/zoom))
+        if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in variables.CANVAS_TEMP:
+            variables.CANVAS_TEMP.append(((mouse_x - window_x - variables.CANVAS_POSITION[0]) * 1/variables.CANVAS_ZOOM, (mouse_y - window_y - variables.CANVAS_POSITION[1]) * 1/variables.CANVAS_ZOOM))
 
         if left_clicked == False and last_left_clicked == True:
             if smooth_lines:
                 temp = []
-                for point in points:
+                for point in variables.CANVAS_TEMP:
                     if point not in temp:
                         temp.append(point)
-                points = temp
-                smoothness = len(points) // 50
+                variables.CANVAS_TEMP = temp
+                smoothness = len(variables.CANVAS_TEMP) // 50
                 for _ in range(smoothness):
                     temp = []
-                    for i in range(len(points)):
+                    for i in range(len(variables.CANVAS_TEMP)):
                         if i < smoothness:
-                            x_avg = sum(p[0] for p in points[:i+smoothness+1]) // (i+smoothness+1)
-                            y_avg = sum(p[1] for p in points[:i+smoothness+1]) // (i+smoothness+1)
+                            x_avg = sum(p[0] for p in variables.CANVAS_TEMP[:i+smoothness+1]) // (i+smoothness+1)
+                            y_avg = sum(p[1] for p in variables.CANVAS_TEMP[:i+smoothness+1]) // (i+smoothness+1)
                             temp.append((x_avg, y_avg))
-                        elif i >= len(points) - smoothness:
-                            x_avg = sum(p[0] for p in points[i-smoothness:]) // (len(points) - i + smoothness)
-                            y_avg = sum(p[1] for p in points[i-smoothness:]) // (len(points) - i + smoothness)
+                        elif i >= len(variables.CANVAS_TEMP) - smoothness:
+                            x_avg = sum(p[0] for p in variables.CANVAS_TEMP[i-smoothness:]) // (len(variables.CANVAS_TEMP) - i + smoothness)
+                            y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:]) // (len(variables.CANVAS_TEMP) - i + smoothness)
                             temp.append((x_avg, y_avg))
                         else:
-                            x_avg = sum(p[0] for p in points[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
-                            y_avg = sum(p[1] for p in points[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
+                            x_avg = sum(p[0] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
+                            y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
                             temp.append((x_avg, y_avg))
-                    points = temp
+                    variables.CANVAS_TEMP = temp
 
             temp = []
-            for point in points:
+            for point in variables.CANVAS_TEMP:
                 if point not in temp:
                     temp.append(point)
-            points = temp
-            variables.FILE_CONTENT.append(points)
-            points = []
+            variables.FILE_CONTENT.append(temp)
+            variables.CANVAS_TEMP = []
 
         last_mouse_x, last_mouse_y = mouse_x, mouse_y
         last_left_clicked, last_right_clicked = left_clicked, right_clicked
@@ -157,28 +150,28 @@ while variables.BREAK == False:
     if current_tab == "Draw":
         frame = ui.background.copy()
         last_point = None
-        for x, y in points:
+        for x, y in variables.CANVAS_TEMP:
             if last_point != None:
-                point_x1 = last_point[0] + position[0] * 1/zoom
-                point_y1 = last_point[1] + position[1] * 1/zoom
-                point_x2 = x + position[0] * 1/zoom
-                point_y2 = y + position[1] * 1/zoom
-                ui.cv2.line(frame, (round(point_x1 * zoom), round(point_y1 * zoom)), (round(point_x2 * zoom), round(point_y2 * zoom)), (255, 255, 255), 3)
+                point_x1 = last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
+                point_y1 = last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
+                point_x2 = x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
+                point_y2 = y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
+                ui.cv2.line(frame, (round(point_x1 * variables.CANVAS_ZOOM), round(point_y1 * variables.CANVAS_ZOOM)), (round(point_x2 * variables.CANVAS_ZOOM), round(point_y2 * variables.CANVAS_ZOOM)), (255, 255, 255), 3)
             last_point = (x, y)
-        #if len(points) == 1:
-        #    ui.cv2.circle(frame, (points[0][0] + position[0], points[0][1] + position[1]), 3, (255, 255, 255), -1)
+        #if len(variables.CANVAS_TEMP) == 1:
+        #    ui.cv2.circle(frame, (variables.CANVAS_TEMP[0][0] + variables.CANVAS_POSITION[0], variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1]), 3, (255, 255, 255), -1)
         for i in variables.FILE_CONTENT:
             last_point = None
             for x, y in i:
                 if last_point != None:
-                    point_x1 = last_point[0] + position[0] * 1/zoom
-                    point_y1 = last_point[1] + position[1] * 1/zoom
-                    point_x2 = x + position[0] * 1/zoom
-                    point_y2 = y + position[1] * 1/zoom
-                    ui.cv2.line(frame, (round(point_x1 * zoom), round(point_y1 * zoom)), (round(point_x2 * zoom), round(point_y2 * zoom)), (255, 255, 255), 3)
+                    point_x1 = last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
+                    point_y1 = last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
+                    point_x2 = x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
+                    point_y2 = y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
+                    ui.cv2.line(frame, (round(point_x1 * variables.CANVAS_ZOOM), round(point_y1 * variables.CANVAS_ZOOM)), (round(point_x2 * variables.CANVAS_ZOOM), round(point_y2 * variables.CANVAS_ZOOM)), (255, 255, 255), 3)
                 last_point = (x, y)
             #if len(i) == 1:
-            #    ui.cv2.circle(frame, (i[0][0] + position[0], i[0][1] + position[1]), 3, (255, 255, 255), -1)
+            #    ui.cv2.circle(frame, (i[0][0] + variables.CANVAS_POSITION[0], i[0][1] + variables.CANVAS_POSITION[1]), 3, (255, 255, 255), -1)
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)
 

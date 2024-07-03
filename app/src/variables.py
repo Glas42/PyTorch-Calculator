@@ -15,6 +15,10 @@ WINDOWNAME = "PyTorch-Calculator"
 FILE_PATH = None
 FILE_CONTENT = []
 
+CANVAS_POSITION = 0, 0
+CANVAS_ZOOM = 1
+CANVAS_TEMP = []
+
 sct = mss.mss()
 SCRENN_X = sct.monitors[1]["left"]
 SCRENN_Y = sct.monitors[1]["top"]
