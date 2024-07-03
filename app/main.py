@@ -6,6 +6,7 @@ import src.ui as ui
 import traceback
 import threading
 import requests
+import pynput
 import numpy
 import time
 import os
@@ -39,6 +40,7 @@ frame = ui.background.copy()
 current_tab = None
 last_tab = None
 position = 0, 0
+zoom = 1
 points = []
 
 def WindowMover():
@@ -68,6 +70,7 @@ threading.Thread(target=WindowMover, daemon=True).start()
 def DrawHandler():
     import ctypes
     import mouse
+    global zoom
     global points
     global position
     smooth_lines = settings.Get("Draw", "SmoothLines", False)
@@ -88,13 +91,20 @@ def DrawHandler():
         left_clicked = True if ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
         right_clicked = True if ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
 
+        with pynput.mouse.Events() as events:
+            event = events.get()
+            if isinstance(event, pynput.mouse.Events.Scroll):
+                zoom *= 1.1 if event.dy > 0 else 0.9
+                if zoom > 100000: zoom = 100000
+                print(f"zoom: {zoom}")
+
         if right_clicked == False:
             move_start = mouse_x - position[0], mouse_y - position[1]
         else:
-            position = (mouse_x - move_start[0], mouse_y - move_start[1])
+            position = (mouse_x - move_start[0]), (mouse_y - move_start[1])
 
         if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in points:
-            points.append((mouse_x - window_x - position[0], mouse_y - window_y - position[1]))
+            points.append(((mouse_x - window_x - position[0]) * 1/zoom, (mouse_y - window_y - position[1]) * 1/zoom))
 
         if left_clicked == False and last_left_clicked == True:
             if smooth_lines:
@@ -149,18 +159,26 @@ while variables.BREAK == False:
         last_point = None
         for x, y in points:
             if last_point != None:
-                ui.cv2.line(frame, (last_point[0] + position[0], last_point[1] + position[1]), (x + position[0], y + position[1]), (255, 255, 255), 3)
+                point_x1 = last_point[0] + position[0] * 1/zoom
+                point_y1 = last_point[1] + position[1] * 1/zoom
+                point_x2 = x + position[0] * 1/zoom
+                point_y2 = y + position[1] * 1/zoom
+                ui.cv2.line(frame, (round(point_x1 * zoom), round(point_y1 * zoom)), (round(point_x2 * zoom), round(point_y2 * zoom)), (255, 255, 255), 3)
             last_point = (x, y)
-        if len(points) == 1:
-            ui.cv2.circle(frame, (points[0][0] + position[0], points[0][1] + position[1]), 3, (255, 255, 255), -1)
+        #if len(points) == 1:
+        #    ui.cv2.circle(frame, (points[0][0] + position[0], points[0][1] + position[1]), 3, (255, 255, 255), -1)
         for i in variables.FILE_CONTENT:
             last_point = None
             for x, y in i:
                 if last_point != None:
-                    ui.cv2.line(frame, (last_point[0] + position[0], last_point[1] + position[1]), (x + position[0], y + position[1]), (255, 255, 255), 3)
+                    point_x1 = last_point[0] + position[0] * 1/zoom
+                    point_y1 = last_point[1] + position[1] * 1/zoom
+                    point_x2 = x + position[0] * 1/zoom
+                    point_y2 = y + position[1] * 1/zoom
+                    ui.cv2.line(frame, (round(point_x1 * zoom), round(point_y1 * zoom)), (round(point_x2 * zoom), round(point_y2 * zoom)), (255, 255, 255), 3)
                 last_point = (x, y)
-            if len(i) == 1:
-                ui.cv2.circle(frame, (i[0][0] + position[0], i[0][1] + position[1]), 3, (255, 255, 255), -1)
+            #if len(i) == 1:
+            #    ui.cv2.circle(frame, (i[0][0] + position[0], i[0][1] + position[1]), 3, (255, 255, 255), -1)
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)
 

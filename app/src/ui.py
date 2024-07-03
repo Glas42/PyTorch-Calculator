@@ -101,7 +101,12 @@ def createUI():
     global save
     def save():
         variables.FILE_PATH = filedialog.asksaveasfilename(initialdir=os.path.dirname(os.path.dirname(variables.PATH)), title="Select a path to save to", filetypes=((".txt","*.txt"), ("all files","*.*")))
-
+        if variables.FILE_PATH == "":
+            return
+        if not variables.FILE_PATH.endswith(".txt"):
+            variables.FILE_PATH += ".txt"
+        with open(variables.FILE_PATH, "w") as f:
+            f.write(str(variables.FILE_CONTENT))
     uicomponents.MakeButton(tab_file, "Save", save, row=0, column=0, padx=20, pady=20, sticky="nw")
 
     global load
@@ -109,8 +114,10 @@ def createUI():
         variables.FILE_PATH = filedialog.askopenfilename(initialdir=os.path.dirname(os.path.dirname(variables.PATH)), title="Select a text file to load", filetypes=((".txt","*.txt"), ("all files","*.*")))
         if variables.FILE_PATH == "":
             return
+        if not variables.FILE_PATH.endswith(".txt"):
+            variables.FILE_PATH += ".txt"
         with open(variables.FILE_PATH, "r") as f:
-            variables.FILE_CONTENT = f.read()
+            variables.FILE_CONTENT = eval(f.read())
     uicomponents.MakeButton(tab_file, "Load", load, row=0, column=1, padx=20, pady=20, sticky="nw")
 
 
