@@ -11,7 +11,9 @@ with open(PATH.replace("\\app", "") + "version.txt") as f: VERSION = f.read()
 
 RUN = True
 WINDOWNAME = "PyTorch-Calculator"
-MOUSE_DEFAULT_SPEED = 10
+
+FILE_PATH = None
+FILE_CONTENT = []
 
 sct = mss.mss()
 SCRENN_X = sct.monitors[1]["left"]

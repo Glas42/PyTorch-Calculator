@@ -3,6 +3,7 @@ import src.variables as variables
 import src.settings as settings
 import src.console as console
 
+from tkinter import filedialog
 from tkinter import ttk
 import tkinter
 import sv_ttk
@@ -83,6 +84,8 @@ def createUI():
     tabControl.pack(expand = 1, fill="both")
 
     tab_draw = ttk.Frame(tabControl)
+    tab_draw.grid_rowconfigure(0, weight=1)
+    tab_draw.grid_columnconfigure(0, weight=1)
     tabControl.add(tab_draw, text='Draw')
 
     tab_file = ttk.Frame(tabControl)
@@ -92,15 +95,31 @@ def createUI():
     tabControl.add(tab_settings, text='Settings')
 
 
+    uicomponents.MakeLabel(tab_draw, "The drawing window is hidden, it will be shown again when you return back to the application.", row=0, column=0, sticky="ns")
+
+
+    global save
     def save():
-        pass
+        variables.FILE_PATH = filedialog.asksaveasfilename(initialdir=os.path.dirname(os.path.dirname(variables.PATH)), title="Select a path to save to", filetypes=((".txt","*.txt"), ("all files","*.*")))
+
     uicomponents.MakeButton(tab_file, "Save", save, row=0, column=0, padx=20, pady=20, sticky="nw")
+
+    global load
+    def load():
+        variables.FILE_PATH = filedialog.askopenfilename(initialdir=os.path.dirname(os.path.dirname(variables.PATH)), title="Select a text file to load", filetypes=((".txt","*.txt"), ("all files","*.*")))
+        if variables.FILE_PATH == "":
+            return
+        with open(variables.FILE_PATH, "r") as f:
+            variables.FILE_CONTENT = f.read()
+    uicomponents.MakeButton(tab_file, "Load", load, row=0, column=1, padx=20, pady=20, sticky="nw")
 
 
     uicomponents.MakeLabel(tab_settings, "Set the theme:", row=0, column=0, padx=20, pady=20, sticky="nw", font=("Segoe UI", 11))
     def ChangeTheme(theme):
         settings.Set("UI", "theme", theme)
         sv_ttk.set_theme(theme, variables.ROOT)
+        style = ttk.Style()
+        style.layout("Tab",[('Notebook.tab',{'sticky':'nswe','children':[('Notebook.padding',{'side':'top','sticky':'nswe','children':[('Notebook.label',{'side':'top','sticky':''})],})],})])
         if variables.OS == "nt":
             import win32gui
             global background

@@ -38,8 +38,8 @@ ui.createUI()
 frame = ui.background.copy()
 current_tab = None
 last_tab = None
+position = 0, 0
 points = []
-list = []
 
 def WindowMover():
     last_window_position = None, None, None, None
@@ -69,23 +69,32 @@ def DrawHandler():
     import ctypes
     import mouse
     global points
-    global list
+    global position
     smooth_lines = settings.Get("Draw", "SmoothLines", False)
     last_left_clicked = False
+    last_right_clicked = False
     last_mouse_x = None
     last_mouse_y = None
+    move_start = 0, 0
     while variables.BREAK == False:
         try:
             window_x, window_y, window_width, window_height = ui.cv2.getWindowImageRect(variables.WINDOWNAME)
         except:
             variables.BREAK = True
         mouse_x, mouse_y = mouse.get_position()
-        left_clicked = True if ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
         if last_mouse_x is None: last_mouse_x = mouse_x
         if last_mouse_y is None: last_mouse_y = mouse_y
 
+        left_clicked = True if ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
+        right_clicked = True if ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
+
+        if right_clicked == False:
+            move_start = mouse_x - position[0], mouse_y - position[1]
+        else:
+            position = (mouse_x - move_start[0], mouse_y - move_start[1])
+
         if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in points:
-            points.append((mouse_x - window_x, mouse_y - window_y))
+            points.append((mouse_x - window_x - position[0], mouse_y - window_y - position[1]))
 
         if left_clicked == False and last_left_clicked == True:
             if smooth_lines:
@@ -117,11 +126,11 @@ def DrawHandler():
                 if point not in temp:
                     temp.append(point)
             points = temp
-            list.append(points)
+            variables.FILE_CONTENT.append(points)
             points = []
 
         last_mouse_x, last_mouse_y = mouse_x, mouse_y
-        last_left_clicked = left_clicked
+        last_left_clicked, last_right_clicked = left_clicked, right_clicked
 threading.Thread(target=DrawHandler, daemon=True).start()
 
 while variables.BREAK == False:
@@ -140,18 +149,18 @@ while variables.BREAK == False:
         last_point = None
         for x, y in points:
             if last_point != None:
-                ui.cv2.line(frame, last_point, (x, y), (255, 255, 255), 3)
+                ui.cv2.line(frame, (last_point[0] + position[0], last_point[1] + position[1]), (x + position[0], y + position[1]), (255, 255, 255), 3)
             last_point = (x, y)
         if len(points) == 1:
-            ui.cv2.circle(frame, points[0], 3, (255, 255, 255), -1)
-        for i in list:
+            ui.cv2.circle(frame, (points[0][0] + position[0], points[0][1] + position[1]), 3, (255, 255, 255), -1)
+        for i in variables.FILE_CONTENT:
             last_point = None
             for x, y in i:
                 if last_point != None:
-                    ui.cv2.line(frame, last_point, (x, y), (255, 255, 255), 3)
+                    ui.cv2.line(frame, (last_point[0] + position[0], last_point[1] + position[1]), (x + position[0], y + position[1]), (255, 255, 255), 3)
                 last_point = (x, y)
             if len(i) == 1:
-                ui.cv2.circle(frame, i[0], 3, (255, 255, 255), -1)
+                ui.cv2.circle(frame, (i[0][0] + position[0], i[0][1] + position[1]), 3, (255, 255, 255), -1)
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)
 
@@ -160,7 +169,6 @@ while variables.BREAK == False:
     time_to_sleep = 1/60 - (time.time() - start)
     if time_to_sleep > 0:
         time.sleep(time_to_sleep)
-    print(f"FPS: {1/(time.time() - start)}")
 
 if settings.Get("Console", "HideConsole", False):
     console.RestoreConsole()
