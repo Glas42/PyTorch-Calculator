@@ -6,12 +6,12 @@ import src.console as console
 from tkinter import ttk
 import tkinter
 import sv_ttk
+import numpy
+import cv2
 import os
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
-
 def initialize():
+    global theme
     width = settings.Get("UI", "width", 1000)
     height = settings.Get("UI", "height", 600)
     x = settings.Get("UI", "x", 0)
@@ -23,7 +23,7 @@ def initialize():
         import win32gui, win32con
 
     variables.ROOT = tkinter.Tk()
-    variables.ROOT.title("PyTorch-Calculator")
+    variables.ROOT.title(variables.WINDOWNAME)
     variables.ROOT.geometry(f"{width}x{height}+{x}+{y}")
     variables.ROOT.update()
     sv_ttk.set_theme(theme, variables.ROOT)
@@ -39,18 +39,21 @@ def initialize():
         else:
             variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_dark.ico")
 
-    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (settings.Get("Window", "X", variables.SCREEN_WIDTH // 4), settings.Get("Window", "Y", variables.SCREEN_HEIGHT // 4))
-    pygame.init()
-    global frame
     rect = win32gui.GetClientRect(variables.TK_HWND)
     tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
     br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
     window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-    frame = pygame.display.set_mode(size=(window_position[2] - 10, window_position[3] - 50), flags=pygame.NOFRAME, vsync=True)
-    frame.fill((250, 250, 250) if theme == "light" else (28, 28, 28))
-    pygame.display.set_caption(variables.WINDOWNAME)
-    variables.HWND = pygame.display.get_wm_info()["window"]
-    win32gui.SetWindowPos(variables.HWND, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+    cv2.namedWindow(variables.WINDOWNAME, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(variables.WINDOWNAME, window_position[2] - 10, window_position[3] - 50)
+    cv2.moveWindow(variables.WINDOWNAME, window_position[0] + 5, window_position[1] + 45)
+    cv2.setWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_TOPMOST, 1)
+    cv2.setWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    variables.HWND = win32gui.FindWindow(None, variables.WINDOWNAME)
+    win32gui.SetWindowLong(variables.HWND, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(variables.HWND, win32con.GWL_EXSTYLE) | win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT)
+
+    global background
+    background = numpy.zeros((settings.Get("UI", "height", 600), settings.Get("UI", "width", 1000), 3), numpy.uint8)
+    background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
 
     if variables.OS == "nt":
         windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
@@ -96,12 +99,18 @@ def createUI():
 
     uicomponents.MakeLabel(tab_settings, "Set the theme:", row=0, column=0, padx=20, pady=20, sticky="nw", font=("Segoe UI", 11))
     def ChangeTheme(theme):
-        frame.fill((250, 250, 250) if theme == "light" else (28, 28, 28))
-        if variables.OS == "nt":
-            import win32gui, win32con
-            win32gui.SetWindowPos(variables.HWND, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
         settings.Set("UI", "theme", theme)
         sv_ttk.set_theme(theme, variables.ROOT)
+        if variables.OS == "nt":
+            import win32gui
+            global background
+            rect = win32gui.GetClientRect(variables.TK_HWND)
+            tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
+            br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
+            window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
+            win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
+            background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
+            background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
         if os.name == "nt":
             from ctypes import windll, byref, sizeof, c_int
             windll.dwmapi.DwmSetWindowAttribute(windll.user32.GetParent(variables.ROOT.winfo_id()), 35, byref(c_int(0xE7E7E7 if theme == "light" else 0x2F2F2F)), sizeof(c_int))
