@@ -107,6 +107,7 @@ def createUI():
             variables.FILE_PATH += ".txt"
         with open(variables.FILE_PATH, "w") as f:
             f.write(f"{variables.CANVAS_POSITION}#{variables.CANVAS_ZOOM}#{variables.FILE_CONTENT}")
+        tabControl.select(tab_draw)
     uicomponents.MakeButton(tab_file, "Save", save, row=0, column=0, padx=20, pady=20, sticky="nw")
 
     def load():

@@ -68,6 +68,7 @@ def DrawHandler():
     import ctypes
     import mouse
     smooth_lines = settings.Get("Draw", "SmoothLines", False)
+    upscale_lines = settings.Get("Draw", "UpscaleLines", False)
     last_left_clicked = False
     last_right_clicked = False
     last_mouse_x = None
@@ -103,6 +104,18 @@ def DrawHandler():
             variables.CANVAS_TEMP.append(((mouse_x - window_x - variables.CANVAS_POSITION[0]) * 1/variables.CANVAS_ZOOM, (mouse_y - window_y - variables.CANVAS_POSITION[1]) * 1/variables.CANVAS_ZOOM))
 
         if left_clicked == False and last_left_clicked == True:
+            if upscale_lines:
+                temp = []
+                for _ in range(15):
+                    for i in range(len(variables.CANVAS_TEMP)-2):
+                        x1, y1 = variables.CANVAS_TEMP[i]
+                        x2, y2 = variables.CANVAS_TEMP[i+1]
+                        x3, y3 = variables.CANVAS_TEMP[i+2]
+                        x = (x1*0.3 + x2*0.4 + x3*0.3)
+                        y = (y1*0.3 + y2*0.4 + y3*0.3)
+                        temp.append((x, y))
+                variables.CANVAS_TEMP = temp
+
             if smooth_lines:
                 temp = []
                 for point in variables.CANVAS_TEMP:
@@ -174,6 +187,11 @@ while variables.BREAK == False:
                 last_point = (x, y)
             #if len(i) == 1:
             #    ui.cv2.circle(frame, (i[0][0] + variables.CANVAS_POSITION[0], i[0][1] + variables.CANVAS_POSITION[1]), 3, (255, 255, 255), -1)
+        for i in variables.FILE_CONTENT:
+            for x, y in i:
+                point_x = x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
+                point_y = y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
+                #ui.cv2.circle(frame, (round(point_x * variables.CANVAS_ZOOM), round(point_y * variables.CANVAS_ZOOM)), 3, (0, 0, 255), -1)
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)
 
