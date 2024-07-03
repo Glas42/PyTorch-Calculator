@@ -55,6 +55,8 @@ def WindowMover():
                     win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
                     ui.background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
                     ui.background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
+                    if ui.cv2.getWindowProperty(variables.WINDOWNAME, ui.cv2.WND_PROP_TOPMOST) != 1:
+                        ui.cv2.setWindowProperty(variables.WINDOWNAME, ui.cv2.WND_PROP_TOPMOST, 1)
                 last_window_position = window_position
         except:
             pass
@@ -82,7 +84,7 @@ def DrawHandler():
         if last_mouse_x is None: last_mouse_x = mouse_x
         if last_mouse_y is None: last_mouse_y = mouse_y
 
-        if left_clicked == True and (mouse_x, mouse_y) not in points:
+        if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in points:
             points.append((mouse_x - window_x, mouse_y - window_y))
 
         if left_clicked == False and last_left_clicked == True:
@@ -140,12 +142,16 @@ while variables.BREAK == False:
             if last_point != None:
                 ui.cv2.line(frame, last_point, (x, y), (255, 255, 255), 3)
             last_point = (x, y)
+        if len(points) == 1:
+            ui.cv2.circle(frame, points[0], 3, (255, 255, 255), -1)
         for i in list:
             last_point = None
             for x, y in i:
                 if last_point != None:
                     ui.cv2.line(frame, last_point, (x, y), (255, 255, 255), 3)
                 last_point = (x, y)
+            if len(i) == 1:
+                ui.cv2.circle(frame, i[0], 3, (255, 255, 255), -1)
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)
 
