@@ -88,9 +88,11 @@ def DrawHandler():
         with pynput.mouse.Events() as events:
             event = events.get()
             if isinstance(event, pynput.mouse.Events.Scroll):
+                canvas_x = (mouse_x - window_x - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
+                canvas_y = (mouse_y - window_y - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
                 variables.CANVAS_ZOOM *= 1.1 if event.dy > 0 else 0.9
+                variables.CANVAS_POSITION = (mouse_x - window_x - canvas_x * variables.CANVAS_ZOOM, mouse_y - window_y - canvas_y * variables.CANVAS_ZOOM)
                 if variables.CANVAS_ZOOM > 100000: variables.CANVAS_ZOOM = 100000
-                print(f"zoom: {variables.CANVAS_ZOOM}")
 
         if right_clicked == False:
             move_start = mouse_x - variables.CANVAS_POSITION[0], mouse_y - variables.CANVAS_POSITION[1]
