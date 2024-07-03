@@ -116,6 +116,7 @@ def DrawHandler():
                         x = (x1*0.3 + x2*0.4 + x3*0.3)
                         y = (y1*0.3 + y2*0.4 + y3*0.3)
                         temp.append((x, y))
+                temp.append(variables.CANVAS_TEMP[-1])
                 variables.CANVAS_TEMP = temp
 
             if smooth_lines:
@@ -169,31 +170,36 @@ while variables.BREAK == False:
         last_point = None
         for x, y in variables.CANVAS_TEMP:
             if last_point != None:
-                point_x1 = last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
-                point_y1 = last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
-                point_x2 = x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
-                point_y2 = y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
-                ui.cv2.line(frame, (round(point_x1 * variables.CANVAS_ZOOM), round(point_y1 * variables.CANVAS_ZOOM)), (round(point_x2 * variables.CANVAS_ZOOM), round(point_y2 * variables.CANVAS_ZOOM)), (255, 255, 255), 3)
+                point_x1 = round((last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                point_y1 = round((last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                if 0 <= point_x1 < frame.shape[1] and 0 <= point_y1 < frame.shape[0] and 0 <= point_x2 < frame.shape[1] and 0 <= point_y2 < frame.shape[0]:
+                    ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), (255, 255, 255), 3)
             last_point = (x, y)
-        #if len(variables.CANVAS_TEMP) == 1:
-        #    ui.cv2.circle(frame, (variables.CANVAS_TEMP[0][0] + variables.CANVAS_POSITION[0], variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1]), 3, (255, 255, 255), -1)
+        print(len(variables.CANVAS_TEMP))
+        if len(variables.CANVAS_TEMP) == 1:
+            point_x = round((variables.CANVAS_TEMP[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+            point_y = round((variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+            if 0 <= point_x < frame.shape[1] and 0 <= point_y < frame.shape[0]:
+                ui.cv2.circle(frame, (point_x, point_y), 3, (255, 255, 255), -1)
         for i in variables.FILE_CONTENT:
             last_point = None
             for x, y in i:
                 if last_point != None:
-                    point_x1 = last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
-                    point_y1 = last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
-                    point_x2 = x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
-                    point_y2 = y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
-                    ui.cv2.line(frame, (round(point_x1 * variables.CANVAS_ZOOM), round(point_y1 * variables.CANVAS_ZOOM)), (round(point_x2 * variables.CANVAS_ZOOM), round(point_y2 * variables.CANVAS_ZOOM)), (255, 255, 255), 3)
+                    point_x1 = round((last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                    point_y1 = round((last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                    point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                    point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                    if 0 <= point_x1 < frame.shape[1] and 0 <= point_y1 < frame.shape[0] and 0 <= point_x2 < frame.shape[1] and 0 <= point_y2 < frame.shape[0]:
+                        ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), (255, 255, 255), 3)
                 last_point = (x, y)
-            #if len(i) == 1:
-            #    ui.cv2.circle(frame, (i[0][0] + variables.CANVAS_POSITION[0], i[0][1] + variables.CANVAS_POSITION[1]), 3, (255, 255, 255), -1)
-        for i in variables.FILE_CONTENT:
-            for x, y in i:
-                point_x = x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM
-                point_y = y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM
-                #ui.cv2.circle(frame, (round(point_x * variables.CANVAS_ZOOM), round(point_y * variables.CANVAS_ZOOM)), 3, (0, 0, 255), -1)
+            if len(i) == 1:
+                point_x = round((i[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                point_y = round((i[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                if 0 <= point_x < frame.shape[1] and 0 <= point_y < frame.shape[0]:
+                    ui.cv2.circle(frame, (point_x, point_y), 3, (255, 255, 255), -1)
+
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)
 
