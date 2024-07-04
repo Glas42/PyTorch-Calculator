@@ -174,15 +174,15 @@ while variables.BREAK == False:
                 point_y1 = round((last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                if 0 <= point_x1 < frame.shape[1] and 0 <= point_y1 < frame.shape[0] and 0 <= point_x2 < frame.shape[1] and 0 <= point_y2 < frame.shape[0]:
-                    ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), (255, 255, 255), 3)
+                if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
+                    ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
             last_point = (x, y)
-        print(len(variables.CANVAS_TEMP))
+
         if len(variables.CANVAS_TEMP) == 1:
             point_x = round((variables.CANVAS_TEMP[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
             point_y = round((variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-            if 0 <= point_x < frame.shape[1] and 0 <= point_y < frame.shape[0]:
-                ui.cv2.circle(frame, (point_x, point_y), 3, (255, 255, 255), -1)
+            if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
+                ui.cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
         for i in variables.FILE_CONTENT:
             last_point = None
             for x, y in i:
@@ -191,14 +191,14 @@ while variables.BREAK == False:
                     point_y1 = round((last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                     point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                     point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                    if 0 <= point_x1 < frame.shape[1] and 0 <= point_y1 < frame.shape[0] and 0 <= point_x2 < frame.shape[1] and 0 <= point_y2 < frame.shape[0]:
-                        ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), (255, 255, 255), 3)
+                    if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
+                        ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
                 last_point = (x, y)
             if len(i) == 1:
                 point_x = round((i[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 point_y = round((i[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                if 0 <= point_x < frame.shape[1] and 0 <= point_y < frame.shape[0]:
-                    ui.cv2.circle(frame, (point_x, point_y), 3, (255, 255, 255), -1)
+                if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
+                    ui.cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
 
         ui.cv2.imshow(variables.WINDOWNAME, frame)
         ui.cv2.waitKey(1)

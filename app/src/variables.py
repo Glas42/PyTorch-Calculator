@@ -18,6 +18,7 @@ FILE_CONTENT = []
 CANVAS_POSITION = 0, 0
 CANVAS_ZOOM = 1
 CANVAS_TEMP = []
+CANVAS_DRAW_COLOR = (255, 255, 255)
 
 sct = mss.mss()
 SCRENN_X = sct.monitors[1]["left"]

@@ -23,6 +23,8 @@ def initialize():
         from ctypes import windll, byref, sizeof, c_int
         import win32gui, win32con
 
+    variables.CANVAS_DRAW_COLOR = (0, 0, 0) if theme == "light" else (255, 255, 255)
+
     variables.ROOT = tkinter.Tk()
     variables.ROOT.title(variables.WINDOWNAME)
     variables.ROOT.geometry(f"{width}x{height}+{x}+{y}")
@@ -53,8 +55,15 @@ def initialize():
     win32gui.SetWindowLong(variables.HWND, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(variables.HWND, win32con.GWL_EXSTYLE) | win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT)
 
     global background
-    background = numpy.zeros((settings.Get("UI", "height", 600), settings.Get("UI", "width", 1000), 3), numpy.uint8)
+    rect = win32gui.GetClientRect(variables.TK_HWND)
+    tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
+    br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
+    window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
+    win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
+    background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
     background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
+    if cv2.getWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_TOPMOST) != 1:
+            cv2.setWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_TOPMOST, 1)
 
     if variables.OS == "nt":
         windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
