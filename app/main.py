@@ -59,7 +59,7 @@ def WindowMover():
                 last_window_position = window_position
         except:
             pass
-        time_to_sleep = 1/60 - (time.time() - start)
+        time_to_sleep = 1/variables.FPS - (time.time() - start)
         if time_to_sleep > 0:
             time.sleep(time_to_sleep)
 threading.Thread(target=WindowMover, daemon=True).start()
@@ -71,8 +71,8 @@ def DrawHandler():
     upscale_lines = settings.Get("Draw", "UpscaleLines", False)
     last_left_clicked = False
     last_right_clicked = False
-    last_mouse_x = None
-    last_mouse_y = None
+    last_mouse_x = 0
+    last_mouse_y = 0
     move_start = 0, 0
     while variables.BREAK == False:
         try:
@@ -80,11 +80,9 @@ def DrawHandler():
         except:
             variables.BREAK = True
         mouse_x, mouse_y = mouse.get_position()
-        if last_mouse_x is None: last_mouse_x = mouse_x
-        if last_mouse_y is None: last_mouse_y = mouse_y
 
-        left_clicked = True if ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
-        right_clicked = True if ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height else False
+        left_clicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height
+        right_clicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height
 
         with pynput.mouse.Events() as events:
             event = events.get()
@@ -154,6 +152,39 @@ def DrawHandler():
         last_left_clicked, last_right_clicked = left_clicked, right_clicked
 threading.Thread(target=DrawHandler, daemon=True).start()
 
+def KeyHandler():
+    import ctypes
+    last_left_clicked, last_right_clicked = False, False
+    last_ctrl_z_clicked, last_ctrl_y_clicked = False, False
+    last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked = False, False, False
+    while variables.BREAK == False:
+        start = time.time()
+
+        window_is_foreground = win32gui.GetWindowText(win32gui.GetForegroundWindow()) == variables.WINDOWNAME
+        ctrl_z_clicked = ctypes.windll.user32.GetKeyState(0x5A) & 0x8000 != 0 and window_is_foreground
+        ctrl_y_clicked = ctypes.windll.user32.GetKeyState(0x59) & 0x8000 != 0 and window_is_foreground
+        ctrl_c_clicked = ctypes.windll.user32.GetKeyState(0x43) & 0x8000 != 0 and window_is_foreground
+        ctrl_v_clicked = ctypes.windll.user32.GetKeyState(0x56) & 0x8000 != 0 and window_is_foreground
+        ctrl_x_clicked = ctypes.windll.user32.GetKeyState(0x58) & 0x8000 != 0 and window_is_foreground
+
+        if ctrl_z_clicked == True and last_ctrl_z_clicked == False:
+            if len(variables.FILE_CONTENT) > 0:
+                variables.CANVAS_DELETE_LIST.append(variables.FILE_CONTENT[-1])
+                variables.FILE_CONTENT.pop()
+
+        if ctrl_y_clicked == True and last_ctrl_y_clicked == False:
+            if len(variables.CANVAS_DELETE_LIST) > 0:
+                variables.FILE_CONTENT.append(variables.CANVAS_DELETE_LIST[-1])
+                variables.CANVAS_DELETE_LIST.pop()
+
+        last_ctrl_z_clicked, last_ctrl_y_clicked = ctrl_z_clicked, ctrl_y_clicked
+        last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked = ctrl_c_clicked, ctrl_v_clicked, ctrl_x_clicked
+
+        time_to_sleep = 1/variables.FPS - (time.time() - start)
+        if time_to_sleep > 0:
+            time.sleep(time_to_sleep)
+threading.Thread(target=KeyHandler, daemon=True).start()
+
 while variables.BREAK == False:
     start = time.time()
 
@@ -205,7 +236,7 @@ while variables.BREAK == False:
 
     variables.ROOT.update()
 
-    time_to_sleep = 1/60 - (time.time() - start)
+    time_to_sleep = 1/variables.FPS - (time.time() - start)
     if time_to_sleep > 0:
         time.sleep(time_to_sleep)
 

@@ -12,12 +12,15 @@ with open(PATH.replace("\\app", "") + "version.txt") as f: VERSION = f.read()
 RUN = True
 WINDOWNAME = "PyTorch-Calculator"
 
+FPS = 60
+
 FILE_PATH = None
 FILE_CONTENT = []
 
 CANVAS_POSITION = 0, 0
 CANVAS_ZOOM = 1
 CANVAS_TEMP = []
+CANVAS_DELETE_LIST = []
 CANVAS_DRAW_COLOR = (255, 255, 255)
 
 sct = mss.mss()
