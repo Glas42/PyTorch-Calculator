@@ -32,7 +32,7 @@ def update_check():
             print(f"{variables.RED}Failed to update: {variables.NORMAL}\n" + str(traceback.format_exc()))
     else:
         print("No update available, current version: " + variables.VERSION)
-update_check()
+update_check() if settings.Get("Update", "AutoUpdate", True) else print("Update check disabled, current version: " + variables.VERSION)
 
 ui.initialize()
 ui.createUI()

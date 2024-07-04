@@ -131,11 +131,12 @@ def createUI():
             variables.CANVAS_POSITION = eval(content[0])
             variables.CANVAS_ZOOM = float(content[1])
             variables.FILE_CONTENT = eval(content[2])
+            variables.CANVAS_DELETE_LIST = []
         tabControl.select(tab_draw)
     uicomponents.MakeButton(tab_file, "Load", load, row=0, column=1, padx=20, pady=20, sticky="nw")
 
 
-    uicomponents.MakeLabel(tab_settings, "Set the theme:", row=0, column=0, padx=20, pady=20, sticky="nw", font=("Segoe UI", 11))
+    uicomponents.MakeLabel(tab_settings, "Theme:", row=0, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))
     def ChangeTheme(theme):
         settings.Set("UI", "theme", theme)
         sv_ttk.set_theme(theme, variables.ROOT)
@@ -143,34 +144,45 @@ def createUI():
         style.layout("Tab",[('Notebook.tab',{'sticky':'nswe','children':[('Notebook.padding',{'side':'top','sticky':'nswe','children':[('Notebook.label',{'side':'top','sticky':''})],})],})])
         if variables.OS == "nt":
             import win32gui
-            global background
-            rect = win32gui.GetClientRect(variables.TK_HWND)
-            tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
-            br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
-            window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-            win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
-            background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
-            background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
+        global background
+        rect = win32gui.GetClientRect(variables.TK_HWND)
+        tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
+        br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
+        window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
+        win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
+        background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
+        background[:] = ((250, 250, 250) if theme == "light" else (28, 28, 28))
+        variables.CANVAS_DRAW_COLOR = (0, 0, 0) if theme == "light" else (255, 255, 255)
         if os.name == "nt":
             from ctypes import windll, byref, sizeof, c_int
             windll.dwmapi.DwmSetWindowAttribute(windll.user32.GetParent(variables.ROOT.winfo_id()), 35, byref(c_int(0xE7E7E7 if theme == "light" else 0x2F2F2F)), sizeof(c_int))
-            if theme == "light":
-                variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_light.ico")
-            else:
-                variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_dark.ico")
+        if theme == "light":
+            variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_light.ico")
+        else:
+            variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_dark.ico")
     theme = tkinter.StringVar(value=settings.Get("UI", "theme", "dark"))
-    ttk.Radiobutton(tab_settings, text="Dark", command=lambda: ChangeTheme("dark"), variable=theme, value="dark").grid(row=0, column=1)
-    ttk.Radiobutton(tab_settings, text="Light", command=lambda: ChangeTheme("light"), variable=theme, value="light").grid(row=0, column=2)
+    ttk.Radiobutton(tab_settings, text="Light", command=lambda: ChangeTheme("light"), variable=theme, value="light").grid(row=1, column=0, padx=20, sticky="nw")
+    ttk.Radiobutton(tab_settings, text="Dark", command=lambda: ChangeTheme("dark"), variable=theme, value="dark").grid(row=2, column=0, padx=20, sticky="nw")
 
-    def ChangeResizable():
-        resizable = settings.Get("UI", "resizable", False)
-        variables.ROOT.resizable(resizable, resizable)
-        ChangeTheme(settings.Get("UI", "theme", "dark"))
-    uicomponents.MakeCheckButton(tab_settings, "Resizeable", "UI", "resizable", row=1, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeResizable())
+    uicomponents.MakeLabel(tab_settings, "\nGeneral Settings", row=3, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))
+
+    uicomponents.MakeCheckButton(tab_settings, "Auto Update", "Update", "AutoUpdate", row=4, column=0, padx=20, pady=0, width=10)
 
     def ChangeHideConsole():
         if settings.Get("Console", "HideConsole"):
             console.HideConsole()
         else:
             console.RestoreConsole()
-    uicomponents.MakeCheckButton(tab_settings, "Hide Console", "Console", "HideConsole", row=2, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeHideConsole())
+    uicomponents.MakeCheckButton(tab_settings, "Hide Console", "Console", "HideConsole", row=5, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeHideConsole())
+
+    def ChangeResizable():
+        resizable = settings.Get("UI", "resizable", False)
+        variables.ROOT.resizable(resizable, resizable)
+        ChangeTheme(settings.Get("UI", "theme", "dark"))
+    uicomponents.MakeCheckButton(tab_settings, "Resizeable", "UI", "resizable", row=6, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeResizable())
+
+    uicomponents.MakeLabel(tab_settings, "\nDraw Settings", row=7, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))
+
+    uicomponents.MakeCheckButton(tab_settings, "Upscale Lines", "Draw", "UpscaleLines", row=8, column=0, padx=20, pady=0, width=10)
+    uicomponents.MakeCheckButton(tab_settings, "Smooth Lines", "Draw", "SmoothLines", row=9, column=0, padx=20, pady=0, width=10)
+    uicomponents.MakeCheckButton(tab_settings, "Show Grid", "Draw", "ShowGrid", row=10, column=0, padx=20, pady=0, width=10)
