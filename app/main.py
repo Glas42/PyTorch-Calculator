@@ -13,8 +13,10 @@ import os
 
 if settings.Get("Console", "HideConsole", False):
     console.HideConsole()
+
 if variables.OS == "nt":
-    import win32gui, win32con
+    import win32gui
+    import ctypes
 
 def update_check():
     try:
@@ -33,6 +35,21 @@ def update_check():
     else:
         print("No update available, current version: " + variables.VERSION)
 update_check() if settings.Get("Update", "AutoUpdate", True) else print("Update check disabled, current version: " + variables.VERSION)
+
+def GetMouseSpeed():
+    speed = ctypes.c_int()
+    ctypes.windll.user32.SystemParametersInfoA(112, 0, ctypes.byref(speed), 0)
+    return speed.value
+
+def SetMouseSpeed(speed):
+    speed = int(speed)
+    if speed < 1:
+        speed = 1
+    elif speed > 20:
+        speed = 20
+    ctypes.windll.user32.SystemParametersInfoA(113, 0, speed, 0)
+
+variables.DEFAULT_MOUSE_SPEED = GetMouseSpeed()
 
 ui.initialize()
 ui.createUI()
@@ -84,6 +101,13 @@ def DrawHandler():
 
         left_clicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height
         right_clicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height
+
+        if window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height:
+            if GetMouseSpeed() == variables.DEFAULT_MOUSE_SPEED:
+                SetMouseSpeed(variables.DEFAULT_MOUSE_SPEED * settings.Get("Draw", "MouseSlowdown", 1))
+        else:
+            if GetMouseSpeed() != variables.DEFAULT_MOUSE_SPEED:
+                SetMouseSpeed(variables.DEFAULT_MOUSE_SPEED)
 
         with pynput.mouse.Events() as events:
             event = events.get()
@@ -199,6 +223,25 @@ while variables.BREAK == False:
 
     if current_tab == "Draw":
         frame = ui.background.copy()
+        if variables.CANVAS_SHOW_GRID == True:
+            grid_size = 50
+            grid_width = round(frame.shape[1] / (grid_size * variables.CANVAS_ZOOM))
+            grid_height = round(frame.shape[0] / (grid_size * variables.CANVAS_ZOOM))
+            if grid_width < 150 and grid_height < 150:
+                if variables.CANVAS_GRID_TYPE == "LINE":
+                    for x in range(0, grid_width):
+                        point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                        ui.cv2.line(frame, (point_x, 0), (point_x, frame.shape[0]), (127, 127, 127), 1)
+                    for y in range(0, grid_height):
+                        point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                        ui.cv2.line(frame, (0, point_y), (frame.shape[1], point_y), (127, 127, 127), 1)
+                else:
+                    for x in range(0, grid_width):
+                        point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                        for y in range(0, grid_height):
+                            point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                            ui.cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), 1)
+
         last_point = None
         for x, y in variables.CANVAS_TEMP:
             if last_point != None:
@@ -244,3 +287,5 @@ while variables.BREAK == False:
 if settings.Get("Console", "HideConsole", False):
     console.RestoreConsole()
     console.CloseConsole()
+
+SetMouseSpeed(variables.DEFAULT_MOUSE_SPEED)

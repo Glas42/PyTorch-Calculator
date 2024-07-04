@@ -115,7 +115,7 @@ def createUI():
         if not variables.FILE_PATH.endswith(".txt"):
             variables.FILE_PATH += ".txt"
         with open(variables.FILE_PATH, "w") as f:
-            f.write(f"{variables.CANVAS_POSITION}#{variables.CANVAS_ZOOM}#{variables.FILE_CONTENT}")
+            f.write(f"{variables.CANVAS_POSITION}#{variables.CANVAS_ZOOM}#{variables.CANVAS_SHOW_GRID}#{variables.CANVAS_GRID_TYPE}#{variables.FILE_CONTENT}")
         tabControl.select(tab_draw)
     uicomponents.MakeButton(tab_file, "Save", save, row=0, column=0, padx=20, pady=20, sticky="nw")
 
@@ -130,7 +130,9 @@ def createUI():
             content = str(f.read()).split("#")
             variables.CANVAS_POSITION = eval(content[0])
             variables.CANVAS_ZOOM = float(content[1])
-            variables.FILE_CONTENT = eval(content[2])
+            variables.CANVAS_SHOW_GRID = bool(content[2])
+            variables.CANVAS_GRID_TYPE = str(content[3])
+            variables.FILE_CONTENT = eval(content[4])
             variables.CANVAS_DELETE_LIST = []
         tabControl.select(tab_draw)
     uicomponents.MakeButton(tab_file, "Load", load, row=0, column=1, padx=20, pady=20, sticky="nw")
@@ -166,23 +168,27 @@ def createUI():
 
     uicomponents.MakeLabel(tab_settings, "\nGeneral Settings", row=3, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))
 
-    uicomponents.MakeCheckButton(tab_settings, "Auto Update", "Update", "AutoUpdate", row=4, column=0, padx=20, pady=0, width=10)
+    uicomponents.MakeCheckButton(tab_settings, "Auto Update", "Update", "AutoUpdate", row=4, column=0, padx=20, pady=0, width=11)
 
     def ChangeHideConsole():
         if settings.Get("Console", "HideConsole"):
             console.HideConsole()
         else:
             console.RestoreConsole()
-    uicomponents.MakeCheckButton(tab_settings, "Hide Console", "Console", "HideConsole", row=5, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeHideConsole())
+    uicomponents.MakeCheckButton(tab_settings, "Hide Console", "Console", "HideConsole", row=5, column=0, padx=20, pady=0, width=11, callback=lambda: ChangeHideConsole())
 
     def ChangeResizable():
         resizable = settings.Get("UI", "resizable", False)
         variables.ROOT.resizable(resizable, resizable)
         ChangeTheme(settings.Get("UI", "theme", "dark"))
-    uicomponents.MakeCheckButton(tab_settings, "Resizeable", "UI", "resizable", row=6, column=0, padx=20, pady=0, width=10, callback=lambda: ChangeResizable())
+    uicomponents.MakeCheckButton(tab_settings, "Resizeable", "UI", "resizable", row=6, column=0, padx=20, pady=0, width=11, callback=lambda: ChangeResizable())
 
     uicomponents.MakeLabel(tab_settings, "\nDraw Settings", row=7, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))
 
-    uicomponents.MakeCheckButton(tab_settings, "Upscale Lines", "Draw", "UpscaleLines", row=8, column=0, padx=20, pady=0, width=10)
-    uicomponents.MakeCheckButton(tab_settings, "Smooth Lines", "Draw", "SmoothLines", row=9, column=0, padx=20, pady=0, width=10)
-    uicomponents.MakeCheckButton(tab_settings, "Show Grid", "Draw", "ShowGrid", row=10, column=0, padx=20, pady=0, width=10)
+    uicomponents.MakeCheckButton(tab_settings, "Upscale Lines", "Draw", "UpscaleLines", row=8, column=0, padx=20, pady=0, width=11)
+    uicomponents.MakeCheckButton(tab_settings, "Smooth Lines", "Draw", "SmoothLines", row=9, column=0, padx=20, pady=0, width=11)
+
+    uicomponents.MakeLabel(tab_settings, "                     Mouse Slow-\n                     down Factor", row=10, column=0, padx=24, pady=0, sticky="w")
+    MouseSlowdownSlider = tkinter.Scale(tab_settings, from_=0.1, to=1, resolution=0.01, orient=tkinter.HORIZONTAL, length=75, command=lambda x: settings.Set("Draw", "MouseSlowdown", float(x)))
+    MouseSlowdownSlider.set(settings.Get("Draw", "MouseSlowdown", 1))
+    MouseSlowdownSlider.grid(row=10, column=0, padx=21, pady=0, sticky="nw")
