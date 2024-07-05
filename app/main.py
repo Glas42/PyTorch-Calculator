@@ -56,7 +56,6 @@ ui.createUI()
 
 frame = ui.background.copy()
 current_tab = None
-last_tab = None
 
 def WindowMover():
     last_window_position = None, None, None, None
@@ -75,8 +74,13 @@ def WindowMover():
                     if ui.cv2.getWindowProperty(variables.WINDOWNAME, ui.cv2.WND_PROP_TOPMOST) != 1:
                         ui.cv2.setWindowProperty(variables.WINDOWNAME, ui.cv2.WND_PROP_TOPMOST, 1)
                 last_window_position = window_position
-        except:
-            pass
+            if current_tab == "Draw" and str(win32gui.GetWindowText(win32gui.GetForegroundWindow())) == variables.WINDOWNAME:
+                if win32gui.GetWindowPlacement(variables.HWND)[1] != 1:
+                    win32gui.ShowWindow(variables.HWND, 1)
+            elif win32gui.GetWindowPlacement(variables.HWND)[1] == 1:
+                win32gui.ShowWindow(variables.HWND, 2)
+        except Exception as e:
+            print(f"Failed to move window: {str(e)}")
         time_to_sleep = 1/variables.FPS - (time.time() - start)
         if time_to_sleep > 0:
             time.sleep(time_to_sleep)
@@ -115,9 +119,9 @@ def DrawHandler():
                 canvas_x = (mouse_x - window_x - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
                 canvas_y = (mouse_y - window_y - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
                 if variables.CANVAS_ZOOM < 10000:
-                    variables.CANVAS_ZOOM *= 1.1 if event.dy > 0 else 0.9
+                    variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if event.dy > 0 else variables.CANVAS_ZOOM / 1.1
                 elif event.dy < 0:
-                    variables.CANVAS_ZOOM *= 0.9
+                    variables.CANVAS_ZOOM /= 1.1
                 variables.CANVAS_POSITION = (mouse_x - window_x - canvas_x * variables.CANVAS_ZOOM, mouse_y - window_y - canvas_y * variables.CANVAS_ZOOM)
 
         if right_clicked == False:
@@ -170,7 +174,7 @@ def DrawHandler():
             for point in variables.CANVAS_TEMP:
                 if point not in temp:
                     temp.append(point)
-            variables.FILE_CONTENT.append(temp)
+            variables.CANVAS_CONTENT.append(temp)
             variables.CANVAS_TEMP = []
 
         last_mouse_x, last_mouse_y = mouse_x, mouse_y
@@ -181,29 +185,34 @@ def KeyHandler():
     import ctypes
     last_left_clicked, last_right_clicked = False, False
     last_ctrl_z_clicked, last_ctrl_y_clicked = False, False
-    last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked = False, False, False
+    last_ctrl_s_clicked, last_ctrl_n_clicked = False, False
+    last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked, last_ctrl_d_clicked = False, False, False, False
     while variables.BREAK == False:
         start = time.time()
 
         window_is_foreground = win32gui.GetWindowText(win32gui.GetForegroundWindow()) == variables.WINDOWNAME
         ctrl_z_clicked = ctypes.windll.user32.GetKeyState(0x5A) & 0x8000 != 0 and window_is_foreground
         ctrl_y_clicked = ctypes.windll.user32.GetKeyState(0x59) & 0x8000 != 0 and window_is_foreground
+        ctrl_s_clicked = ctypes.windll.user32.GetKeyState(0x53) & 0x8000 != 0 and window_is_foreground
+        ctrl_n_clicked = ctypes.windll.user32.GetKeyState(0x4E) & 0x8000 != 0 and window_is_foreground
         ctrl_c_clicked = ctypes.windll.user32.GetKeyState(0x43) & 0x8000 != 0 and window_is_foreground
         ctrl_v_clicked = ctypes.windll.user32.GetKeyState(0x56) & 0x8000 != 0 and window_is_foreground
         ctrl_x_clicked = ctypes.windll.user32.GetKeyState(0x58) & 0x8000 != 0 and window_is_foreground
+        ctrl_d_clicked = ctypes.windll.user32.GetKeyState(0x44) & 0x8000 != 0 and window_is_foreground
 
         if ctrl_z_clicked == True and last_ctrl_z_clicked == False:
-            if len(variables.FILE_CONTENT) > 0:
-                variables.CANVAS_DELETE_LIST.append(variables.FILE_CONTENT[-1])
-                variables.FILE_CONTENT.pop()
+            if len(variables.CANVAS_CONTENT) > 0:
+                variables.CANVAS_DELETE_LIST.append(variables.CANVAS_CONTENT[-1])
+                variables.CANVAS_CONTENT.pop()
 
         if ctrl_y_clicked == True and last_ctrl_y_clicked == False:
             if len(variables.CANVAS_DELETE_LIST) > 0:
-                variables.FILE_CONTENT.append(variables.CANVAS_DELETE_LIST[-1])
+                variables.CANVAS_CONTENT.append(variables.CANVAS_DELETE_LIST[-1])
                 variables.CANVAS_DELETE_LIST.pop()
 
         last_ctrl_z_clicked, last_ctrl_y_clicked = ctrl_z_clicked, ctrl_y_clicked
-        last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked = ctrl_c_clicked, ctrl_v_clicked, ctrl_x_clicked
+        last_ctrl_s_clicked, last_ctrl_n_clicked = ctrl_s_clicked, ctrl_n_clicked
+        last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked, last_ctrl_d_clicked = ctrl_c_clicked, ctrl_v_clicked, ctrl_x_clicked, ctrl_d_clicked
 
         time_to_sleep = 1/variables.FPS - (time.time() - start)
         if time_to_sleep > 0:
@@ -214,12 +223,6 @@ while variables.BREAK == False:
     start = time.time()
 
     current_tab = ui.tabControl.tab(ui.tabControl.select(), "text")
-    if current_tab == "Draw" and str(win32gui.GetWindowText(win32gui.GetForegroundWindow())) == variables.WINDOWNAME:
-        if win32gui.GetWindowPlacement(variables.HWND)[1] != 1:
-            win32gui.ShowWindow(variables.HWND, 1)
-    elif win32gui.GetWindowPlacement(variables.HWND)[1] == 1:
-        win32gui.ShowWindow(variables.HWND, 2)
-    last_tab = current_tab
 
     if current_tab == "Draw":
         frame = ui.background.copy()
@@ -227,7 +230,7 @@ while variables.BREAK == False:
             grid_size = 50
             grid_width = round(frame.shape[1] / (grid_size * variables.CANVAS_ZOOM))
             grid_height = round(frame.shape[0] / (grid_size * variables.CANVAS_ZOOM))
-            if grid_width < 150 and grid_height < 150:
+            if variables.CANVAS_ZOOM > 0.1:
                 if variables.CANVAS_GRID_TYPE == "LINE":
                     for x in range(0, grid_width):
                         point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
@@ -240,7 +243,7 @@ while variables.BREAK == False:
                         point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
                         for y in range(0, grid_height):
                             point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
-                            ui.cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), 1)
+                            ui.cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), -1)
 
         last_point = None
         for x, y in variables.CANVAS_TEMP:
@@ -258,7 +261,7 @@ while variables.BREAK == False:
             point_y = round((variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
             if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
                 ui.cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
-        for i in variables.FILE_CONTENT:
+        for i in variables.CANVAS_CONTENT:
             last_point = None
             for x, y in i:
                 if last_point != None:

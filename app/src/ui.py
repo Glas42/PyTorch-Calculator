@@ -107,6 +107,18 @@ def createUI():
     uicomponents.MakeLabel(tab_draw, "The drawing window is hidden, it will be shown again when you return back to the application.", row=0, column=0, sticky="ns")
 
 
+    def new():
+        variables.CANVAS_POSITION = (settings.Get("UI", "width", 1000) - 10) // 2, (settings.Get("UI", "height", 600) - 50) // 2
+        variables.CANVAS_ZOOM = 1
+        variables.CANVAS_SHOW_GRID = True
+        variables.CANVAS_GRID_TYPE = "DOT"
+        variables.CANVAS_CONTENT = []
+        variables.CANVAS_TEMP = []
+        variables.CANVAS_DELETE_LIST = []
+        variables.CANVAS_DRAW_COLOR = (0, 0, 0) if theme == "light" else (255, 255, 255)
+        tabControl.select(tab_draw)
+    uicomponents.MakeButton(tab_file, "New", new, row=0, column=0, padx=20, pady=20, sticky="nw")
+
     def save():
         variables.FILE_PATH = filedialog.asksaveasfilename(initialdir=settings.Get("Save", "LastDirectory", os.path.dirname(os.path.dirname(variables.PATH))), title="Select a path to save to", filetypes=((".txt","*.txt"), ("all files","*.*")))
         if variables.FILE_PATH == "":
@@ -115,9 +127,18 @@ def createUI():
         if not variables.FILE_PATH.endswith(".txt"):
             variables.FILE_PATH += ".txt"
         with open(variables.FILE_PATH, "w") as f:
-            f.write(f"{variables.CANVAS_POSITION}#{variables.CANVAS_ZOOM}#{variables.CANVAS_SHOW_GRID}#{variables.CANVAS_GRID_TYPE}#{variables.FILE_CONTENT}")
+            f.write(f"""
+                {variables.CANVAS_POSITION}#
+                {variables.CANVAS_ZOOM}#
+                {variables.CANVAS_SHOW_GRID}#
+                {variables.CANVAS_GRID_TYPE}#
+                {variables.CANVAS_CONTENT}#
+                {variables.CANVAS_TEMP}#
+                {variables.CANVAS_DELETE_LIST}#
+                {variables.CANVAS_DRAW_COLOR}
+            """.replace(" ", "").replace("\n", ""))
         tabControl.select(tab_draw)
-    uicomponents.MakeButton(tab_file, "Save", save, row=0, column=0, padx=20, pady=20, sticky="nw")
+    uicomponents.MakeButton(tab_file, "Save", save, row=0, column=1, padx=20, pady=20, sticky="nw")
 
     def load():
         variables.FILE_PATH = filedialog.askopenfilename(initialdir=settings.Get("Load", "LastDirectory", os.path.dirname(os.path.dirname(variables.PATH))), title="Select a text file to load", filetypes=((".txt","*.txt"), ("all files","*.*")))
@@ -132,10 +153,12 @@ def createUI():
             variables.CANVAS_ZOOM = float(content[1])
             variables.CANVAS_SHOW_GRID = bool(content[2])
             variables.CANVAS_GRID_TYPE = str(content[3])
-            variables.FILE_CONTENT = eval(content[4])
-            variables.CANVAS_DELETE_LIST = []
+            variables.CANVAS_CONTENT = eval(content[4])
+            variables.CANVAS_TEMP = eval(content[5])
+            variables.CANVAS_DELETE_LIST = eval(content[6])
+            variables.CANVAS_DRAW_COLOR = eval(content[7])
         tabControl.select(tab_draw)
-    uicomponents.MakeButton(tab_file, "Load", load, row=0, column=1, padx=20, pady=20, sticky="nw")
+    uicomponents.MakeButton(tab_file, "Load", load, row=0, column=2, padx=20, pady=20, sticky="nw")
 
 
     uicomponents.MakeLabel(tab_settings, "Theme:", row=0, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))

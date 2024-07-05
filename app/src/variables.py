@@ -1,3 +1,4 @@
+import src.settings as settings
 import mss
 import os
 
@@ -15,9 +16,9 @@ WINDOWNAME = "PyTorch-Calculator"
 FPS = 60
 
 FILE_PATH = None
-FILE_CONTENT = []
+CANVAS_CONTENT = []
 
-CANVAS_POSITION = 0, 0
+CANVAS_POSITION = (settings.Get("UI", "width", 1000) - 10) // 2, (settings.Get("UI", "height", 600) - 50) // 2
 CANVAS_ZOOM = 1
 CANVAS_SHOW_GRID = True
 CANVAS_GRID_TYPE = "DOT"
