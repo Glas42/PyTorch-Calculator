@@ -34,8 +34,6 @@ SCRENN_Y = sct.monitors[1]["top"]
 SCREEN_WIDTH = sct.monitors[1]["width"]
 SCREEN_HEIGHT = sct.monitors[1]["height"]
 
-HWND = None
-TK_HWND = None
 CONSOLENAME = None
 CONSOLEHWND = None
 

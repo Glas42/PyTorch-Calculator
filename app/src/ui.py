@@ -3,12 +3,12 @@ import src.variables as variables
 import src.settings as settings
 import src.console as console
 
+from PIL import Image, ImageTk
 from tkinter import filedialog
 from tkinter import ttk
 import tkinter
 import sv_ttk
 import numpy
-import cv2
 import os
 
 def initialize():
@@ -19,11 +19,6 @@ def initialize():
     y = settings.Get("UI", "y", 0)
     theme = settings.Get("UI", "theme", "dark")
     resizable = settings.Get("UI", "resizable", False)
-    if os.name == "nt":
-        from ctypes import windll, byref, sizeof, c_int
-        import win32gui, win32con
-
-    variables.CANVAS_DRAW_COLOR = (0, 0, 0) if theme == "light" else (255, 255, 255)
 
     variables.ROOT = tkinter.Tk()
     variables.ROOT.title(variables.WINDOWNAME)
@@ -32,9 +27,12 @@ def initialize():
     sv_ttk.set_theme(theme, variables.ROOT)
     variables.ROOT.protocol("WM_DELETE_WINDOW", close)
     variables.ROOT.resizable(resizable, resizable)
-    variables.TK_HWND = variables.ROOT.winfo_id()
+    variables.HWND = variables.ROOT.winfo_id()
+
+    variables.CANVAS_DRAW_COLOR = (0, 0, 0) if theme == "light" else (255, 255, 255)
 
     if os.name == "nt":
+        from ctypes import windll, byref, sizeof, c_int
         variables.HWND = windll.user32.GetParent(variables.ROOT.winfo_id())
         windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0xE7E7E7 if theme == "light" else 0x2F2F2F)), sizeof(c_int))
         if theme == "light":
@@ -42,37 +40,9 @@ def initialize():
         else:
             variables.ROOT.iconbitmap(default=f"{variables.PATH}assets/icon_dark.ico")
 
-    rect = win32gui.GetClientRect(variables.TK_HWND)
-    tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
-    br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
-    window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-    cv2.namedWindow(variables.WINDOWNAME, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(variables.WINDOWNAME, window_position[2] - 10, window_position[3] - 50)
-    cv2.moveWindow(variables.WINDOWNAME, window_position[0] + 5, window_position[1] + 45)
-    cv2.setWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_TOPMOST, 1)
-    cv2.setWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    variables.HWND = win32gui.FindWindow(None, variables.WINDOWNAME)
-    win32gui.SetWindowLong(variables.HWND, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(variables.HWND, win32con.GWL_EXSTYLE) | win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT)
-
     global background
-    rect = win32gui.GetClientRect(variables.TK_HWND)
-    tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
-    br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
-    window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-    win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
-    background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
+    background = numpy.zeros((variables.ROOT.winfo_height() - 40, variables.ROOT.winfo_width(), 3), numpy.uint8)
     background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
-    if cv2.getWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_TOPMOST) != 1:
-            cv2.setWindowProperty(variables.WINDOWNAME, cv2.WND_PROP_TOPMOST, 1)
-
-    if variables.OS == "nt":
-        windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
-        if theme == "light":
-            hicon = win32gui.LoadImage(None, f"{variables.PATH}assets/icon_light.ico", win32con.IMAGE_ICON, 0, 0, win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE)
-        else:
-            hicon = win32gui.LoadImage(None, f"{variables.PATH}assets/icon_dark.ico", win32con.IMAGE_ICON, 0, 0, win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE)
-        win32gui.SendMessage(variables.HWND, win32con.WM_SETICON, win32con.ICON_SMALL, hicon)
-        win32gui.SendMessage(variables.HWND, win32con.WM_SETICON, win32con.ICON_BIG, hicon)
 
 def close():
     settings.Set("UI", "width", variables.ROOT.winfo_width())
@@ -104,7 +74,9 @@ def createUI():
     tabControl.add(tab_settings, text='Settings')
 
 
-    uicomponents.MakeLabel(tab_draw, "The drawing window is hidden, it will be shown again when you return back to the application.", row=0, column=0, sticky="ns")
+    global canvas
+    canvas = tkinter.Label(tab_draw, image=ImageTk.PhotoImage(Image.fromarray(background)))
+    canvas.pack(side="top", fill="both", expand=False, padx=0, pady=0)
 
 
     def new():
@@ -167,15 +139,7 @@ def createUI():
         sv_ttk.set_theme(theme, variables.ROOT)
         style = ttk.Style()
         style.layout("Tab",[('Notebook.tab',{'sticky':'nswe','children':[('Notebook.padding',{'side':'top','sticky':'nswe','children':[('Notebook.label',{'side':'top','sticky':''})],})],})])
-        if variables.OS == "nt":
-            import win32gui
         global background
-        rect = win32gui.GetClientRect(variables.TK_HWND)
-        tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
-        br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
-        window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-        win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
-        background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
         background[:] = ((250, 250, 250) if theme == "light" else (28, 28, 28))
         variables.CANVAS_DRAW_COLOR = (0, 0, 0) if theme == "light" else (255, 255, 255)
         if os.name == "nt":

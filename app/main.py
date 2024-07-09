@@ -7,8 +7,8 @@ import traceback
 import threading
 import requests
 import pynput
-import numpy
 import time
+import cv2
 import os
 
 if settings.Get("Console", "HideConsole", False):
@@ -55,36 +55,9 @@ ui.initialize()
 ui.createUI()
 
 frame = ui.background.copy()
+last_frame = None
+last_content = None
 current_tab = None
-
-def WindowMover():
-    last_window_position = None, None, None, None
-    while variables.BREAK == False:
-        start = time.time()
-        try:
-            if current_tab == "Draw":
-                rect = win32gui.GetClientRect(variables.TK_HWND)
-                tl = win32gui.ClientToScreen(variables.TK_HWND, (rect[0], rect[1]))
-                br = win32gui.ClientToScreen(variables.TK_HWND, (rect[2], rect[3]))
-                window_position = (tl[0], tl[1], br[0] - tl[0], br[1] - tl[1])
-                if window_position != last_window_position:
-                    win32gui.MoveWindow(variables.HWND, window_position[0] + 5, window_position[1] + 45, window_position[2] - 10, window_position[3] - 50, True)
-                    ui.background = numpy.zeros((window_position[3] - 50, window_position[2] - 10, 3), numpy.uint8)
-                    ui.background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
-                    if ui.cv2.getWindowProperty(variables.WINDOWNAME, ui.cv2.WND_PROP_TOPMOST) != 1:
-                        ui.cv2.setWindowProperty(variables.WINDOWNAME, ui.cv2.WND_PROP_TOPMOST, 1)
-                last_window_position = window_position
-            if current_tab == "Draw" and str(win32gui.GetWindowText(win32gui.GetForegroundWindow())) == variables.WINDOWNAME:
-                if win32gui.GetWindowPlacement(variables.HWND)[1] != 1:
-                    win32gui.ShowWindow(variables.HWND, 1)
-            elif win32gui.GetWindowPlacement(variables.HWND)[1] == 1:
-                win32gui.ShowWindow(variables.HWND, 2)
-        except Exception as e:
-            print(f"Failed to move window: {str(e)}")
-        time_to_sleep = 1/variables.FPS - (time.time() - start)
-        if time_to_sleep > 0:
-            time.sleep(time_to_sleep)
-threading.Thread(target=WindowMover, daemon=True).start()
 
 def DrawHandler():
     import ctypes
@@ -97,10 +70,14 @@ def DrawHandler():
     last_mouse_y = 0
     move_start = 0, 0
     while variables.BREAK == False:
-        try:
-            window_x, window_y, window_width, window_height = ui.cv2.getWindowImageRect(variables.WINDOWNAME)
-        except:
-            variables.BREAK = True
+        if win32gui.GetForegroundWindow() != variables.HWND or current_tab != "Draw":
+            time.sleep(0.1)
+            continue
+
+        rect = win32gui.GetClientRect(variables.HWND)
+        tl = win32gui.ClientToScreen(variables.HWND, (rect[0], rect[1]))
+        br = win32gui.ClientToScreen(variables.HWND, (rect[2], rect[3]))
+        window_x, window_y, window_width, window_height = tl[0], tl[1] + 40, br[0] - tl[0], br[1] - tl[1]
         mouse_x, mouse_y = mouse.get_position()
 
         left_clicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height
@@ -188,6 +165,10 @@ def KeyHandler():
     last_ctrl_s_clicked, last_ctrl_n_clicked = False, False
     last_ctrl_c_clicked, last_ctrl_v_clicked, last_ctrl_x_clicked, last_ctrl_d_clicked = False, False, False, False
     while variables.BREAK == False:
+        if win32gui.GetForegroundWindow() != variables.HWND or current_tab != "Draw":
+            time.sleep(0.1)
+            continue
+
         start = time.time()
 
         window_is_foreground = win32gui.GetWindowText(win32gui.GetForegroundWindow()) == variables.WINDOWNAME
@@ -224,26 +205,38 @@ while variables.BREAK == False:
 
     current_tab = ui.tabControl.tab(ui.tabControl.select(), "text")
 
-    if current_tab == "Draw":
+    content = (len(variables.CANVAS_CONTENT),
+                    variables.CANVAS_POSITION,
+                    variables.CANVAS_ZOOM,
+                    variables.CANVAS_SHOW_GRID,
+                    variables.CANVAS_GRID_TYPE,
+                    len(variables.CANVAS_TEMP),
+                    len(variables.CANVAS_DELETE_LIST),
+                    variables.CANVAS_DRAW_COLOR)
+
+    if current_tab == "Draw" and last_content != content:
+        if ui.background.shape != (variables.ROOT.winfo_height() - 40, variables.ROOT.winfo_width(), 3):
+            ui.background = ui.numpy.zeros((variables.ROOT.winfo_height() - 40, variables.ROOT.winfo_width(), 3), ui.numpy.uint8)
+            ui.background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
         frame = ui.background.copy()
         if variables.CANVAS_SHOW_GRID == True:
             grid_size = 50
             grid_width = round(frame.shape[1] / (grid_size * variables.CANVAS_ZOOM))
             grid_height = round(frame.shape[0] / (grid_size * variables.CANVAS_ZOOM))
-            if variables.CANVAS_ZOOM > 0.1:
+            if variables.CANVAS_ZOOM > 0.05:
                 if variables.CANVAS_GRID_TYPE == "LINE":
                     for x in range(0, grid_width):
                         point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
-                        ui.cv2.line(frame, (point_x, 0), (point_x, frame.shape[0]), (127, 127, 127), 1)
+                        cv2.line(frame, (point_x, 0), (point_x, frame.shape[0]), (127, 127, 127), 1)
                     for y in range(0, grid_height):
                         point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
-                        ui.cv2.line(frame, (0, point_y), (frame.shape[1], point_y), (127, 127, 127), 1)
+                        cv2.line(frame, (0, point_y), (frame.shape[1], point_y), (127, 127, 127), 1)
                 else:
                     for x in range(0, grid_width):
                         point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
                         for y in range(0, grid_height):
                             point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
-                            ui.cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), -1)
+                            cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), -1)
 
         last_point = None
         for x, y in variables.CANVAS_TEMP:
@@ -253,14 +246,14 @@ while variables.BREAK == False:
                 point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
-                    ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
+                    cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
             last_point = (x, y)
 
         if len(variables.CANVAS_TEMP) == 1:
             point_x = round((variables.CANVAS_TEMP[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
             point_y = round((variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
             if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
-                ui.cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
+                cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
         for i in variables.CANVAS_CONTENT:
             last_point = None
             for x, y in i:
@@ -270,16 +263,20 @@ while variables.BREAK == False:
                     point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                     point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                     if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
-                        ui.cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
+                        cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
                 last_point = (x, y)
             if len(i) == 1:
                 point_x = round((i[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 point_y = round((i[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
                 if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
-                    ui.cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
+                    cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
 
-        ui.cv2.imshow(variables.WINDOWNAME, frame)
-        ui.cv2.waitKey(1)
+        frame = ui.ImageTk.PhotoImage(ui.Image.fromarray(frame))
+        if last_frame != frame:
+            ui.canvas.configure(image=frame)
+            ui.canvas.image = frame
+            last_frame = frame
+        last_content = content
 
     variables.ROOT.update()
 
