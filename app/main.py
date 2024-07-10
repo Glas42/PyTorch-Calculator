@@ -148,6 +148,7 @@ def DrawHandler():
                     variables.CANVAS_TEMP = temp
 
             temp = []
+            temp.append((min(p[0] for p in variables.CANVAS_TEMP), min(p[1] for p in variables.CANVAS_TEMP), max(p[0] for p in variables.CANVAS_TEMP), max(p[1] for p in variables.CANVAS_TEMP)))
             for point in variables.CANVAS_TEMP:
                 if point not in temp:
                     temp.append(point)
@@ -219,57 +220,68 @@ while variables.BREAK == False:
             ui.background = ui.numpy.zeros((variables.ROOT.winfo_height() - 40, variables.ROOT.winfo_width(), 3), ui.numpy.uint8)
             ui.background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
         frame = ui.background.copy()
+        CANVAS_CONTENT = variables.CANVAS_CONTENT
+        CANVAS_POSITION = variables.CANVAS_POSITION
+        CANVAS_ZOOM = variables.CANVAS_ZOOM
         if variables.CANVAS_SHOW_GRID == True:
             grid_size = 50
-            grid_width = round(frame.shape[1] / (grid_size * variables.CANVAS_ZOOM))
-            grid_height = round(frame.shape[0] / (grid_size * variables.CANVAS_ZOOM))
-            if variables.CANVAS_ZOOM > 0.05:
+            grid_width = round(frame.shape[1] / (grid_size * CANVAS_ZOOM))
+            grid_height = round(frame.shape[0] / (grid_size * CANVAS_ZOOM))
+            if CANVAS_ZOOM > 0.05:
                 if variables.CANVAS_GRID_TYPE == "LINE":
                     for x in range(0, grid_width):
-                        point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                        point_x = round((x * grid_size + CANVAS_POSITION[0] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
                         cv2.line(frame, (point_x, 0), (point_x, frame.shape[0]), (127, 127, 127), 1)
                     for y in range(0, grid_height):
-                        point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                        point_y = round((y * grid_size + CANVAS_POSITION[1] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
                         cv2.line(frame, (0, point_y), (frame.shape[1], point_y), (127, 127, 127), 1)
                 else:
                     for x in range(0, grid_width):
-                        point_x = round((x * grid_size + variables.CANVAS_POSITION[0] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                        point_x = round((x * grid_size + CANVAS_POSITION[0] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
                         for y in range(0, grid_height):
-                            point_y = round((y * grid_size + variables.CANVAS_POSITION[1] / variables.CANVAS_ZOOM % grid_size) * variables.CANVAS_ZOOM)
+                            point_y = round((y * grid_size + CANVAS_POSITION[1] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
                             cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), -1)
 
         last_point = None
         for x, y in variables.CANVAS_TEMP:
             if last_point != None:
-                point_x1 = round((last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                point_y1 = round((last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+                point_x1 = round((last_point[0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                point_y1 = round((last_point[1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                point_x2 = round((x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                point_y2 = round((y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
                     cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
             last_point = (x, y)
 
         if len(variables.CANVAS_TEMP) == 1:
-            point_x = round((variables.CANVAS_TEMP[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-            point_y = round((variables.CANVAS_TEMP[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
+            point_x = round((variables.CANVAS_TEMP[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+            point_y = round((variables.CANVAS_TEMP[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
             if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
                 cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
-        for i in variables.CANVAS_CONTENT:
+        for i in CANVAS_CONTENT:
             last_point = None
-            for x, y in i:
-                if last_point != None:
-                    point_x1 = round((last_point[0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                    point_y1 = round((last_point[1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                    point_x2 = round((x + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                    point_y2 = round((y + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                    if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
-                        cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
-                last_point = (x, y)
-            if len(i) == 1:
-                point_x = round((i[0][0] + variables.CANVAS_POSITION[0] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                point_y = round((i[0][1] + variables.CANVAS_POSITION[1] * 1/variables.CANVAS_ZOOM) * variables.CANVAS_ZOOM)
-                if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
-                    cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
+            min_x, min_y, max_x, max_y = i[0]
+            min_x = round((min_x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+            min_y = round((min_y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+            max_x = round((max_x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+            max_y = round((max_y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+            if max_x >= 0 and min_x < frame.shape[1] and max_y >= 0 and min_y < frame.shape[0]:
+                if len(i[0]) == 4:
+                    i = i[1:]
+                for x, y in i:
+                    if last_point != None:
+                        point_x1 = round((last_point[0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                        point_y1 = round((last_point[1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                        point_x2 = round((x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                        point_y2 = round((y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                        if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
+                            cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
+                    last_point = (x, y)
+                if len(i) == 1:
+                    point_x = round((i[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                    point_y = round((i[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
+                    if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
+                        cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
 
         frame = ui.ImageTk.PhotoImage(ui.Image.fromarray(frame))
         if last_frame != frame:
