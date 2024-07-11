@@ -77,7 +77,17 @@ def createUI():
 
     global canvas
     canvas = tkinter.Label(tab_draw, image=ImageTk.PhotoImage(Image.fromarray(background)))
-    canvas.pack(side="top", fill="both", expand=False, padx=0, pady=0)
+    canvas.grid(row=0, column=0, padx=0, pady=0, columnspan=2)
+
+
+    global test_frame
+    test_frame = numpy.zeros((40, 40, 3), numpy.uint8)
+    test_frame[:] = (0, 255, 0)
+    test_frame = ImageTk.PhotoImage(Image.fromarray(test_frame))
+
+    global test
+    test = tkinter.Label(tab_draw, image=test_frame, border=0, highlightthickness=0)
+    test.grid(row=0, column=1, padx=10, pady=10, sticky="ne")
 
 
     def new():

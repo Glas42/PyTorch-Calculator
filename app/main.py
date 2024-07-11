@@ -8,6 +8,7 @@ import threading
 import requests
 import pynput
 import time
+import sys
 import cv2
 import os
 
@@ -53,6 +54,25 @@ variables.DEFAULT_MOUSE_SPEED = GetMouseSpeed()
 
 ui.initialize()
 ui.createUI()
+
+if len(sys.argv) > 1:
+    variables.FILE_PATH = sys.argv[1]
+    settings.Set("Load", "LastDirectory", os.path.dirname(variables.FILE_PATH))
+    if not variables.FILE_PATH.endswith(".txt"):
+        variables.FILE_PATH += ".txt"
+    with open(variables.FILE_PATH, "r") as f:
+        content = str(f.read()).split("#")
+        variables.CANVAS_POSITION = eval(content[0])
+        variables.CANVAS_ZOOM = float(content[1])
+        variables.CANVAS_SHOW_GRID = bool(content[2])
+        variables.CANVAS_GRID_TYPE = str(content[3])
+        variables.CANVAS_CONTENT = eval(content[4])
+        variables.CANVAS_TEMP = eval(content[5])
+        variables.CANVAS_DELETE_LIST = eval(content[6])
+        variables.CANVAS_DRAW_COLOR = eval(content[7])
+
+ui.test.configure(image=ui.test_frame)
+ui.test.image = ui.test_frame
 
 frame = ui.background.copy()
 last_frame = None
