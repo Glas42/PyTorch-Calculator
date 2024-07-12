@@ -10,6 +10,7 @@ import traceback
 import tkinter
 import sv_ttk
 import numpy
+import cv2
 import os
 
 def initialize():
@@ -79,15 +80,15 @@ def createUI():
     canvas = tkinter.Label(tab_draw, image=ImageTk.PhotoImage(Image.fromarray(background)))
     canvas.grid(row=0, column=0, padx=0, pady=0, columnspan=2)
 
-
-    global test_frame
-    test_frame = numpy.zeros((40, 40, 3), numpy.uint8)
-    test_frame[:] = (0, 255, 0)
-    test_frame = ImageTk.PhotoImage(Image.fromarray(test_frame))
-
-    global test
-    test = tkinter.Label(tab_draw, image=test_frame, border=0, highlightthickness=0)
-    test.grid(row=0, column=1, padx=10, pady=10, sticky="ne")
+    global icon_pen
+    icon_pen = cv2.resize(cv2.imread(f'{variables.PATH}assets/pen_dark.png', cv2.IMREAD_UNCHANGED), (25, 25))
+    for x in range(icon_pen.shape[1]):
+        for y in range(icon_pen.shape[0]):
+            if icon_pen[x][y][3] == 0:
+                icon_pen[x][y] = (47, 47, 47, 255)
+    icon_pen = icon_pen[:, :, :3]
+    icon_pen = ImageTk.PhotoImage(Image.fromarray(icon_pen))
+    tkinter.Label(tabControl, image=icon_pen, border=0, highlightthickness=0).pack(anchor="e", padx=5, pady=10)
 
 
     def new():

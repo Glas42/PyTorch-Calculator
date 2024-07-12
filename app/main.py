@@ -71,9 +71,6 @@ if len(sys.argv) > 1:
         variables.CANVAS_DELETE_LIST = eval(content[6])
         variables.CANVAS_DRAW_COLOR = eval(content[7])
 
-ui.test.configure(image=ui.test_frame)
-ui.test.image = ui.test_frame
-
 frame = ui.background.copy()
 last_frame = None
 last_content = None
@@ -110,16 +107,17 @@ def DrawHandler():
             if GetMouseSpeed() != variables.DEFAULT_MOUSE_SPEED:
                 SetMouseSpeed(variables.DEFAULT_MOUSE_SPEED)
 
-        with pynput.mouse.Events() as events:
-            event = events.get()
-            if isinstance(event, pynput.mouse.Events.Scroll):
-                canvas_x = (mouse_x - window_x - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
-                canvas_y = (mouse_y - window_y - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
-                if variables.CANVAS_ZOOM < 10000:
-                    variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if event.dy > 0 else variables.CANVAS_ZOOM / 1.1
-                elif event.dy < 0:
-                    variables.CANVAS_ZOOM /= 1.1
-                variables.CANVAS_POSITION = (mouse_x - window_x - canvas_x * variables.CANVAS_ZOOM, mouse_y - window_y - canvas_y * variables.CANVAS_ZOOM)
+        if window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height:
+            with pynput.mouse.Events() as events:
+                event = events.get()
+                if isinstance(event, pynput.mouse.Events.Scroll):
+                    canvas_x = (mouse_x - window_x - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
+                    canvas_y = (mouse_y - window_y - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
+                    if variables.CANVAS_ZOOM < 10000:
+                        variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if event.dy > 0 else variables.CANVAS_ZOOM / 1.1
+                    elif event.dy < 0:
+                        variables.CANVAS_ZOOM /= 1.1
+                    variables.CANVAS_POSITION = (mouse_x - window_x - canvas_x * variables.CANVAS_ZOOM, mouse_y - window_y - canvas_y * variables.CANVAS_ZOOM)
 
         if right_clicked == False:
             move_start = mouse_x - variables.CANVAS_POSITION[0], mouse_y - variables.CANVAS_POSITION[1]
