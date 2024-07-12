@@ -52,8 +52,9 @@ def SetMouseSpeed(speed):
 
 variables.DEFAULT_MOUSE_SPEED = GetMouseSpeed()
 
-ui.initialize()
-ui.createUI()
+ui.Initialize()
+ui.CreateUI()
+ui.LoadToolBar()
 
 if len(sys.argv) > 1:
     variables.FILE_PATH = sys.argv[1]
@@ -75,6 +76,7 @@ frame = ui.background.copy()
 last_frame = None
 last_content = None
 current_tab = None
+last_tab = None
 
 def DrawHandler():
     import ctypes
@@ -107,71 +109,78 @@ def DrawHandler():
             if GetMouseSpeed() != variables.DEFAULT_MOUSE_SPEED:
                 SetMouseSpeed(variables.DEFAULT_MOUSE_SPEED)
 
-        if window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height:
-            with pynput.mouse.Events() as events:
-                event = events.get()
-                if isinstance(event, pynput.mouse.Events.Scroll):
-                    canvas_x = (mouse_x - window_x - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
-                    canvas_y = (mouse_y - window_y - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
-                    if variables.CANVAS_ZOOM < 10000:
-                        variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if event.dy > 0 else variables.CANVAS_ZOOM / 1.1
-                    elif event.dy < 0:
-                        variables.CANVAS_ZOOM /= 1.1
-                    variables.CANVAS_POSITION = (mouse_x - window_x - canvas_x * variables.CANVAS_ZOOM, mouse_y - window_y - canvas_y * variables.CANVAS_ZOOM)
-
-        if right_clicked == False:
-            move_start = mouse_x - variables.CANVAS_POSITION[0], mouse_y - variables.CANVAS_POSITION[1]
+        if window_x + window_width - 40 <= mouse_x <= window_x + window_width and window_y - 40 <= mouse_y <= window_y and variables.TOOLBAR_HOVERED == False:
+            variables.TOOLBAR_HOVERED = True
+        elif window_x + window_width - variables.TOOLBAR_WIDTH - 20 <= mouse_x <= window_x + window_width and window_y - 40 <= mouse_y <= window_y + variables.TOOLBAR_HEIGHT + 20 and variables.TOOLBAR_HOVERED == True:
+            variables.TOOLBAR_HOVERED = True
         else:
-            variables.CANVAS_POSITION = (mouse_x - move_start[0]), (mouse_y - move_start[1])
+            variables.TOOLBAR_HOVERED = False
 
-        if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in variables.CANVAS_TEMP:
-            variables.CANVAS_TEMP.append(((mouse_x - window_x - variables.CANVAS_POSITION[0]) * 1/variables.CANVAS_ZOOM, (mouse_y - window_y - variables.CANVAS_POSITION[1]) * 1/variables.CANVAS_ZOOM))
+            if window_x <= mouse_x <= window_x + window_width and window_y <= mouse_y <= window_y + window_height:
+                with pynput.mouse.Events() as events:
+                    event = events.get()
+                    if isinstance(event, pynput.mouse.Events.Scroll):
+                        canvas_x = (mouse_x - window_x - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
+                        canvas_y = (mouse_y - window_y - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
+                        if variables.CANVAS_ZOOM < 10000:
+                            variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if event.dy > 0 else variables.CANVAS_ZOOM / 1.1
+                        elif event.dy < 0:
+                            variables.CANVAS_ZOOM /= 1.1
+                        variables.CANVAS_POSITION = (mouse_x - window_x - canvas_x * variables.CANVAS_ZOOM, mouse_y - window_y - canvas_y * variables.CANVAS_ZOOM)
 
-        if left_clicked == False and last_left_clicked == True:
-            if upscale_lines:
+            if right_clicked == False:
+                move_start = mouse_x - variables.CANVAS_POSITION[0], mouse_y - variables.CANVAS_POSITION[1]
+            else:
+                variables.CANVAS_POSITION = (mouse_x - move_start[0]), (mouse_y - move_start[1])
+
+            if left_clicked == True and (mouse_x - window_x, mouse_y - window_y) not in variables.CANVAS_TEMP:
+                variables.CANVAS_TEMP.append(((mouse_x - window_x - variables.CANVAS_POSITION[0]) * 1/variables.CANVAS_ZOOM, (mouse_y - window_y - variables.CANVAS_POSITION[1]) * 1/variables.CANVAS_ZOOM))
+
+            if left_clicked == False and last_left_clicked == True:
+                if upscale_lines:
+                    temp = []
+                    for _ in range(15):
+                        for i in range(len(variables.CANVAS_TEMP)-2):
+                            x1, y1 = variables.CANVAS_TEMP[i]
+                            x2, y2 = variables.CANVAS_TEMP[i+1]
+                            x3, y3 = variables.CANVAS_TEMP[i+2]
+                            x = (x1*0.3 + x2*0.4 + x3*0.3)
+                            y = (y1*0.3 + y2*0.4 + y3*0.3)
+                            temp.append((x, y))
+                    temp.append(variables.CANVAS_TEMP[-1])
+                    variables.CANVAS_TEMP = temp
+
+                if smooth_lines:
+                    temp = []
+                    for point in variables.CANVAS_TEMP:
+                        if point not in temp:
+                            temp.append(point)
+                    variables.CANVAS_TEMP = temp
+                    smoothness = len(variables.CANVAS_TEMP) // 50
+                    for _ in range(smoothness):
+                        temp = []
+                        for i in range(len(variables.CANVAS_TEMP)):
+                            if i < smoothness:
+                                x_avg = sum(p[0] for p in variables.CANVAS_TEMP[:i+smoothness+1]) // (i+smoothness+1)
+                                y_avg = sum(p[1] for p in variables.CANVAS_TEMP[:i+smoothness+1]) // (i+smoothness+1)
+                                temp.append((x_avg, y_avg))
+                            elif i >= len(variables.CANVAS_TEMP) - smoothness:
+                                x_avg = sum(p[0] for p in variables.CANVAS_TEMP[i-smoothness:]) // (len(variables.CANVAS_TEMP) - i + smoothness)
+                                y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:]) // (len(variables.CANVAS_TEMP) - i + smoothness)
+                                temp.append((x_avg, y_avg))
+                            else:
+                                x_avg = sum(p[0] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
+                                y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
+                                temp.append((x_avg, y_avg))
+                        variables.CANVAS_TEMP = temp
+
                 temp = []
-                for _ in range(15):
-                    for i in range(len(variables.CANVAS_TEMP)-2):
-                        x1, y1 = variables.CANVAS_TEMP[i]
-                        x2, y2 = variables.CANVAS_TEMP[i+1]
-                        x3, y3 = variables.CANVAS_TEMP[i+2]
-                        x = (x1*0.3 + x2*0.4 + x3*0.3)
-                        y = (y1*0.3 + y2*0.4 + y3*0.3)
-                        temp.append((x, y))
-                temp.append(variables.CANVAS_TEMP[-1])
-                variables.CANVAS_TEMP = temp
-
-            if smooth_lines:
-                temp = []
+                temp.append((min(p[0] for p in variables.CANVAS_TEMP), min(p[1] for p in variables.CANVAS_TEMP), max(p[0] for p in variables.CANVAS_TEMP), max(p[1] for p in variables.CANVAS_TEMP)))
                 for point in variables.CANVAS_TEMP:
                     if point not in temp:
                         temp.append(point)
-                variables.CANVAS_TEMP = temp
-                smoothness = len(variables.CANVAS_TEMP) // 50
-                for _ in range(smoothness):
-                    temp = []
-                    for i in range(len(variables.CANVAS_TEMP)):
-                        if i < smoothness:
-                            x_avg = sum(p[0] for p in variables.CANVAS_TEMP[:i+smoothness+1]) // (i+smoothness+1)
-                            y_avg = sum(p[1] for p in variables.CANVAS_TEMP[:i+smoothness+1]) // (i+smoothness+1)
-                            temp.append((x_avg, y_avg))
-                        elif i >= len(variables.CANVAS_TEMP) - smoothness:
-                            x_avg = sum(p[0] for p in variables.CANVAS_TEMP[i-smoothness:]) // (len(variables.CANVAS_TEMP) - i + smoothness)
-                            y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:]) // (len(variables.CANVAS_TEMP) - i + smoothness)
-                            temp.append((x_avg, y_avg))
-                        else:
-                            x_avg = sum(p[0] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
-                            y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
-                            temp.append((x_avg, y_avg))
-                    variables.CANVAS_TEMP = temp
-
-            temp = []
-            temp.append((min(p[0] for p in variables.CANVAS_TEMP), min(p[1] for p in variables.CANVAS_TEMP), max(p[0] for p in variables.CANVAS_TEMP), max(p[1] for p in variables.CANVAS_TEMP)))
-            for point in variables.CANVAS_TEMP:
-                if point not in temp:
-                    temp.append(point)
-            variables.CANVAS_CONTENT.append(temp)
-            variables.CANVAS_TEMP = []
+                variables.CANVAS_CONTENT.append(temp)
+                variables.CANVAS_TEMP = []
 
         last_mouse_x, last_mouse_y = mouse_x, mouse_y
         last_left_clicked, last_right_clicked = left_clicked, right_clicked
@@ -224,6 +233,15 @@ while variables.BREAK == False:
 
     current_tab = ui.tabControl.tab(ui.tabControl.select(), "text")
 
+    if current_tab != last_tab:
+        if current_tab == "Draw":
+            ui.tools.configure(image=ui.tools_icon)
+            ui.tools.image = ui.tools_icon
+        else:
+            ui.tools.configure(image=ui.tools_placeholder)
+            ui.tools.image = ui.tools_placeholder
+    last_tab = current_tab
+
     content = (len(variables.CANVAS_CONTENT),
                     variables.CANVAS_POSITION,
                     variables.CANVAS_ZOOM,
@@ -231,12 +249,13 @@ while variables.BREAK == False:
                     variables.CANVAS_GRID_TYPE,
                     len(variables.CANVAS_TEMP),
                     len(variables.CANVAS_DELETE_LIST),
-                    variables.CANVAS_DRAW_COLOR)
+                    variables.CANVAS_DRAW_COLOR,
+                    variables.TOOLBAR_HOVERED)
 
     if current_tab == "Draw" and last_content != content:
         if ui.background.shape != (variables.ROOT.winfo_height() - 40, variables.ROOT.winfo_width(), 3):
             ui.background = ui.numpy.zeros((variables.ROOT.winfo_height() - 40, variables.ROOT.winfo_width(), 3), ui.numpy.uint8)
-            ui.background[:] = ((250, 250, 250) if settings.Get("UI", "theme") == "light" else (28, 28, 28))
+            ui.background[:] = ((250, 250, 250) if variables.THEME == "light" else (28, 28, 28))
         frame = ui.background.copy()
         CANVAS_CONTENT = variables.CANVAS_CONTENT
         CANVAS_POSITION = variables.CANVAS_POSITION
@@ -300,6 +319,11 @@ while variables.BREAK == False:
                     point_y = round((i[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
                         cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
+
+        if variables.TOOLBAR_HOVERED == True:
+            cv2.rectangle(frame, (frame.shape[1] - variables.TOOLBAR_WIDTH -1, 20), (frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "light" else (47, 47, 47), 20)
+            cv2.rectangle(frame, (frame.shape[1] - variables.TOOLBAR_WIDTH - 1, 20), (frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "light" else (47, 47, 47), -1)
+            frame[20:variables.TOOLBAR_HEIGHT, frame.shape[1] - variables.TOOLBAR_WIDTH -1:frame.shape[1] - 21] = cv2.resize(variables.TOOLBAR, (variables.TOOLBAR_WIDTH - 20, variables.TOOLBAR_HEIGHT - 20))
 
         frame = ui.ImageTk.PhotoImage(ui.Image.fromarray(frame))
         if last_frame != frame:
