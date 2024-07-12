@@ -255,6 +255,7 @@ def LoadToolBar():
     variables.TOOLBAR = GenerateGridImage((home_icon, ai_icon, grid_line_icon, grid_dot_icon, rectangle_icon, circle_icon, graph_icon, color_icon, text_icon), 3, 10)
     variables.TOOLBAR_HEIGHT = variables.TOOLBAR.shape[0] + 20
     variables.TOOLBAR_WIDTH = variables.TOOLBAR.shape[1] + 20
+    variables.ROOT.minsize(variables.TOOLBAR_WIDTH + 20, variables.TOOLBAR_HEIGHT + 60)
     if tabControl.tab(tabControl.select(), "text") == "Draw":
         tools.configure(image=tools_icon)
         tools.image = tools_icon

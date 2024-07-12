@@ -19,6 +19,10 @@ if variables.OS == "nt":
     import win32gui
     import ctypes
 
+settings.Get("Draw", "SmoothLines", False)
+settings.Get("Draw", "UpscaleLines", True)
+settings.Get("Draw", "MouseSlowdown", 1)
+
 def update_check():
     try:
         remote_version = requests.get("https://raw.githubusercontent.com/Glas42/PyTorch-Calculator/main/version.txt").text.strip()
@@ -82,7 +86,7 @@ def DrawHandler():
     import ctypes
     import mouse
     smooth_lines = settings.Get("Draw", "SmoothLines", False)
-    upscale_lines = settings.Get("Draw", "UpscaleLines", False)
+    upscale_lines = settings.Get("Draw", "UpscaleLines", True)
     last_left_clicked = False
     last_right_clicked = False
     last_mouse_x = 0
@@ -137,19 +141,6 @@ def DrawHandler():
                 variables.CANVAS_TEMP.append(((mouse_x - window_x - variables.CANVAS_POSITION[0]) * 1/variables.CANVAS_ZOOM, (mouse_y - window_y - variables.CANVAS_POSITION[1]) * 1/variables.CANVAS_ZOOM))
 
             if left_clicked == False and last_left_clicked == True:
-                if upscale_lines:
-                    temp = []
-                    for _ in range(15):
-                        for i in range(len(variables.CANVAS_TEMP)-2):
-                            x1, y1 = variables.CANVAS_TEMP[i]
-                            x2, y2 = variables.CANVAS_TEMP[i+1]
-                            x3, y3 = variables.CANVAS_TEMP[i+2]
-                            x = (x1*0.3 + x2*0.4 + x3*0.3)
-                            y = (y1*0.3 + y2*0.4 + y3*0.3)
-                            temp.append((x, y))
-                    temp.append(variables.CANVAS_TEMP[-1])
-                    variables.CANVAS_TEMP = temp
-
                 if smooth_lines:
                     temp = []
                     for point in variables.CANVAS_TEMP:
@@ -173,6 +164,19 @@ def DrawHandler():
                                 y_avg = sum(p[1] for p in variables.CANVAS_TEMP[i-smoothness:i+smoothness+1]) // (2*smoothness + 1)
                                 temp.append((x_avg, y_avg))
                         variables.CANVAS_TEMP = temp
+
+                if upscale_lines:
+                    temp = []
+                    for _ in range(15):
+                        for i in range(len(variables.CANVAS_TEMP)-2):
+                            x1, y1 = variables.CANVAS_TEMP[i]
+                            x2, y2 = variables.CANVAS_TEMP[i+1]
+                            x3, y3 = variables.CANVAS_TEMP[i+2]
+                            x = (x1*0.3 + x2*0.4 + x3*0.3)
+                            y = (y1*0.3 + y2*0.4 + y3*0.3)
+                            temp.append((x, y))
+                    temp.append(variables.CANVAS_TEMP[-1])
+                    variables.CANVAS_TEMP = temp
 
                 temp = []
                 temp.append((min(p[0] for p in variables.CANVAS_TEMP), min(p[1] for p in variables.CANVAS_TEMP), max(p[0] for p in variables.CANVAS_TEMP), max(p[1] for p in variables.CANVAS_TEMP)))
