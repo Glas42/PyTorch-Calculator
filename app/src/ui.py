@@ -230,8 +230,7 @@ def LoadToolBar():
     color_icon = LoadToolbarIcon("color")
     text_icon = LoadToolbarIcon("text")
 
-    def GenerateGridImage(images=[], columns=1, padding=10):
-        columns = len(images)
+    def GenerateGridImage(images=[]):
         avg_resolution = 0, 0
         for image in images:
             avg_resolution = (avg_resolution[0] + image.shape[1], avg_resolution[1] + image.shape[0])
@@ -240,19 +239,19 @@ def LoadToolBar():
         for image in images:
             temp.append(cv2.resize(image, (round(avg_resolution[0]), round(avg_resolution[1]))))
         images = temp
-        rows = (len(images) + columns - 1) // columns
-        image = numpy.zeros((round(avg_resolution[1]) * rows + padding * (rows - 1), round(avg_resolution[0]) * columns + padding * (columns - 1), 3), numpy.uint8)
+        variables.TOOLBAR_ROWS = (len(images) + variables.TOOLBAR_COLUMNS - 1) // variables.TOOLBAR_COLUMNS
+        image = numpy.zeros((round(avg_resolution[1]) * variables.TOOLBAR_ROWS + variables.TOOLBAR_PADDING * (variables.TOOLBAR_ROWS - 1), round(avg_resolution[0]) * variables.TOOLBAR_COLUMNS + variables.TOOLBAR_PADDING * (variables.TOOLBAR_COLUMNS - 1), 3), numpy.uint8)
         image[:] = (231, 231, 231) if variables.THEME == "light" else (47, 47, 47)
         x = 0
         y = 0
         for i, img in enumerate(images):
             image[y:y+img.shape[0], x:x+img.shape[1]] = img
-            x += round(avg_resolution[0]) + padding
-            if (i + 1) % columns == 0:
+            x += round(avg_resolution[0]) + variables.TOOLBAR_PADDING
+            if (i + 1) % variables.TOOLBAR_COLUMNS == 0:
                 x = 0
-                y += round(avg_resolution[1]) + padding
+                y += round(avg_resolution[1]) + variables.TOOLBAR_PADDING
         return image
-    variables.TOOLBAR = GenerateGridImage((home_icon, ai_icon, grid_line_icon, grid_dot_icon, rectangle_icon, circle_icon, graph_icon, color_icon, text_icon), 3, 10)
+    variables.TOOLBAR = GenerateGridImage((home_icon, ai_icon, grid_line_icon, grid_dot_icon, rectangle_icon, circle_icon, graph_icon, color_icon, text_icon))
     variables.TOOLBAR_HEIGHT = variables.TOOLBAR.shape[0] + 20
     variables.TOOLBAR_WIDTH = variables.TOOLBAR.shape[1] + 20
     variables.ROOT.minsize(variables.TOOLBAR_WIDTH + 20, variables.TOOLBAR_HEIGHT + 60)
