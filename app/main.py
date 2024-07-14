@@ -75,6 +75,7 @@ if len(sys.argv) > 1:
         variables.CANVAS_DELETE_LIST = eval(content[6])
         variables.CANVAS_DRAW_COLOR = eval(content[7])
 
+AntiAliasingLines = settings.Get("Draw", "AntiAliasingLines", False)
 frame = ui.background.copy()
 last_frame = None
 last_content = None
@@ -286,16 +287,16 @@ while variables.BREAK == False:
                 if variables.CANVAS_GRID_TYPE == "LINE":
                     for x in range(0, grid_width):
                         point_x = round((x * grid_size + CANVAS_POSITION[0] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
-                        cv2.line(frame, (point_x, 0), (point_x, frame.shape[0]), (127, 127, 127), 1)
+                        cv2.line(frame, (point_x, 0), (point_x, frame.shape[0]), (127, 127, 127), 1, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
                     for y in range(0, grid_height):
                         point_y = round((y * grid_size + CANVAS_POSITION[1] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
-                        cv2.line(frame, (0, point_y), (frame.shape[1], point_y), (127, 127, 127), 1)
+                        cv2.line(frame, (0, point_y), (frame.shape[1], point_y), (127, 127, 127), 1, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
                 else:
                     for x in range(0, grid_width):
                         point_x = round((x * grid_size + CANVAS_POSITION[0] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
                         for y in range(0, grid_height):
                             point_y = round((y * grid_size + CANVAS_POSITION[1] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
-                            cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), -1)
+                            cv2.circle(frame, (point_x, point_y), 1, (127, 127, 127), -1, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
 
         last_point = None
         for x, y in variables.CANVAS_TEMP:
@@ -305,14 +306,14 @@ while variables.BREAK == False:
                 point_x2 = round((x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 point_y2 = round((y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
-                    cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
+                    cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
             last_point = (x, y)
 
         if len(variables.CANVAS_TEMP) == 1:
             point_x = round((variables.CANVAS_TEMP[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
             point_y = round((variables.CANVAS_TEMP[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
             if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
-                cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
+                cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
         for i in CANVAS_CONTENT:
             last_point = None
             min_x, min_y, max_x, max_y = i[0]
@@ -330,17 +331,17 @@ while variables.BREAK == False:
                         point_x2 = round((x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         point_y2 = round((y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         if 0 <= point_x1 < frame.shape[1] or 0 <= point_y1 < frame.shape[0] or 0 <= point_x2 < frame.shape[1] or 0 <= point_y2 < frame.shape[0]:
-                            cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3)
+                            cv2.line(frame, (point_x1, point_y1), (point_x2, point_y2), variables.CANVAS_DRAW_COLOR, 3, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
                     last_point = (x, y)
                 if len(i) == 1:
                     point_x = round((i[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     point_y = round((i[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     if 0 <= point_x < frame.shape[1] or 0 <= point_y < frame.shape[0]:
-                        cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1)
+                        cv2.circle(frame, (point_x, point_y), 3, variables.CANVAS_DRAW_COLOR, -1, cv2.LINE_AA if AntiAliasingLines == True else cv2.LINE_8)
 
         if variables.TOOLBAR_HOVERED == True:
-            cv2.rectangle(frame, (frame.shape[1] - variables.TOOLBAR_WIDTH -1, 20), (frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "light" else (47, 47, 47), 20)
-            cv2.rectangle(frame, (frame.shape[1] - variables.TOOLBAR_WIDTH - 1, 20), (frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "light" else (47, 47, 47), -1)
+            cv2.rectangle(frame, (frame.shape[1] - variables.TOOLBAR_WIDTH -1, 20), (frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "light" else (47, 47, 47), 20, cv2.LINE_AA)
+            cv2.rectangle(frame, (frame.shape[1] - variables.TOOLBAR_WIDTH - 1, 20), (frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "light" else (47, 47, 47), -1, cv2.LINE_AA)
             frame[20:variables.TOOLBAR_HEIGHT, frame.shape[1] - variables.TOOLBAR_WIDTH -1:frame.shape[1] - 21] = cv2.resize(variables.TOOLBAR, (variables.TOOLBAR_WIDTH - 20, variables.TOOLBAR_HEIGHT - 20))
 
         frame = ui.ImageTk.PhotoImage(ui.Image.fromarray(frame))
