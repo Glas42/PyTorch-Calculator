@@ -86,6 +86,7 @@ def DrawHandler():
     import mouse
     smooth_lines = settings.Get("Draw", "SmoothLines", False)
     upscale_lines = settings.Get("Draw", "UpscaleLines", True)
+    smooth_interpolation = settings.Get("Draw", "SmoothInterpolation", False)
     last_left_clicked = False
     last_right_clicked = False
     last_mouse_x = 0
@@ -175,6 +176,19 @@ def DrawHandler():
                             y = (y1*0.3 + y2*0.4 + y3*0.3)
                             temp.append((x, y))
                     temp.append(variables.CANVAS_TEMP[-1])
+                    variables.CANVAS_TEMP = temp
+
+                if smooth_interpolation:
+                    temp = []
+                    for i in range(len(variables.CANVAS_TEMP) - 1):
+                        p0 = variables.CANVAS_TEMP[max(i - 1, 0)]
+                        p1 = variables.CANVAS_TEMP[i]
+                        p2 = variables.CANVAS_TEMP[min(i + 1, len(variables.CANVAS_TEMP) - 1)]
+                        p3 = variables.CANVAS_TEMP[min(i + 2, len(variables.CANVAS_TEMP) - 1)]
+                        for t in ui.numpy.linspace(0, 1, 50):
+                            x = 0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t**2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t**3)
+                            y = 0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t**2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t**3)
+                            temp.append([x, y])
                     variables.CANVAS_TEMP = temp
 
                 temp = []

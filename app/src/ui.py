@@ -188,13 +188,14 @@ def CreateUI():
 
     uicomponents.MakeLabel(tab_settings, "\nDraw Settings", row=7, column=0, padx=15, pady=10, sticky="nw", font=("Segoe UI", 11))
 
-    uicomponents.MakeCheckButton(tab_settings, "Upscale Lines", "Draw", "UpscaleLines", row=8, column=0, padx=20, pady=0, width=11)
-    uicomponents.MakeCheckButton(tab_settings, "Smooth Lines", "Draw", "SmoothLines", row=9, column=0, padx=20, pady=0, width=11)
+    uicomponents.MakeCheckButton(tab_settings, "Smooth Lines", "Draw", "SmoothLines", row=8, column=0, padx=20, pady=0, width=20)
+    uicomponents.MakeCheckButton(tab_settings, "Upscale Lines", "Draw", "UpscaleLines", row=9, column=0, padx=20, pady=0, width=20)
+    uicomponents.MakeCheckButton(tab_settings, "Smooth Interpolation", "Draw", "SmoothInterpolation", row=10, column=0, padx=20, pady=0, width=20)
 
-    uicomponents.MakeLabel(tab_settings, "                     Mouse Slow-\n                     down Factor", row=10, column=0, padx=24, pady=0, sticky="w")
+    uicomponents.MakeLabel(tab_settings, "                     Mouse Slow-\n                     down Factor", row=11, column=0, padx=24, pady=0, sticky="w")
     MouseSlowdownSlider = tkinter.Scale(tab_settings, from_=0.1, to=1, resolution=0.01, orient=tkinter.HORIZONTAL, length=75, command=lambda x: settings.Set("Draw", "MouseSlowdown", float(x)))
     MouseSlowdownSlider.set(settings.Get("Draw", "MouseSlowdown", 1))
-    MouseSlowdownSlider.grid(row=10, column=0, padx=21, pady=0, sticky="nw")
+    MouseSlowdownSlider.grid(row=11, column=0, padx=21, pady=0, sticky="nw")
 
 
 def LoadToolBar():
