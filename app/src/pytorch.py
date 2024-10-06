@@ -26,7 +26,7 @@ try:
 except:
     TorchAvailable = False
     exc = traceback.format_exc()
-    SendCrashReport("PyTorch - PyTorch import error.", str(exc))
+    CrashReport("PyTorch - PyTorch import error.", str(exc))
 
 MODELS = {}
 
@@ -162,7 +162,7 @@ def Load(Model):
                 if GetName(Model) == None:
                     return
 
-                plugins.AddToQueue({"POPUP": ["Loading the model...", 0, 0.5]})
+                variables.POPUP =  ["Loading the model...", 0, 0.5]
                 print(DARK_GREY + f"[{Model}] " + GREEN + "Loading the model..." + NORMAL)
 
                 ModelFileBroken = False
@@ -196,17 +196,17 @@ def Load(Model):
                     ModelFileBroken = True
 
                 if ModelFileBroken == False:
-                    plugins.AddToQueue({"POPUP": ["Successfully loaded the model!", 0, 0.5]})
+                    variables.POPUP =  ["Successfully loaded the model!", 0, 0.5]
                     print(DARK_GREY + f"[{Model}] " + GREEN + "Successfully loaded the model!" + NORMAL)
                     MODELS[Model]["ModelLoaded"] = True
                 else:
-                    plugins.AddToQueue({"POPUP": ["Failed to load the model because the model file is broken.", 0, 0.5]})
+                    variables.POPUP =  ["Failed to load the model because the model file is broken.", 0, 0.5]
                     print(DARK_GREY + f"[{Model}] " + RED + "Failed to load the model because the model file is broken." + NORMAL)
                     MODELS[Model]["ModelLoaded"] = False
                     HandleBroken(Model)
             except:
-                SendCrashReport("PyTorch - Loading Error.", str(traceback.format_exc()))
-                plugins.AddToQueue({"POPUP": ["Failed to load the model!", 0, 0.5]})
+                CrashReport("PyTorch - Loading Error.", str(traceback.format_exc()))
+                variables.POPUP =  ["Failed to load the model!", 0, 0.5]
                 print(DARK_GREY + f"[{Model}] " + RED + "Failed to load the model!" + NORMAL)
                 MODELS[Model]["ModelLoaded"] = False
 
@@ -218,8 +218,8 @@ def Load(Model):
                 LoadFunction(Model)
 
     except:
-        SendCrashReport("PyTorch - Error in function Load.", str(traceback.format_exc()))
-        plugins.AddToQueue({"POPUP": ["Failed to load the model.", 0, 0.5]})
+        CrashReport("PyTorch - Error in function Load.", str(traceback.format_exc()))
+        variables.POPUP =  ["Failed to load the model.", 0, 0.5]
         print(DARK_GREY + f"[{Model}] " + RED + "Failed to load the model." + NORMAL)
 
 
@@ -234,7 +234,7 @@ def CheckForUpdates(Model):
                     Response = None
 
                 if Response == 200:
-                    plugins.AddToQueue({"POPUP": ["Checking for model updates...", 0, 0.5]})
+                    variables.POPUP =  ["Checking for model updates...", 0, 0.5]
                     print(DARK_GREY + f"[{Model}] " + GREEN + "Checking for model updates..." + NORMAL)
 
                     if settings.Get("PyTorch", f"{Model}-LastUpdateCheck", 0) + 600 > time.time():
@@ -259,7 +259,7 @@ def CheckForUpdates(Model):
                     CurrentModel = GetName(Model)
 
                     if str(LatestModel) != str(CurrentModel):
-                        plugins.AddToQueue({"POPUP": ["Updating the model...", 0, 0.5]})
+                        variables.POPUP =  ["Updating the model...", 0, 0.5]
                         print(DARK_GREY + f"[{Model}] " + GREEN + "Updating the model..." + NORMAL)
                         Delete(Model)
                         Response = requests.get(f'https://huggingface.co/{MODELS[Model]["ModelOwner"]}/{Model}/resolve/main/model/{LatestModel}?download=true', stream=True)
@@ -271,23 +271,23 @@ def CheckForUpdates(Model):
                                 DownloadedSize += len(Data)
                                 ModelFile.write(Data)
                                 Progress = (DownloadedSize / TotalSize) * 100
-                                plugins.AddToQueue({"POPUP": [f"Downloading the model: {round(Progress)}%", round(Progress), 0.5]})
-                        plugins.AddToQueue({"POPUP": ["Successfully updated the model!", 0, 0.5]})
+                                variables.POPUP =  [f"Downloading the model: {round(Progress)}%", round(Progress), 0.5]
+                        variables.POPUP =  ["Successfully updated the model!", 0, 0.5]
                         print(DARK_GREY + f"[{Model}] " + GREEN + "Successfully updated the model!" + NORMAL)
                     else:
-                        plugins.AddToQueue({"POPUP": ["No model updates available!", 0, 0.5]})
+                        variables.POPUP =  ["No model updates available!", 0, 0.5]
                         print(DARK_GREY + f"[{Model}] " + GREEN + "No model updates available!" + NORMAL)
                     settings.Set("PyTorch", f"{Model}-LastUpdateCheck", time.time())
 
                 else:
 
                     console.RestoreConsole()
-                    plugins.AddToQueue({"POPUP": ["Connection to https://huggingface.co/ is most likely not available in your country. Unable to check for model updates.", 0, 0.5]})
+                    variables.POPUP =  ["Connection to https://huggingface.co/ is most likely not available in your country. Unable to check for model updates.", 0, 0.5]
                     print(DARK_GREY + f"[{Model}] " + RED + "Connection to https://huggingface.co/ is most likely not available in your country. Unable to check for model updates." + NORMAL)
 
             except:
-                SendCrashReport("PyTorch - Error in function CheckForUpdatesFunction.", str(traceback.format_exc()))
-                plugins.AddToQueue({"POPUP": ["Failed to check for model updates or update the model.", 0, 0.5]})
+                CrashReport("PyTorch - Error in function CheckForUpdatesFunction.", str(traceback.format_exc()))
+                variables.POPUP =  ["Failed to check for model updates or update the model.", 0, 0.5]
                 print(DARK_GREY + f"[{Model}] " + RED + "Failed to check for model updates or update the model." + NORMAL)
 
         if MODELS[Model]["Threaded"]:
@@ -297,8 +297,8 @@ def CheckForUpdates(Model):
             CheckForUpdatesFunction(Model)
 
     except:
-        SendCrashReport("PyTorch - Error in function CheckForUpdates.", str(traceback.format_exc()))
-        plugins.AddToQueue({"POPUP": ["Failed to check for model updates or update the model.", 0, 0.5]})
+        CrashReport("PyTorch - Error in function CheckForUpdates.", str(traceback.format_exc()))
+        variables.POPUP =  ["Failed to check for model updates or update the model.", 0, 0.5]
         print(DARK_GREY + f"[{Model}] " + RED + "Failed to check for model updates or update the model." + NORMAL)
 
 
@@ -307,7 +307,7 @@ def FolderExists(Model):
         if os.path.exists(MODELS[Model]["Path"]) == False:
             os.makedirs(MODELS[Model]["Path"])
     except:
-        SendCrashReport("PyTorch - Error in function FolderExists.", str(traceback.format_exc()))
+        CrashReport("PyTorch - Error in function FolderExists.", str(traceback.format_exc()))
 
 
 def GetName(Model):
@@ -318,7 +318,7 @@ def GetName(Model):
                 return File
         return None
     except:
-        SendCrashReport("PyTorch - Error in function GetName.", str(traceback.format_exc()))
+        CrashReport("PyTorch - Error in function GetName.", str(traceback.format_exc()))
         return None
 
 
@@ -334,7 +334,7 @@ def Delete(Model):
         print(DARK_GREY + f"[{Model}] " + RED + "PyTorch - PermissionError in function Delete:\n" + NORMAL + str(traceback.format_exc()))
         console.RestoreConsole()
     except:
-        SendCrashReport("PyTorch - Error in function Delete.", str(traceback.format_exc()))
+        CrashReport("PyTorch - Error in function Delete.", str(traceback.format_exc()))
 
 
 def HandleBroken(Model):
@@ -348,4 +348,4 @@ def HandleBroken(Model):
         if TorchAvailable == True:
             Load(Model)
     except:
-        SendCrashReport("PyTorch - Error in function HandleBroken.", str(traceback.format_exc()))
+        CrashReport("PyTorch - Error in function HandleBroken.", str(traceback.format_exc()))

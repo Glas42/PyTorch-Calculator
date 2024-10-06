@@ -45,8 +45,8 @@ CUDA_INSTALLED = False
 CUDA_COMPATIBLE = False
 
 TABS = ["Canvas", "File", "Settings"]
-CANVAS_BOTTOM = settings.Get("UI", "Height", 400) - TITLE_BAR_HEIGHT - 1
-CANVAS_RIGHT = settings.Get("UI", "Width", 700) - 1
+CANVAS_BOTTOM = settings.Get("UI", "Height", 540) - TITLE_BAR_HEIGHT - 1
+CANVAS_RIGHT = settings.Get("UI", "Width", 960) - 1
 CONTEXT_MENU_ITEMS = []
 CONTEXT_MENU = [False, 0, 0]
 RENDER_FRAME = True
@@ -62,8 +62,8 @@ AREAS = []
 
 X = settings.Get("UI", "X", 0)
 Y = settings.Get("UI", "Y", 0)
-WIDTH = settings.Get("UI", "Width", 700)
-HEIGHT = settings.Get("UI", "Height", 400)
+WIDTH = settings.Get("UI", "Width", 960)
+HEIGHT = settings.Get("UI", "Height", 540)
 
 HWND = None
 NAME = "PyTorch-Calculator"

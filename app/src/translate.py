@@ -6,9 +6,7 @@ import json
 import time
 import os
 
-
 TRANSLATING = False
-
 
 def Initialize():
     global Translator
@@ -32,7 +30,6 @@ def Initialize():
                     json.dump({}, f, indent=4)
             variables.TRANSLATION_CACHE = File
 
-
 def TranslateThread(Text):
     global TRANSLATING
     while TRANSLATING:
@@ -45,10 +42,8 @@ def TranslateThread(Text):
     TRANSLATING = False
     return Translation
 
-
 def TranslationRequest(Text):
     threading.Thread(target=TranslateThread, args=(Text,), daemon=True).start()
-
 
 def Translate(Text):
     if variables.LANGUAGE == "en":
@@ -63,7 +58,6 @@ def Translate(Text):
             TranslationRequest(Text)
         return Text
 
-
 def GetAvailableLanguages(ForceNewSearch=False):
     if ForceNewSearch == False and variables.AVAILABLE_LANGUAGES != {}:
         return variables.AVAILABLE_LANGUAGES
@@ -76,7 +70,6 @@ def GetAvailableLanguages(ForceNewSearch=False):
         FormattedLanguages[FormattedLanguage] = Languages[Language]
     variables.AVAILABLE_LANGUAGES = FormattedLanguages
     return FormattedLanguages
-
 
 def SaveCache():
     if variables.LANGUAGE != "en":

@@ -8,8 +8,6 @@ import src.updater as updater
 
 import numpy as np
 import subprocess
-import webbrowser
-import threading
 import ctypes
 import mouse
 import math
@@ -21,8 +19,8 @@ if variables.OS == "nt":
     import win32gui, win32con
 
 def Initialize():
-    WindowWidth = settings.Get("UI", "Width", 700)
-    WindowHeight = settings.Get("UI", "Height", 400)
+    WindowWidth = settings.Get("UI", "Width", 960)
+    WindowHeight = settings.Get("UI", "Height", 540)
     WindowX = settings.Get("UI", "X", 0)
     WindowY = settings.Get("UI", "Y", 0)
 
@@ -317,9 +315,9 @@ def Update():
             "Text": "Check Cuda (GPU) Support",
             "Function": lambda: setattr(variables, "PAGE", "CUDA"),
             "X1": 10,
-            "Y1": 71,
+            "Y1": 41,
             "X2": variables.CANVAS_RIGHT / 2 - 5,
-            "Y2": 106})
+            "Y2": 76})
 
         variables.ITEMS.append({
             "Type": "Dropdown",
@@ -335,9 +333,9 @@ def Update():
                 translate.Initialize()
                 },
             "X1": 10,
-            "Y1": 116,
+            "Y1": 86,
             "X2": variables.CANVAS_RIGHT / 2 - 5,
-            "Y2": 151})
+            "Y2": 121})
 
         variables.ITEMS.append({
             "Type": "Dropdown",
@@ -349,9 +347,9 @@ def Update():
                 Restart() if variables.THEME != settings.Get("UI", "Theme", "Dark") else None
                 },
             "X1": variables.CANVAS_RIGHT / 2 + 5,
-            "Y1": 116,
+            "Y1": 86,
             "X2": variables.CANVAS_RIGHT - 10,
-            "Y2": 151})
+            "Y2": 121})
 
     if variables.CONTEXT_MENU[0]:
         Offset = 0
