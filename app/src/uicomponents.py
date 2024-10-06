@@ -255,3 +255,13 @@ def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=
         DropdownChanged = (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS))
 
     return DropdownChanged, DropdownPressed, DropdownHovered
+
+
+def Image(Image="NumpyArrayImage",X1=0, Y1=0, X2=100, Y2=100):
+    if type(Image) == type(None):
+        return
+    if Image.shape[2] != 3:
+        Image = cv2.cvtColor(Image, cv2.COLOR_GRAY2BGR)
+    Y1 += variables.TITLE_BAR_HEIGHT
+    Y2 += variables.TITLE_BAR_HEIGHT
+    variables.FRAME[Y1:Y2 + 1, X1:X2 + 1] = Image
