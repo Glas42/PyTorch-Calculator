@@ -1,60 +1,63 @@
 import src.variables as variables
+import traceback
+
 if variables.OS == "nt":
     import win32gui, win32con, win32console
     import ctypes
 
+RED = "\033[91m"
+NORMAL = "\033[0m"
+
 def RestoreConsole():
-    """This will restore the console window."""
     try:
         if variables.OS == "nt":
             if variables.CONSOLEHWND != None and variables.CONSOLENAME != None:
                 win32gui.ShowWindow(variables.CONSOLEHWND, win32con.SW_RESTORE)
             else:
-                try:
-                    variables.CONSOLENAME = win32console.GetConsoleTitle()
-                    variables.CONSOLEHWND = win32gui.FindWindow(None, str(variables.CONSOLENAME))
-                    win32gui.ShowWindow(variables.CONSOLEHWND, win32con.SW_RESTORE)
-                except Exception as e:
-                    variables.CONSOLENAME = None
-                    variables.CONSOLEHWND = None
-                    print("\033[91m" + "Failed to restore console: " + "\033[0m" + str(e))
-    except Exception as e:
-        print("There was an error restoring the console window: " + str(e))
+                variables.CONSOLENAME = win32console.GetConsoleTitle()
+                variables.CONSOLEHWND = win32gui.FindWindow(None, str(variables.CONSOLENAME))
+                win32gui.ShowWindow(variables.CONSOLEHWND, win32con.SW_RESTORE)
+    except:
+        Type = "\nConsole - Restore Error."
+        Message = str(traceback.format_exc())
+        while Message.endswith('\n'):
+            Message = Message[:-1]
+        if variables.DEVMODE == False:
+            Message = f"{RED}>{NORMAL} " + Message.replace("\n", f"\n{RED}>{NORMAL} ")
+        print(f"{RED}{Type}{NORMAL}\n{Message}\n")
 
 def HideConsole():
-    """This will hide the console window."""
     try:
         if variables.OS == "nt":
             if variables.CONSOLEHWND != None and variables.CONSOLENAME != None:
                 win32gui.ShowWindow(variables.CONSOLEHWND, win32con.SW_HIDE)
             else:
-                try:
-                    variables.CONSOLENAME = win32console.GetConsoleTitle()
-                    variables.CONSOLEHWND = win32gui.FindWindow(None, str(variables.CONSOLENAME))
-                    win32gui.ShowWindow(variables.CONSOLEHWND, win32con.SW_HIDE)
-                except Exception as e:
-                    variables.CONSOLENAME = None
-                    variables.CONSOLEHWND = None
-                    print("\033[91m" + "Failed to hide console: " + "\033[0m" + str(e))
-    except Exception as e:
-        print("There was an error hiding the console window: " + str(e))
-        RestoreConsole()
+                variables.CONSOLENAME = win32console.GetConsoleTitle()
+                variables.CONSOLEHWND = win32gui.FindWindow(None, str(variables.CONSOLENAME))
+                win32gui.ShowWindow(variables.CONSOLEHWND, win32con.SW_HIDE)
+    except:
+        Type = "\nConsole - Hide Error."
+        Message = str(traceback.format_exc())
+        while Message.endswith('\n'):
+            Message = Message[:-1]
+        if variables.DEVMODE == False:
+            Message = f"{RED}>{NORMAL} " + Message.replace("\n", f"\n{RED}>{NORMAL} ")
+        print(f"{RED}{Type}{NORMAL}\n{Message}\n")
 
 def CloseConsole():
-    """This will close the console and stop the app."""
     try:
         if variables.OS == "nt":
             if variables.CONSOLEHWND != None and variables.CONSOLENAME != None:
                 ctypes.windll.user32.PostMessageW(variables.CONSOLEHWND, 0x10, 0, 0)
             else:
-                try:
-                    variables.CONSOLENAME = win32console.GetConsoleTitle()
-                    variables.CONSOLEHWND = win32gui.FindWindow(None, str(variables.CONSOLENAME))
-                    ctypes.windll.user32.PostMessageW(variables.CONSOLEHWND, 0x10, 0, 0)
-                except Exception as e:
-                    variables.CONSOLENAME = None
-                    variables.CONSOLEHWND = None
-                    print("\033[91m" + "Failed to close console: " + "\033[0m" + str(e))
-    except Exception as e:
-        print("There was an error closing the console window: " + str(e))
-        RestoreConsole()
+                variables.CONSOLENAME = win32console.GetConsoleTitle()
+                variables.CONSOLEHWND = win32gui.FindWindow(None, str(variables.CONSOLENAME))
+                ctypes.windll.user32.PostMessageW(variables.CONSOLEHWND, 0x10, 0, 0)
+    except:
+        Type = "\nConsole - Close Error."
+        Message = str(traceback.format_exc())
+        while Message.endswith('\n'):
+            Message = Message[:-1]
+        if variables.DEVMODE == False:
+            Message = f"{RED}>{NORMAL} " + Message.replace("\n", f"\n{RED}>{NORMAL} ")
+        print(f"{RED}{Type}{NORMAL}\n{Message}\n")

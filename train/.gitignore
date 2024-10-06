@@ -1,9 +1,0 @@
-# Ignore the dataset
-/raw_dataset/*
-/dataset/*
-
-# Ignore the models
-/models/*
-
-# Ignore the tensorboard logs
-/logs/*

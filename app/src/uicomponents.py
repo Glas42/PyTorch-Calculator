@@ -1,126 +1,257 @@
+import src.translate as translate
+import src.variables as variables
 import src.settings as settings
-from tkinter import ttk
-import tkinter as tk
+import threading
+import pynput
+import math
+import time
+import cv2
 
-def MakeButton(parent, text:str, command, row:int, column:int, style:str="TButton", width:int=15, center:bool=False, padx:int=5, pady:int=5, state:str="!disabled", columnspan:int=1, rowspan:int=1, sticky:str="n"):
 
-    button = ttk.Button(parent, text=text, command=command, style=style, padding=10, width=width, state=state)
-    if not center:
-        button.grid(row=row, column=column, padx=padx, pady=pady, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
+ForegroundWindow = False
+FrameWidth = None
+FrameHeight = None
+MouseX = None
+MouseY = None
+LeftClicked = False
+RightClicked = False
+LastLeftClicked = False
+LastRightClicked = False
+
+ScrollEventQueue = []
+def handleScrollEvents():
+    global ScrollEventQueue
+    with pynput.mouse.Events() as Events:
+        while variables.BREAK == False:
+            Event = Events.get()
+            if isinstance(Event, pynput.mouse.Events.Scroll):
+                ScrollEventQueue.append(Event)
+ScrollEventThread = threading.Thread(target=handleScrollEvents, daemon=True).start()
+
+
+def GetTextSize(Text="NONE", TextWidth=100, Fontsize=variables.FONT_SIZE):
+    global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked
+    Fontscale = 1
+    Textsize, _ = cv2.getTextSize(Text, cv2.FONT_HERSHEY_SIMPLEX, Fontscale, 1)
+    WidthCurrentText, HeightCurrentText = Textsize
+    maxCountCurrentText = 3
+    while WidthCurrentText != TextWidth or HeightCurrentText > Fontsize:
+        Fontscale *= min(TextWidth / Textsize[0], Fontsize / Textsize[1])
+        Textsize, _ = cv2.getTextSize(Text, cv2.FONT_HERSHEY_SIMPLEX, Fontscale, 1)
+        maxCountCurrentText -= 1
+        if maxCountCurrentText <= 0:
+            break
+    Thickness = round(Fontscale * 2)
+    if Thickness <= 0:
+        Thickness = 1
+    return Text, Fontscale, Thickness, Textsize[0], Textsize[1]
+
+
+def Label(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, Align="Center", Fontsize=variables.FONT_SIZE, TextColor=variables.TEXT_COLOR):
+    global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked, ScrollEventQueue
+    Y1 += variables.TITLE_BAR_HEIGHT
+    Y2 += variables.TITLE_BAR_HEIGHT
+    Texts = Text.split("\n")
+    LineHeight = ((Y2-Y1) / len(Texts))
+    for i, t in enumerate(Texts):
+        t = translate.Translate(t)
+        Text, Fontscale, Thickness, Width, Height = GetTextSize(t, round((X2-X1)), LineHeight / 1.5 if LineHeight / 1.5 < Fontsize else Fontsize)
+        if Align == "Center":
+            x = round(X1 + (X2-X1) / 2 - Width / 2)
+        elif Align == "Left":
+            x = round(X1)
+        elif Align == "Right":
+            x = round(X1 + (X2-X1) - Width)
+        cv2.putText(variables.FRAME, Text, (x, round(Y1 + (i + 0.5) * LineHeight + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+
+
+def Button(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, Fontsize=variables.FONT_SIZE, RoundCorners=5, ButtonSelected=False, TextColor=variables.TEXT_COLOR, ButtonColor=variables.BUTTON_COLOR, ButtonHoverColor=variables.BUTTON_HOVER_COLOR, ButtonSelectedColor=variables.BUTTON_SELECTED_COLOR, ButtonSelectedHoverColor=variables.BUTTON_SELECTED_HOVER_COLOR):
+    global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked, ScrollEventQueue
+    Y1 += variables.TITLE_BAR_HEIGHT
+    Y2 += variables.TITLE_BAR_HEIGHT
+    Text = translate.Translate(Text)
+    if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and ForegroundWindow and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
+        ButtonHovered = True
     else:
-        button.grid(row=row, column=column, padx=padx, pady=pady, sticky="n", columnspan=columnspan, rowspan=rowspan)
-
-    return button
-
-
-def MakeCheckButton(parent, text:str, category:str, setting:str, row:int, column:int, width:int=17, padx:int=5, pady:int=5, values=[True, False], default=False, columnspan:int=1, callback=None):
-
-    variable = tk.BooleanVar()
-    value = settings.Get(category, setting)
-
-    if value == None:
-        value = default
-        settings.Set(category, setting, value)
-        variable.set(value)
-    else:
-        variable.set(value)
-
-    if callback != None:
-        def ButtonPressed():
-            settings.Set(category, setting, values[0] if variable.get() else values[1])
-            callback()
-    else:
-        def ButtonPressed():
-            settings.Set(category, setting, values[0] if variable.get() else values[1])
-
-    button = ttk.Checkbutton(parent, text=text, variable=variable, command=lambda: ButtonPressed(), width=width)
-    button.grid(row=row, column=column, padx=padx, pady=pady, sticky="w", columnspan=columnspan)
-
-    return variable
-
-
-def MakeComboEntry(parent, text:str, category:str, setting:str, row: int, column: int, width: int=10, padx: int=5, pady: int=5, labelwidth:int=15, isFloat:bool=False, isString:bool=False, value="", sticky:str="w", labelSticky:str="w", labelPadX:int=10):
-
-    label = ttk.Label(parent, text=text, width=labelwidth).grid(row=row, column=column, sticky=labelSticky, padx=labelPadX)
-
-    if not isFloat and not isString:
-        var = tk.IntVar()
-
-        setting = settings.Get(category, setting)
-        if setting == None:
-            var.set(value)
-            settings.Set(category, setting, value)
+        ButtonHovered = False
+    if ButtonSelected == True:
+        if ButtonHovered == True:
+            cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonSelectedHoverColor, RoundCorners, cv2.LINE_AA)
+            cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonSelectedHoverColor, -1, cv2.LINE_AA)
         else:
-            var.set(setting)
+            cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonSelectedColor, RoundCorners, cv2.LINE_AA)
+            cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonSelectedColor, -1, cv2.LINE_AA)
+    elif ButtonHovered == True:
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonHoverColor, RoundCorners, cv2.LINE_AA)
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonHoverColor, -1, cv2.LINE_AA)
+    else:
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonColor, RoundCorners, cv2.LINE_AA)
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonColor, -1, cv2.LINE_AA)
+    Text, Fontscale, Thickness, Width, Height = GetTextSize(Text, round((X2-X1)), Fontsize)
+    cv2.putText(variables.FRAME, Text, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+    if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and LeftClicked == False and LastLeftClicked == True and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
+        return True, LeftClicked and ButtonHovered, ButtonHovered
+    else:
+        return False, LeftClicked and ButtonHovered, ButtonHovered
 
-    elif isString:
-        var = tk.StringVar()
-        
-        setting = settings.Get(category, setting)
-        if setting == None:
-            var.set(value)
-            settings.Set(category, setting, value)
+
+def Switch(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, SwitchWidth=40, SwitchHeight=20, TextPadding=10, State=False, Setting=None, Fontsize=variables.FONT_SIZE, TextColor=variables.TEXT_COLOR, SwitchColor=variables.SWITCH_COLOR, SwitchKnobColor=variables.SWITCH_KNOB_COLOR, SwitchHoverColor=variables.SWITCH_HOVER_COLOR, SwitchEnabledColor=variables.SWITCH_ENABLED_COLOR, SwitchEnabledHoverColor=variables.SWITCH_ENABLED_HOVER_COLOR):
+    global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked, ScrollEventQueue
+    CurrentTime = time.time()
+    Y1 += variables.TITLE_BAR_HEIGHT
+    Y2 += variables.TITLE_BAR_HEIGHT
+    Text = translate.Translate(Text)
+    if Text in variables.SWITCHES:
+        State = variables.SWITCHES[Text][0]
+    else:
+        if Setting is not None:
+            State = settings.Get(str(Setting[0]), str(Setting[1]), Setting[2])
+        variables.SWITCHES[Text] = State, 0
+
+    x = CurrentTime - variables.SWITCHES[Text][1]
+    if x < 0.3333:
+        x *= 3
+        animationState = 1 - math.pow(2, -10 * x)
+        variables.RENDER_FRAME = True
+        if State == False:
+            SwitchColor = SwitchColor[0] * animationState + SwitchEnabledColor[0] * (1 - animationState), SwitchColor[1] * animationState + SwitchEnabledColor[1] * (1 - animationState), SwitchColor[2] * animationState + SwitchEnabledColor[2] * (1 - animationState)
+            SwitchHoverColor = SwitchHoverColor[0] * animationState + SwitchEnabledHoverColor[0] * (1 - animationState), SwitchHoverColor[1] * animationState + SwitchEnabledHoverColor[1] * (1 - animationState), SwitchHoverColor[2] * animationState + SwitchEnabledHoverColor[2] * (1 - animationState)
         else:
-            var.set(setting)
+            SwitchEnabledColor = SwitchColor[0] * (1 - animationState) + SwitchEnabledColor[0] * animationState, SwitchColor[1] * (1 - animationState) + SwitchEnabledColor[1] * animationState, SwitchColor[2] * (1 - animationState) + SwitchEnabledColor[2] * animationState
+            SwitchEnabledHoverColor = SwitchHoverColor[0] * (1 - animationState) + SwitchEnabledHoverColor[0] * animationState, SwitchHoverColor[1] * (1 - animationState) + SwitchEnabledHoverColor[1] * animationState, SwitchHoverColor[2] * (1 - animationState) + SwitchEnabledHoverColor[2] * animationState
+    else:
+        animationState = 1
+
+    if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and ForegroundWindow and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
+        SwitchHovered = True
+    else:
+        SwitchHovered = False
+    if SwitchHovered == True:
+        if State == True:
+            cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchEnabledHoverColor, -1, cv2.LINE_AA)
+            cv2.circle(variables.FRAME, (round(X1+SwitchWidth-SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchEnabledHoverColor, -1, cv2.LINE_AA)
+            cv2.rectangle(variables.FRAME, (round(X1+SwitchHeight/2+1), round((Y1+Y2)/2-SwitchHeight/2)), (round(X1+SwitchWidth-SwitchHeight/2-1), round((Y1+Y2)/2+SwitchHeight/2)), SwitchEnabledHoverColor, -1, cv2.LINE_AA)
+            if animationState < 1:
+                cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2+(SwitchWidth-SwitchHeight)*animationState), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+            else:
+                cv2.circle(variables.FRAME, (round(X1+SwitchWidth-SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+        else:
+            cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchHoverColor, -1, cv2.LINE_AA)
+            cv2.circle(variables.FRAME, (round(X1+SwitchWidth-SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchHoverColor, -1, cv2.LINE_AA)
+            cv2.rectangle(variables.FRAME, (round(X1+SwitchHeight/2+1), round((Y1+Y2)/2-SwitchHeight/2)), (round(X1+SwitchWidth-SwitchHeight/2-1), round((Y1+Y2)/2+SwitchHeight/2)), SwitchHoverColor, -1, cv2.LINE_AA)
+            if animationState < 1:
+                cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2+(SwitchWidth-SwitchHeight)*(1-animationState)), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+            else:
+                cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+    else:
+        if State == True:
+            cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchEnabledColor, -1, cv2.LINE_AA)
+            cv2.circle(variables.FRAME, (round(X1+SwitchWidth-SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchEnabledColor, -1, cv2.LINE_AA)
+            cv2.rectangle(variables.FRAME, (round(X1+SwitchHeight/2+1), round((Y1+Y2)/2-SwitchHeight/2)), (round(X1+SwitchWidth-SwitchHeight/2-1), round((Y1+Y2)/2+SwitchHeight/2)), SwitchEnabledColor, -1, cv2.LINE_AA)
+            if animationState < 1:
+                cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2+(SwitchWidth-SwitchHeight)*animationState), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+            else:
+                cv2.circle(variables.FRAME, (round(X1+SwitchWidth-SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+        else:
+            cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchColor, -1, cv2.LINE_AA)
+            cv2.circle(variables.FRAME, (round(X1+SwitchWidth-SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2), SwitchColor, -1, cv2.LINE_AA)
+            cv2.rectangle(variables.FRAME, (round(X1+SwitchHeight/2+1), round((Y1+Y2)/2-SwitchHeight/2)), (round(X1+SwitchWidth-SwitchHeight/2-1), round((Y1+Y2)/2+SwitchHeight/2)), SwitchColor, -1, cv2.LINE_AA)
+            if animationState < 1:
+                cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2+(SwitchWidth-SwitchHeight)*(1-animationState)), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+            else:
+                cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
+    Text, Fontscale, Thickness, Width, Height = GetTextSize(Text, round((X2-X1)), Fontsize)
+    cv2.putText(variables.FRAME, Text, (round(X1 + SwitchWidth + TextPadding), round(Y1 + (Y2-Y1) / 2 + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+    if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and LeftClicked == False and LastLeftClicked == True and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
+        if Setting is not None:
+            variables.SWITCHES[Text] = not State, CurrentTime
+            settings.Set(str(Setting[0]), str(Setting[1]), not State)
+        return True, LeftClicked and SwitchHovered, SwitchHovered
+    else:
+        return False, LeftClicked and SwitchHovered, SwitchHovered
+
+
+def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=100, DropdownHeight=100, DropdownPadding=5, RoundCorners=5, Fontsize=variables.FONT_SIZE, TextColor=variables.TEXT_COLOR, grayedTextColor=variables.GRAYED_TEXT_COLOR, DropdownColor=variables.DROPDOWN_COLOR, DropdownHoverColor=variables.DROPDOWN_HOVER_COLOR):
+    global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked, ScrollEventQueue
+    Y1 += variables.TITLE_BAR_HEIGHT
+    Y2 += variables.TITLE_BAR_HEIGHT
+    if Text not in variables.DROPDOWNS:
+        DefaultItem = int(max(min(DefaultItem, len(Items) - 1), 0))
+        variables.DROPDOWNS[Text] = False, settings.Get("DropdownSelections", str(Text), DefaultItem)
+
+    DropdownSelected, SelectedItem = variables.DROPDOWNS[Text]
+
+    if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 + ((DropdownHeight + DropdownPadding) if DropdownSelected else 0) and ForegroundWindow and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
+        DropdownHovered = True
+        DropdownPressed = LeftClicked
+        DropdownChanged = True if LastLeftClicked == True and LeftClicked == False and DropdownSelected == True else False
+        DropdownSelected = not DropdownSelected if LastLeftClicked == True and LeftClicked == False else DropdownSelected
+    else:
+        DropdownHovered = False
+        DropdownPressed = False
+        DropdownChanged =  DropdownSelected
+        DropdownSelected = False
+
+    if DropdownHovered == True:
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), DropdownHoverColor, RoundCorners, cv2.LINE_AA)
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), DropdownHoverColor, -1, cv2.LINE_AA)
+    else:
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), DropdownColor, RoundCorners, cv2.LINE_AA)
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), DropdownColor, -1, cv2.LINE_AA)
+    if DropdownSelected == True:
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y2+DropdownPadding+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2+DropdownHeight+DropdownPadding-RoundCorners/2)), DropdownHoverColor, RoundCorners, cv2.LINE_AA)
+        cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y2+DropdownPadding+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2+DropdownHeight+DropdownPadding-RoundCorners/2)), DropdownHoverColor, -1, cv2.LINE_AA)
+
+        _, _, Thickness, _, _ = GetTextSize()
+        Padding = (Y2 + Y1) / 2 - variables.FONT_SIZE / 4 - Y1
+        Height = round(Y2 - Padding) - round(Y1 + Padding)
+        cv2.line(variables.FRAME, (round(X2 - Padding - Height), round(Y1 + Padding)), (round(X2 - Padding), round(Y2 - Padding)), TextColor, Thickness, cv2.LINE_AA)
+        cv2.line(variables.FRAME, (round(X2 - Padding - Height), round(Y1 + Padding)), (round(X2 - Padding  - Height * 2), round(Y2 - Padding)), TextColor, Thickness, cv2.LINE_AA)
+
+        for Event in ScrollEventQueue:
+            if Event.dy > 0:
+                SelectedItem = (SelectedItem - 1) if SelectedItem > 0 else 0
+            elif Event.dy < 0:
+                SelectedItem = (SelectedItem + 1) if SelectedItem < len(Items) - 1 else len(Items) - 1
+        ScrollEventQueue = []
+
+        for i in range(3):
+            LineHeight = (DropdownHeight / 3)
+            index = SelectedItem - 1 + i
+            if index >= len(Items):
+                index = -1
+            if index < 0:
+                index = -1
+            if index == -1:
+                Item = ""
+            else:
+                Item = translate.Translate(Items[index])
+            if i == 1:
+                ItemText = "> " + Item + " <"
+            else:
+                ItemText = Item
+            ItemText, Fontscale, Thickness, Width, Height = GetTextSize(ItemText, round((X2-X1)), LineHeight / 1.5 if LineHeight / 1.5 < Fontsize else Fontsize)
+            cv2.putText(variables.FRAME, ItemText, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y2 + DropdownPadding + (i + 0.5) * LineHeight + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor if i == 1 else grayedTextColor, Thickness, cv2.LINE_AA)
 
     else:
-        var = tk.DoubleVar()
 
-        setting = settings.Get(category, setting)
-        if setting == None:
-            var.set(value)
-            settings.Set(category, setting, value)
-        else:
-            var.set(setting)
+        _, _, Thickness, _, _ = GetTextSize()
+        Padding = (Y2 + Y1) / 2 - variables.FONT_SIZE / 4 - Y1
+        Height = round(Y2 - Padding) - round(Y1 + Padding)
+        cv2.line(variables.FRAME, (round(X2 - Padding - Height), round(Y2 - Padding)), (round(X2 - Padding), round(Y1 + Padding)), TextColor, Thickness, cv2.LINE_AA)
+        cv2.line(variables.FRAME, (round(X2 - Padding - Height), round(Y2 - Padding)), (round(X2 - Padding  - Height * 2), round(Y1 + Padding)), TextColor, Thickness, cv2.LINE_AA)
 
-    entry = ttk.Entry(parent, textvariable=var, width=width, validatecommand=lambda: settings.Create(category, setting, var.get())).grid(row=row, column=column+1, sticky=sticky, padx=padx, pady=pady)
+    TextTranslated = translate.Translate(Text)
+    TextTranslated, Fontscale, Thickness, Width, Height = GetTextSize(TextTranslated, round((X2-X1)), Fontsize)
+    cv2.putText(variables.FRAME, TextTranslated, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
 
-    return var
+    variables.DROPDOWNS[Text] = DropdownSelected, SelectedItem
+    if DropdownChanged:
+        settings.Set("DropdownSelections", str(Text), int(SelectedItem))
+    if DropdownSelected:
+        variables.RENDER_FRAME = True
 
+    if DropdownChanged:
+        DropdownChanged = (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS))
 
-def MakeEntry(parent, row: int, column: int, width: int=10, padx: int=5, pady: int=5, isFloat:bool=False, isString:bool=False, value="", sticky:str="w"):
-
-    if not isFloat and not isString:
-        var = tk.IntVar()
-
-    elif isString:
-        var = tk.StringVar()
-
-    else:
-        var = tk.DoubleVar()
-
-    entry = ttk.Entry(parent, textvariable=var, width=width).grid(row=row, column=column+1, sticky=sticky, padx=padx, pady=pady)
-
-    return var
-
-def MakeLabel(parent, text:str, row:int, column:int, font=("Segoe UI", 10), pady:int=5, padx:int=5, columnspan:int=1, sticky:str="n", fg:str="", bg:str=""):
-
-    if text == "":
-        var = tk.StringVar()
-        var.set(text)
-
-        if fg != "" and bg != "":
-            label = ttk.Label(parent, font=font, textvariable=var, background=bg, foreground=fg)
-        elif fg != "":
-            label = ttk.Label(parent, font=font, textvariable=var, foreground=fg)
-        elif bg != "":
-            label = ttk.Label(parent, font=font, textvariable=var, background=bg)
-        else: 
-            label = ttk.Label(parent, font=font, textvariable=var)
-
-        label.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady, sticky=sticky)
-
-        return var
-    else:
-        if fg != "" and bg != "":
-            label = ttk.Label(parent, font=font, text=text, background=bg, foreground=fg)
-        elif fg != "":
-            label = ttk.Label(parent, font=font, text=text, foreground=fg)
-        elif bg != "":
-            label = ttk.Label(parent, font=font, text=text, background=bg)
-        else:
-            label = ttk.Label(parent, font=font, text=text)
-
-        label.grid(row=row, column=column, columnspan=columnspan, padx=padx, pady=pady, sticky=sticky)
-
-        return label
+    return DropdownChanged, DropdownPressed, DropdownHovered

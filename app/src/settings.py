@@ -1,50 +1,50 @@
 import src.variables as variables
 import json
 
-def EnsureFile(file:str):
+def EnsureFile(File:str):
     try:
-        with open(file, "r") as f:
+        with open(File, "r") as f:
             try:
                 json.load(f)
             except:
-                with open(file, "w") as ff:
+                with open(File, "w") as ff:
                     ff.write("{}")
     except:
-        with open(file, "w") as f:
+        with open(File, "w") as f:
             f.write("{}")
 
-def Get(category:str, name:str, value:any=None):
+def Get(Category:str, Name:str, Value:any=None):
     try:
-        EnsureFile(f"{variables.PATH}settings.json")
-        with open(f"{variables.PATH}settings.json", "r") as f:
-            settings = json.load(f)
+        EnsureFile(f"{variables.PATH}config/settings.json")
+        with open(f"{variables.PATH}config/settings.json", "r") as f:
+            Settings = json.load(f)
 
-        if settings[category][name] == None:
-            return value
-        
-        return settings[category][name]
+        if Settings[Category][Name] == None:
+            return Value
+
+        return Settings[Category][Name]
     except:
-        if value != None:
-            Set(category, name, value)
-            return value
+        if Value != None:
+            Set(Category, Name, Value)
+            return Value
         else:
             pass
 
-def Set(category:str, name:str, data:any):
+def Set(Category:str, Name:str, Data:any):
     try:
-        EnsureFile(f"{variables.PATH}settings.json")
-        with open(f"{variables.PATH}settings.json", "r") as f:
-            settings = json.load(f)
+        EnsureFile(f"{variables.PATH}config/settings.json")
+        with open(f"{variables.PATH}config/settings.json", "r") as f:
+            Settings = json.load(f)
 
-        if not category in settings:
-            settings[category] = {}
-            settings[category][name] = data
+        if not Category in Settings:
+            Settings[Category] = {}
+            Settings[Category][Name] = Data
 
-        if category in settings:
-            settings[category][name] = data
+        if Category in Settings:
+            Settings[Category][Name] = Data
 
-        with open(f"{variables.PATH}settings.json", "w") as f:
+        with open(f"{variables.PATH}config/settings.json", "w") as f:
             f.truncate(0)
-            json.dump(settings, f, indent=6)
+            json.dump(Settings, f, indent=6)
     except:
         pass

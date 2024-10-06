@@ -1,52 +1,74 @@
 import src.settings as settings
-import mss
 import os
 
-ROOT = None
-HWND = None
-BREAK = False
-PATH = os.path.dirname(__file__).replace("src", "")
-
 OS = os.name
-with open(PATH.replace("\\app", "") + "version.txt") as f: VERSION = f.read()
+PATH = os.path.dirname(os.path.dirname(os.path.dirname(__file__))).replace("\\", "/") + "/"
+with open(PATH + "config/version.txt") as f: VERSION = f.read()
+REMOTE_VERSION = None
+CHANGELOG = None
 
-RUN = True
-WINDOWNAME = "PyTorch-Calculator"
+LANGUAGE = settings.Get("UI", "Language", "en")
+THEME = settings.Get("UI", "Theme", "Dark")
+BACKGROUND = None
+DEVMODE = False
 
-FPS = 60
-THEME = settings.Get("UI", "theme", "dark")
+FONT_SIZE = 11
+POPUP_HEIGHT = 50
+TITLE_BAR_HEIGHT = 50
+TEXT_COLOR = (255, 255, 255) if THEME == "Dark" else (0, 0, 0)
+GRAYED_TEXT_COLOR = (155, 155, 155) if THEME == "Dark" else (100, 100, 100)
+BACKGROUND_COLOR = (28, 28, 28) if THEME == "Dark" else (250, 250, 250)
+TAB_BAR_COLOR = (47, 47, 47) if THEME == "Dark" else (231, 231, 231)
+TAB_BUTTON_COLOR = (47, 47, 47) if THEME == "Dark" else (231, 231, 231)
+TAB_BUTTON_HOVER_COLOR = (41, 41, 41) if THEME == "Dark" else (244, 244, 244)
+TAB_BUTTON_SELECTED_COLOR = (28, 28, 28) if THEME == "Dark" else (250, 250, 250)
+TAB_BUTTON_SELECTED_HOVER_COLOR = (28, 28, 28) if THEME == "Dark" else (250, 250, 250)
+POPUP_COLOR = (42, 42, 42) if THEME == "Dark" else (236, 236, 236)
+POPUP_HOVER_COLOR = (42, 42, 42) if THEME == "Dark" else (236, 236, 236)
+POPUP_PROGRESS_COLOR = (255, 200, 87) if THEME == "Dark" else (184, 95, 0)
+BUTTON_COLOR = (42, 42, 42) if THEME == "Dark" else (236, 236, 236)
+BUTTON_HOVER_COLOR = (47, 47, 47) if THEME == "Dark" else (231, 231, 231)
+BUTTON_SELECTED_COLOR = (28, 28, 28) if THEME == "Dark" else (250, 250, 250)
+BUTTON_SELECTED_HOVER_COLOR = (28, 28, 28) if THEME == "Dark" else (250, 250, 250)
+SWITCH_COLOR = (70, 70, 70) if THEME == "Dark" else (208, 208, 208)
+SWITCH_KNOB_COLOR = (28, 28, 28) if THEME == "Dark" else (250, 250, 250)
+SWITCH_HOVER_COLOR = (70, 70, 70) if THEME == "Dark" else (208, 208, 208)
+SWITCH_ENABLED_COLOR = (255, 200, 87) if THEME == "Dark" else (184, 95, 0)
+SWITCH_ENABLED_HOVER_COLOR = (255, 200, 87) if THEME == "Dark" else (184, 95, 0)
+DROPDOWN_COLOR = (42, 42, 42) if THEME == "Dark" else (236, 236, 236)
+DROPDOWN_HOVER_COLOR = (47, 47, 47) if THEME == "Dark" else (231, 231, 231)
 
-FILE_PATH = None
-CANVAS_CONTENT = []
+AVAILABLE_LANGUAGES = {}
+TRANSLATION_CACHE = {}
+CUDA_AVAILABLE = False
+CUDA_INSTALLED = False
+CUDA_COMPATIBLE = False
 
-CANVAS_POSITION = (settings.Get("UI", "width", 1000) - 10) // 2, (settings.Get("UI", "height", 600) - 50) // 2
-CANVAS_ZOOM = 1
-CANVAS_SHOW_GRID = True
-CANVAS_GRID_TYPE = "DOT"
-CANVAS_TEMP = []
-CANVAS_DELETE_LIST = []
-CANVAS_DRAW_COLOR = (255, 255, 255)
+TABS = ["Canvas", "File", "Settings"]
+CANVAS_BOTTOM = settings.Get("UI", "Height", 400) - TITLE_BAR_HEIGHT - 1
+CANVAS_RIGHT = settings.Get("UI", "Width", 700) - 1
+CONTEXT_MENU_ITEMS = []
+CONTEXT_MENU = [False, 0, 0]
+RENDER_FRAME = True
+CACHED_FRAME = None
+POPUP_SHOW_VALUE = 1
+LAST_POPUP = [None, 0, 0.5], 0
+POPUP = [None, 0, 0.5]
+DROPDOWNS = {}
+SWITCHES = {}
+FRAME = None
+ITEMS = []
+AREAS = []
 
-TOOLBAR = None
-TOOLBAR_HOVERED = False
-TOOLBAR_WIDTH = None
-TOOLBAR_HEIGHT = None
-TOOLBAR_ROWS = None
-TOOLBAR_COLUMNS = 3
-TOOLBAR_PADDING = 10
+X = settings.Get("UI", "X", 0)
+Y = settings.Get("UI", "Y", 0)
+WIDTH = settings.Get("UI", "Width", 700)
+HEIGHT = settings.Get("UI", "Height", 400)
 
-DEFAULT_MOUSE_SPEED = 10
-
-sct = mss.mss()
-SCRENN_X = sct.monitors[1]["left"]
-SCRENN_Y = sct.monitors[1]["top"]
-SCREEN_WIDTH = sct.monitors[1]["width"]
-SCREEN_HEIGHT = sct.monitors[1]["height"]
+HWND = None
+NAME = "PyTorch-Calculator"
+PAGE = settings.Get("UI", "PAGE", "Canvas")
+BREAK = False
 
 CONSOLENAME = None
 CONSOLEHWND = None
-
-RED = "\033[91m"
-GREEN = "\033[92m"
-ORANGE = "\033[93m"
-NORMAL = "\033[0m"

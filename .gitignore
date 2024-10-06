@@ -1,0 +1,21 @@
+# Ignore the pycache
+**/__pycache__
+
+# Ignore the venv
+/venv
+
+# Ignore the settings
+/config/settings.json
+
+# Ignore the dataset
+/train/raw_dataset/*
+/train/dataset/*
+
+# Ignore the models
+/train/models/*
+
+# Ignore the tensorboard logs
+/train/logs/*
+
+# Ignore the old app files
+/app-old
