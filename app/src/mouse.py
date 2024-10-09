@@ -1,6 +1,6 @@
 from src.crashreport import CrashReport
 import src.variables as variables
-import src.settings as settings
+import src.window as window
 import threading
 import traceback
 import ctypes
@@ -9,8 +9,6 @@ import mouse
 import numpy
 import time
 
-if variables.OS == "nt":
-    import win32gui
 
 def GetMouseSpeed():
     Speed = ctypes.c_int()
@@ -38,15 +36,14 @@ def Run():
             LastMouseY = 0
             MoveStart = 0, 0
             while variables.BREAK == False:
-                if win32gui.GetForegroundWindow() != variables.HWND or variables.PAGE != "Canvas":
+                if window.GetWindowStatus(variables.NAME)["Foreground"] == False or variables.PAGE != "Canvas":
                     time.sleep(0.1)
                     continue
 
-                RECT = win32gui.GetClientRect(variables.HWND)
-                TL = win32gui.ClientToScreen(variables.HWND, (RECT[0], RECT[1]))
-                BR = win32gui.ClientToScreen(variables.HWND, (RECT[2], RECT[3]))
-                WindowX, WindowY, WindowWidth, WindowHeight = TL[0], TL[1] + 40, BR[0] - TL[0], BR[1] - TL[1]
+                WindowX, WindowY = window.GetWindowPosition(variables.NAME)
+                WindowWidth, WindowHeight = window.GetWindowSize(variables.NAME)
                 MouseX, MouseY = mouse.get_position()
+                WindowY += variables.TITLE_BAR_HEIGHT
 
                 LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
                 RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight

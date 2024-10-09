@@ -1,12 +1,11 @@
 from src.crashreport import CrashReport
 import src.variables as variables
+import src.window as window
 import threading
 import traceback
 import ctypes
 import time
 
-if variables.OS == "nt":
-    import win32gui
 
 def Run():
     def RunThread():
@@ -18,19 +17,18 @@ def Run():
             while variables.BREAK == False:
                 Start = time.time()
 
-                if win32gui.GetForegroundWindow() != variables.HWND or variables.PAGE != "Canvas":
+                if window.GetWindowStatus(variables.NAME)["Foreground"] == False or variables.PAGE != "Canvas":
                     time.sleep(0.1)
                     continue
 
-                WindowIsForeground = win32gui.GetWindowText(win32gui.GetForegroundWindow()) == variables.NAME
-                CtrlZClicked = ctypes.windll.user32.GetKeyState(0x5A) & 0x8000 != 0 and WindowIsForeground
-                CtrlYClicked = ctypes.windll.user32.GetKeyState(0x59) & 0x8000 != 0 and WindowIsForeground
-                CtrlSClicked = ctypes.windll.user32.GetKeyState(0x53) & 0x8000 != 0 and WindowIsForeground
-                CtrlNClicked = ctypes.windll.user32.GetKeyState(0x4E) & 0x8000 != 0 and WindowIsForeground
-                CtrlCClicked = ctypes.windll.user32.GetKeyState(0x43) & 0x8000 != 0 and WindowIsForeground
-                CtrlVClicked = ctypes.windll.user32.GetKeyState(0x56) & 0x8000 != 0 and WindowIsForeground
-                CtrlXClicked = ctypes.windll.user32.GetKeyState(0x58) & 0x8000 != 0 and WindowIsForeground
-                CtrlDClicked = ctypes.windll.user32.GetKeyState(0x44) & 0x8000 != 0 and WindowIsForeground
+                CtrlZClicked = ctypes.windll.user32.GetKeyState(0x5A) & 0x8000 != 0
+                CtrlYClicked = ctypes.windll.user32.GetKeyState(0x59) & 0x8000 != 0
+                CtrlSClicked = ctypes.windll.user32.GetKeyState(0x53) & 0x8000 != 0
+                CtrlNClicked = ctypes.windll.user32.GetKeyState(0x4E) & 0x8000 != 0
+                CtrlCClicked = ctypes.windll.user32.GetKeyState(0x43) & 0x8000 != 0
+                CtrlVClicked = ctypes.windll.user32.GetKeyState(0x56) & 0x8000 != 0
+                CtrlXClicked = ctypes.windll.user32.GetKeyState(0x58) & 0x8000 != 0
+                CtrlDClicked = ctypes.windll.user32.GetKeyState(0x44) & 0x8000 != 0
 
                 if CtrlZClicked == True and LastCtrlZClicked == False:
                     if len(variables.CANVAS_CONTENT) > 0:

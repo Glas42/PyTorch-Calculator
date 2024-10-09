@@ -30,7 +30,7 @@ def Update():
                         variables.CANVAS_GRID_TYPE,
                         len(variables.CANVAS_TEMP),
                         len(variables.CANVAS_DELETE_LIST),
-                        variables.CANVAS_DRAW_COLOR,
+                        variables.TEXT_COLOR,
                         variables.TOOLBAR_HOVERED)
 
         if variables.PAGE == "Canvas" and LastContent != Content:
@@ -68,14 +68,14 @@ def Update():
                     PointX2 = round((x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     PointY2 = round((y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     if 0 <= PointX1 < Frame.shape[1] or 0 <= PointY1 < Frame.shape[0] or 0 <= PointX2 < Frame.shape[1] or 0 <= PointY2 < Frame.shape[0]:
-                        cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.CANVAS_DRAW_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                        cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.TEXT_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
                 LastPoint = (x, y)
 
             if len(variables.CANVAS_TEMP) == 1:
                 PointX = round((variables.CANVAS_TEMP[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 PointY = round((variables.CANVAS_TEMP[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 if 0 <= PointX < Frame.shape[1] or 0 <= PointY < Frame.shape[0]:
-                    cv2.circle(Frame, (PointX, PointY), 3, variables.CANVAS_DRAW_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                    cv2.circle(Frame, (PointX, PointY), 3, variables.TEXT_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
             for i in CANVAS_CONTENT:
                 LastPoint = None
                 minX, minY, maxX, maxY = i[0]
@@ -93,13 +93,13 @@ def Update():
                             PointX2 = round((x + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                             PointY2 = round((y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                             if 0 <= PointX1 < Frame.shape[1] or 0 <= PointY1 < Frame.shape[0] or 0 <= PointX2 < Frame.shape[1] or 0 <= PointY2 < Frame.shape[0]:
-                                cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.CANVAS_DRAW_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                                cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.TEXT_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
                         LastPoint = (x, y)
                     if len(i) == 1:
                         PointX = round((i[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         PointY = round((i[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         if 0 <= PointX < Frame.shape[1] or 0 <= PointY < Frame.shape[0]:
-                            cv2.circle(Frame, (PointX, PointY), 3, variables.CANVAS_DRAW_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                            cv2.circle(Frame, (PointX, PointY), 3, variables.TEXT_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
 
             if variables.TOOLBAR_HOVERED == True:
                 cv2.rectangle(Frame, (Frame.shape[1] - variables.TOOLBAR_WIDTH -1, 20), (Frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "Light" else (47, 47, 47), 20, cv2.LINE_AA)

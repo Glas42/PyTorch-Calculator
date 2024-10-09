@@ -6,6 +6,7 @@ import src.console as console
 import src.pytorch as pytorch
 import src.updater as updater
 import src.canvas as canvas
+import src.window as window
 
 import subprocess
 import ctypes
@@ -16,9 +17,6 @@ import time
 import cv2
 import os
 
-if variables.OS == "nt":
-    from ctypes import windll, byref, sizeof, c_int
-    import win32gui, win32con
 
 def Initialize():
     WindowWidth = settings.Get("UI", "Width", 960)
@@ -55,25 +53,16 @@ def Initialize():
         {"Name": "Search for updates",
         "Function": lambda: {updater.CheckForUpdates(), setattr(variables, "CONTEXT_MENU", [False, 0, 0]), setattr(variables, "RENDER_FRAME", True)}}]
 
-    cv2.namedWindow(variables.NAME, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(variables.NAME, WindowWidth, WindowHeight)
-    cv2.imshow(variables.NAME, variables.BACKGROUND)
-    cv2.waitKey(1)
-
-    if variables.OS == "nt":
-        variables.HWND = win32gui.FindWindow(None, variables.NAME)
-        if variables.TITLE_BAR_HEIGHT == 0:
-            windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int((variables.BACKGROUND_COLOR[0] << 16) | (variables.BACKGROUND_COLOR[1] << 8) | variables.BACKGROUND_COLOR[2])), sizeof(c_int))
-        else:
-            windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int((variables.TAB_BAR_COLOR[0] << 16) | (variables.TAB_BAR_COLOR[1] << 8) | variables.TAB_BAR_COLOR[2])), sizeof(c_int))
-        Icon = win32gui.LoadImage(None, f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico", win32con.IMAGE_ICON, 0, 0, win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE)
-        win32gui.SendMessage(variables.HWND, win32con.WM_SETICON, win32con.ICON_SMALL, Icon)
-        win32gui.SendMessage(variables.HWND, win32con.WM_SETICON, win32con.ICON_BIG, Icon)
+    window.Initialize(Name=variables.NAME, Size=(WindowWidth, WindowHeight), Position=(WindowX, WindowY), TitleBarColor=variables.TAB_BAR_COLOR, Resizable=True, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
     LoadToolBar()
     Update()
 
-def Resize(WindowWidth, WindowHeight):
+def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
+    variables.X = WindowX
+    variables.Y = WindowY
+    variables.WIDTH = WindowWidth
+    variables.HEIGHT = WindowHeight
     variables.BACKGROUND = numpy.zeros((WindowHeight, WindowWidth, 3), numpy.uint8)
     variables.BACKGROUND[:] = variables.BACKGROUND_COLOR
     if variables.TITLE_BAR_HEIGHT > 0:
@@ -101,15 +90,10 @@ def Close():
 
 def SetTitleBarHeight(TitleBarHeight):
     if variables.OS == "nt":
-        if int(win32gui.IsIconic(variables.HWND)) == 1:
-            cv2.imshow(variables.NAME, variables.CACHED_FRAME)
-            cv2.waitKey(1)
+        if window.GetWindowStatus(variables.NAME)["Iconic"]:
+            window.Show(variables.NAME,variables.CACHED_FRAME)
             return
-    try:
-        _, _, WindowWidth, WindowHeight = cv2.getWindowImageRect(variables.NAME)
-    except:
-        Close()
-        return
+    WindowWidth, WindowHeight = window.GetWindowSize(variables.NAME)
     variables.TITLE_BAR_HEIGHT = TitleBarHeight
     variables.BACKGROUND = numpy.zeros((WindowHeight, WindowWidth, 3), numpy.uint8)
     variables.BACKGROUND[:] = variables.BACKGROUND_COLOR
@@ -117,11 +101,9 @@ def SetTitleBarHeight(TitleBarHeight):
         cv2.rectangle(variables.BACKGROUND, (0, 0), (WindowWidth - 1, variables.TITLE_BAR_HEIGHT - 1), variables.TAB_BAR_COLOR, -1)
     if variables.OS == "nt":
         if TitleBarHeight == 0:
-            from ctypes import windll, byref, sizeof, c_int
-            windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int((variables.BACKGROUND_COLOR[0] << 16) | (variables.BACKGROUND_COLOR[1] << 8) | variables.BACKGROUND_COLOR[2])), sizeof(c_int))
+            window.SetTitleBarColor(variables.NAME, variables.BACKGROUND_COLOR)
         else:
-            from ctypes import windll, byref, sizeof, c_int
-            windll.dwmapi.DwmSetWindowAttribute(variables.HWND, 35, byref(c_int((variables.TAB_BAR_COLOR[0] << 16) | (variables.TAB_BAR_COLOR[1] << 8) | variables.TAB_BAR_COLOR[2])), sizeof(c_int))
+            window.SetTitleBarColor(variables.NAME, variables.TAB_BAR_COLOR)
     variables.CANVAS_BOTTOM = WindowHeight - 1 - variables.TITLE_BAR_HEIGHT
     variables.CANVAS_RIGHT = WindowWidth - 1
     variables.RENDER_FRAME = True
@@ -190,41 +172,41 @@ def Update():
     CurrentTime = time.time()
 
     if variables.OS == "nt":
-        if int(win32gui.IsIconic(variables.HWND)) == 1:
-            cv2.imshow(variables.NAME, variables.CACHED_FRAME)
-            cv2.waitKey(1)
+        if window.GetWindowStatus(variables.NAME)["Iconic"] == False:
+            window.Show(variables.NAME, variables.CACHED_FRAME)
             return
 
-    try:
-        WindowX, WindowY, WindowWidth, WindowHeight = cv2.getWindowImageRect(variables.NAME)
-        if (WindowX, WindowY, WindowWidth, WindowHeight) != (variables.X, variables.Y, variables.WIDTH, variables.HEIGHT):
-            variables.X, variables.Y, variables.WIDTH, variables.HEIGHT = WindowX, WindowY, WindowWidth, WindowHeight
-            Resize(WindowWidth, WindowHeight)
-        MouseX, MouseY = mouse.get_position()
-        MouseRelativeWindow = MouseX - WindowX, MouseY - WindowY
-        if WindowWidth != 0 and WindowHeight != 0:
-            MouseX = MouseRelativeWindow[0]/WindowWidth
-            MouseY = MouseRelativeWindow[1]/WindowHeight
-        else:
-            MouseX = 0
-            MouseY = 0
-        LastLeftClicked = uicomponents.LeftClicked
-        LastRightClicked = uicomponents.RightClicked
-        ForegroundWindow = ctypes.windll.user32.GetForegroundWindow() == ctypes.windll.user32.FindWindowW(None, variables.NAME)
-        LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and ForegroundWindow
-        RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and ForegroundWindow
-        uicomponents.ForegroundWindow = ForegroundWindow
-        uicomponents.FrameWidth = WindowWidth
-        uicomponents.FrameHeight = WindowHeight
-        uicomponents.MouseX = MouseX
-        uicomponents.MouseY = MouseY
-        uicomponents.LastLeftClicked = uicomponents.LeftClicked
-        uicomponents.LastRightClicked = uicomponents.RightClicked
-        uicomponents.LeftClicked = LeftClicked
-        uicomponents.RightClicked = RightClicked
-    except:
+    if window.GetWindowStatus(variables.NAME)["Open"] == None:
         Close()
-        return
+
+    WindowX, WindowY = window.GetWindowPosition(variables.NAME)
+    WindowWidth, WindowHeight = window.GetWindowSize(variables.NAME)
+    if (WindowX, WindowY, WindowWidth, WindowHeight) != (variables.X, variables.Y, variables.WIDTH, variables.HEIGHT):
+        variables.X, variables.Y, variables.WIDTH, variables.HEIGHT = WindowX, WindowY, WindowWidth, WindowHeight
+        Resize(WindowX, WindowY, WindowWidth, WindowHeight)
+    MouseX, MouseY = mouse.get_position()
+    MouseRelativeWindow = MouseX - WindowX, MouseY - WindowY
+    if WindowWidth != 0 and WindowHeight != 0:
+        MouseX = MouseRelativeWindow[0]/WindowWidth
+        MouseY = MouseRelativeWindow[1]/WindowHeight
+    else:
+        MouseX = 0
+        MouseY = 0
+    LastLeftClicked = uicomponents.LeftClicked
+    LastRightClicked = uicomponents.RightClicked
+    ForegroundWindow = ctypes.windll.user32.GetForegroundWindow() == ctypes.windll.user32.FindWindowW(None, variables.NAME)
+    LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and ForegroundWindow
+    RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and ForegroundWindow
+    uicomponents.ForegroundWindow = ForegroundWindow
+    uicomponents.FrameWidth = WindowWidth
+    uicomponents.FrameHeight = WindowHeight
+    uicomponents.MouseX = MouseX
+    uicomponents.MouseY = MouseY
+    uicomponents.LastLeftClicked = uicomponents.LeftClicked
+    uicomponents.LastRightClicked = uicomponents.RightClicked
+    uicomponents.LeftClicked = LeftClicked
+    uicomponents.RightClicked = RightClicked
+
 
     if variables.TITLE_BAR_HEIGHT > 0:
         for i, Tab in enumerate(variables.TABS):
@@ -395,7 +377,7 @@ def Update():
         variables.ITEMS.append({
             "Type": "Button",
             "Text": "Check Cuda (GPU) Support",
-            "Function": lambda: setattr(variables, "PAGE", "CUDA"),
+            "Function": lambda: {setattr(variables, "PAGE", "CUDA"), SetTitleBarHeight(0)},
             "X1": 10,
             "Y1": 41,
             "X2": variables.CANVAS_RIGHT / 2 - 5,
@@ -584,5 +566,4 @@ def Update():
 
     variables.ITEMS = []
 
-    cv2.imshow(variables.NAME, variables.CACHED_FRAME)
-    cv2.waitKey(1)
+    window.Show(variables.NAME, variables.CACHED_FRAME)
