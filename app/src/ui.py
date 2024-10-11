@@ -6,7 +6,7 @@ import src.console as console
 import src.pytorch as pytorch
 import src.updater as updater
 import src.canvas as canvas
-import src.window as window
+import SimpleWindow
 
 import subprocess
 import ctypes
@@ -53,7 +53,7 @@ def Initialize():
         {"Name": "Search for updates",
         "Function": lambda: {updater.CheckForUpdates(), setattr(variables, "CONTEXT_MENU", [False, 0, 0]), setattr(variables, "RENDER_FRAME", True)}}]
 
-    window.Initialize(Name=variables.NAME, Size=(WindowWidth, WindowHeight), Position=(WindowX, WindowY), TitleBarColor=variables.TAB_BAR_COLOR, Resizable=True, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
+    SimpleWindow.Initialize(Name=variables.NAME, Size=(WindowWidth, WindowHeight), Position=(WindowX, WindowY), TitleBarColor=variables.TAB_BAR_COLOR, Resizable=True, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
     LoadToolBar()
     Update()
@@ -90,10 +90,10 @@ def Close():
 
 def SetTitleBarHeight(TitleBarHeight):
     if variables.OS == "nt":
-        if window.GetWindowStatus(variables.NAME)["Iconic"]:
-            window.Show(variables.NAME,variables.CACHED_FRAME)
+        if SimpleWindow.GetWindowStatus(variables.NAME)["Iconic"]:
+            SimpleWindow.Show(variables.NAME,variables.CACHED_FRAME)
             return
-    WindowWidth, WindowHeight = window.GetWindowSize(variables.NAME)
+    WindowWidth, WindowHeight = SimpleWindow.GetWindowSize(variables.NAME)
     variables.TITLE_BAR_HEIGHT = TitleBarHeight
     variables.BACKGROUND = numpy.zeros((WindowHeight, WindowWidth, 3), numpy.uint8)
     variables.BACKGROUND[:] = variables.BACKGROUND_COLOR
@@ -101,9 +101,9 @@ def SetTitleBarHeight(TitleBarHeight):
         cv2.rectangle(variables.BACKGROUND, (0, 0), (WindowWidth - 1, variables.TITLE_BAR_HEIGHT - 1), variables.TAB_BAR_COLOR, -1)
     if variables.OS == "nt":
         if TitleBarHeight == 0:
-            window.SetTitleBarColor(variables.NAME, variables.BACKGROUND_COLOR)
+            SimpleWindow.SetTitleBarColor(variables.NAME, variables.BACKGROUND_COLOR)
         else:
-            window.SetTitleBarColor(variables.NAME, variables.TAB_BAR_COLOR)
+            SimpleWindow.SetTitleBarColor(variables.NAME, variables.TAB_BAR_COLOR)
     variables.CANVAS_BOTTOM = WindowHeight - 1 - variables.TITLE_BAR_HEIGHT
     variables.CANVAS_RIGHT = WindowWidth - 1
     variables.RENDER_FRAME = True
@@ -172,15 +172,15 @@ def Update():
     CurrentTime = time.time()
 
     if variables.OS == "nt":
-        if window.GetWindowStatus(variables.NAME)["Iconic"] == False:
-            window.Show(variables.NAME, variables.CACHED_FRAME)
+        if SimpleWindow.GetWindowStatus(variables.NAME)["Iconic"] == False:
+            SimpleWindow.Show(variables.NAME, variables.CACHED_FRAME)
             return
 
-    if window.GetWindowStatus(variables.NAME)["Open"] == None:
+    if SimpleWindow.GetWindowStatus(variables.NAME)["Open"] == None:
         Close()
 
-    WindowX, WindowY = window.GetWindowPosition(variables.NAME)
-    WindowWidth, WindowHeight = window.GetWindowSize(variables.NAME)
+    WindowX, WindowY = SimpleWindow.GetWindowPosition(variables.NAME)
+    WindowWidth, WindowHeight = SimpleWindow.GetWindowSize(variables.NAME)
     if (WindowX, WindowY, WindowWidth, WindowHeight) != (variables.X, variables.Y, variables.WIDTH, variables.HEIGHT):
         variables.X, variables.Y, variables.WIDTH, variables.HEIGHT = WindowX, WindowY, WindowWidth, WindowHeight
         Resize(WindowX, WindowY, WindowWidth, WindowHeight)
@@ -566,4 +566,4 @@ def Update():
 
     variables.ITEMS = []
 
-    window.Show(variables.NAME, variables.CACHED_FRAME)
+    SimpleWindow.Show(variables.NAME, variables.CACHED_FRAME)

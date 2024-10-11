@@ -1,6 +1,6 @@
 from src.crashreport import CrashReport
 import src.variables as variables
-import src.window as window
+import SimpleWindow
 import threading
 import traceback
 import ctypes
@@ -36,12 +36,12 @@ def Run():
             LastMouseY = 0
             MoveStart = 0, 0
             while variables.BREAK == False:
-                if window.GetWindowStatus(variables.NAME)["Foreground"] == False or variables.PAGE != "Canvas":
+                if SimpleWindow.GetWindowStatus(variables.NAME)["Foreground"] == False or variables.PAGE != "Canvas":
                     time.sleep(0.1)
                     continue
 
-                WindowX, WindowY = window.GetWindowPosition(variables.NAME)
-                WindowWidth, WindowHeight = window.GetWindowSize(variables.NAME)
+                WindowX, WindowY = SimpleWindow.GetWindowPosition(variables.NAME)
+                WindowWidth, WindowHeight = SimpleWindow.GetWindowSize(variables.NAME)
                 MouseX, MouseY = mouse.get_position()
                 WindowY += variables.TITLE_BAR_HEIGHT
 

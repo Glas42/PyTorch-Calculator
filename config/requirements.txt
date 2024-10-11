@@ -1,13 +1,13 @@
 deep-translator
 beautifulsoup4
 opencv-python
+simplewindow
 torchvision==0.19.1
 setuptools
 torchaudio==2.4.1
 bettercam
 unidecode
 keyboard
-pyopengl
 requests
 pywin32
 gputil
@@ -16,4 +16,3 @@ pynput
 mouse
 numpy==1.26.4
 torch==2.4.1
-glfw

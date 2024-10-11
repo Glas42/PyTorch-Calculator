@@ -7,6 +7,12 @@
 # Ignore the settings
 /config/settings.json
 
+# Ignore the rust app builds
+/rust-app/target
+
+# Ignore the rust app libraries
+/rust-app/lib
+
 # Ignore the dataset
 /train/raw_dataset/*
 /train/dataset/*
