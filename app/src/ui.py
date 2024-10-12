@@ -6,8 +6,8 @@ import src.console as console
 import src.pytorch as pytorch
 import src.updater as updater
 import src.canvas as canvas
-import SimpleWindow
 
+import SimpleWindow
 import subprocess
 import ctypes
 import mouse
@@ -28,10 +28,10 @@ def Initialize():
         WindowWidth = 700
         WindowHeight = 400
 
-    variables.WIDTH = WindowWidth
-    variables.HEIGHT = WindowHeight
     variables.X = WindowX
     variables.Y = WindowY
+    variables.WIDTH = WindowWidth
+    variables.HEIGHT = WindowHeight
 
     variables.CANVAS_BOTTOM = WindowHeight - 1 - variables.TITLE_BAR_HEIGHT
     variables.CANVAS_RIGHT = WindowWidth - 1
@@ -70,6 +70,8 @@ def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
     variables.CANVAS_BOTTOM = WindowHeight - 1 - variables.TITLE_BAR_HEIGHT
     variables.CANVAS_RIGHT = WindowWidth - 1
     variables.RENDER_FRAME = True
+    if variables.DEVMODE == True:
+        SimpleWindow.SetWindowPosition("PyTorch-Calculator (Dev Mode)", (variables.X + variables.WIDTH + 5, variables.Y))
 
 def Restart():
     if variables.DEVMODE == True:
@@ -239,119 +241,147 @@ def Update():
             "X1": 0,
             "Y1": 60,
             "X2": variables.CANVAS_RIGHT,
-            "Y2": variables.CANVAS_BOTTOM - 90})
+            "Y2": variables.CANVAS_BOTTOM - 80})
 
         variables.ITEMS.append({
             "Type": "Button",
             "Text": "Update",
             "Function": lambda: updater.Update(),
-            "X1": variables.CANVAS_RIGHT / 2 + 10,
-            "Y1": variables.CANVAS_BOTTOM - 70,
-            "X2": variables.CANVAS_RIGHT - 20,
-            "Y2": variables.CANVAS_BOTTOM - 20})
+            "X1": variables.CANVAS_RIGHT / 2 + 5,
+            "Y1": variables.CANVAS_BOTTOM - 60,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": variables.CANVAS_BOTTOM - 10})
 
         variables.ITEMS.append({
             "Type": "Button",
             "Text": "Don't Update",
             "Function": lambda: {SetTitleBarHeight(50), setattr(variables, "PAGE", "Canvas")},
-            "X1": 20,
-            "Y1": variables.CANVAS_BOTTOM - 70,
-            "X2": variables.CANVAS_RIGHT / 2 - 10,
-            "Y2": variables.CANVAS_BOTTOM - 20})
+            "X1": 10,
+            "Y1": variables.CANVAS_BOTTOM - 60,
+            "X2": variables.CANVAS_RIGHT / 2 - 5,
+            "Y2": variables.CANVAS_BOTTOM - 10})
 
     if variables.PAGE == "CUDA":
-        if variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == False:
-            Message = "CUDA is not installed, not available and not compatible."
-        elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == False:
-            Message = "CUDA is installed but not available and not compatible."
-        elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == True:
-            Message = "CUDA is installed but not available,\nprobably because your NVIDIA GPU is not compatible."
-        elif variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == True:
-            Message = "CUDA is not installed and not available, but it is compatible."
-        elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == True and variables.CUDA_COMPATIBLE == True:
-            Message = "CUDA is installed, available and compatible."
+        if variables.CUDA_INSTALLED != "Loading..." and variables.CUDA_AVAILABLE != "Loading..." and variables.CUDA_COMPATIBLE != "Loading..." and variables.CUDA_DETAILS != "Loading...":
+            if variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == False:
+                Message = "CUDA is not installed, not available and not compatible."
+            elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == False:
+                Message = "CUDA is installed but not available and not compatible."
+            elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == True:
+                Message = "CUDA is installed but not available, probably because your NVIDIA GPU is not compatible."
+            elif variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == True:
+                Message = "CUDA is not installed and not available, but it is compatible."
+            elif variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == True and variables.CUDA_COMPATIBLE == True:
+                Message = "CUDA is not installed but available and compatible,\nprobably because Python is using a CUDA installation outside of the app environment."
+            elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == True and variables.CUDA_COMPATIBLE == True:
+                Message = "CUDA is installed, available and compatible."
+            else:
+                Message = f"INSTALLED: {variables.CUDA_INSTALLED} AVAILABLE: {variables.CUDA_AVAILABLE} COMPATIBLE: {variables.CUDA_COMPATIBLE}"
+            variables.ITEMS.append({
+                "Type": "Label",
+                "Text": "When CUDA is installed and available, the app will run AI models\non your NVIDIA GPU which will result in a significant speed increase.",
+                "X1": 10,
+                "Y1": 10,
+                "X2": variables.CANVAS_RIGHT - 10,
+                "Y2": 60})
+
+            variables.ITEMS.append({
+                "Type": "Label",
+                "Text": f"{Message}",
+                "X1": 10,
+                "Y1": 80,
+                "X2": variables.CANVAS_RIGHT - 10,
+                "Y2": 130})
+
+            variables.ITEMS.append({
+                "Type": "Label",
+                "Text": f"Details:\n{variables.CUDA_DETAILS}",
+                "X1": 10,
+                "Y1": 150,
+                "X2": variables.CANVAS_RIGHT - 10,
+                "Y2": 275})
+
+            if variables.CUDA_INSTALLED == False and variables.CUDA_COMPATIBLE == True:
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Install CUDA libraries (3GB)",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.InstallCUDA()},
+                    "X1": variables.CANVAS_RIGHT / 2 + 5,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT - 10,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Keep running on CPU",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
+                    "X1": 10,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT / 2 - 5,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+            elif variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == False:
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Install CUDA libraries anyway (3GB)",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.InstallCUDA()},
+                    "X1": variables.CANVAS_RIGHT / 2 + 5,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT - 10,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Keep running on CPU",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
+                    "X1": 10,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT / 2 - 5,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+            elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == True and variables.CUDA_COMPATIBLE == True:
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Uninstall CUDA libraries",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.UninstallCUDA()},
+                    "X1": variables.CANVAS_RIGHT / 2 + 5,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT - 10,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Keep running on GPU with CUDA",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
+                    "X1": 10,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT / 2 - 5,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+            else:
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Uninstall CUDA libraries",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.UninstallCUDA()},
+                    "X1": variables.CANVAS_RIGHT / 2 + 5,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT - 10,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
+
+                variables.ITEMS.append({
+                    "Type": "Button",
+                    "Text": "Keep running on CPU with CUDA",
+                    "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
+                    "X1": 10,
+                    "Y1": variables.CANVAS_BOTTOM - 60,
+                    "X2": variables.CANVAS_RIGHT / 2 - 5,
+                    "Y2": variables.CANVAS_BOTTOM - 10})
         else:
-            Message = ""
-        variables.ITEMS.append({
-            "Type": "Label",
-            "Text": f"{'CUDA is installed' if variables.CUDA_INSTALLED else 'CUDA is not installed'}\n{'CUDA is available' if variables.CUDA_AVAILABLE else 'CUDA is not available'}\n{'CUDA is compatible' if variables.CUDA_COMPATIBLE else 'CUDA is not compatible'}\n\nWhen CUDA is installed and available, the app will run AI models\non your NVIDIA GPU which will result in a significant speed increase.\n\n{Message}",
-            "X1": 0,
-            "Y1": 10,
-            "X2": variables.CANVAS_RIGHT,
-            "Y2": variables.CANVAS_BOTTOM - 90})
-
-        if variables.CUDA_INSTALLED == False and variables.CUDA_COMPATIBLE == True:
+            variables.RENDER_FRAME = True
             variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Install CUDA libraries (3GB)",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.InstallCUDA()},
-                "X1": variables.CANVAS_RIGHT / 2 + 10,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT - 20,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Keep running on CPU",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
-                "X1": 20,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT / 2 - 10,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-        elif variables.CUDA_INSTALLED == False and variables.CUDA_AVAILABLE == False and variables.CUDA_COMPATIBLE == False:
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Install CUDA libraries anyway (3GB)",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.InstallCUDA()},
-                "X1": variables.CANVAS_RIGHT / 2 + 10,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT - 20,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Keep running on CPU",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
-                "X1": 20,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT / 2 - 10,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-        elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == True and variables.CUDA_COMPATIBLE == True:
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Uninstall CUDA libraries",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.UninstallCUDA()},
-                "X1": variables.CANVAS_RIGHT / 2 + 10,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT - 20,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Keep running on GPU with CUDA",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
-                "X1": 20,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT / 2 - 10,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-        else:
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Uninstall CUDA libraries",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas"), pytorch.UninstallCUDA()},
-                "X1": variables.CANVAS_RIGHT / 2 + 10,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT - 20,
-                "Y2": variables.CANVAS_BOTTOM - 20})
-
-            variables.ITEMS.append({
-                "Type": "Button",
-                "Text": "Keep running on CPU with CUDA",
-                "Function": lambda: {setattr(variables, "PAGE", "Canvas")},
-                "X1": 20,
-                "Y1": variables.CANVAS_BOTTOM - 70,
-                "X2": variables.CANVAS_RIGHT / 2 - 10,
-                "Y2": variables.CANVAS_BOTTOM - 20})
+                "Type": "Label",
+                "Text": f"Checking your CUDA compatibility, please wait...",
+                "X1": 10,
+                "Y1": 10,
+                "X2": variables.CANVAS_RIGHT - 10,
+                "Y2": variables.CANVAS_BOTTOM - 10})
 
     if variables.PAGE == "Canvas":
         variables.ITEMS.append({
@@ -360,8 +390,48 @@ def Update():
             "X1": 0,
             "Y1": 0,
             "Y2": variables.CANVAS_BOTTOM,
-            "X2": variables.CANVAS_RIGHT
-        })
+            "X2": variables.CANVAS_RIGHT})
+
+    if variables.PAGE == "File":
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "Smooth Lines",
+            "State": variables.SMOOTH_LINES,
+            "Function": lambda: {setattr(variables, "SMOOTH_LINES", not variables.SMOOTH_LINES), print("hello from func"), setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 11,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 31})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "Upscale Lines",
+            "State": variables.UPSCALE_LINES,
+            "Function": lambda: {setattr(variables, "UPSCALE_LINES", not variables.UPSCALE_LINES), setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 41,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 61})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "Anti-Aliasing Lines",
+            "State": variables.ANTI_ALIASING_LINES,
+            "Function": lambda: {setattr(variables, "ANTI_ALIASING_LINES", not variables.ANTI_ALIASING_LINES), setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 71,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 91})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "SmoothInterpolation",
+            "State": variables.SMOOTH_INTERPOLATION,
+            "Function": lambda: {setattr(variables, "SMOOTH_INTERPOLATION", not variables.SMOOTH_INTERPOLATION), setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 101,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 121})
 
     if variables.PAGE == "Settings":
         variables.ITEMS.append({
@@ -377,7 +447,7 @@ def Update():
         variables.ITEMS.append({
             "Type": "Button",
             "Text": "Check Cuda (GPU) Support",
-            "Function": lambda: {setattr(variables, "PAGE", "CUDA"), SetTitleBarHeight(0)},
+            "Function": lambda: {pytorch.CheckCuda(), setattr(variables, "PAGE", "CUDA"), SetTitleBarHeight(0)},
             "X1": 10,
             "Y1": 41,
             "X2": variables.CANVAS_RIGHT / 2 - 5,
@@ -414,6 +484,55 @@ def Update():
             "Y1": 86,
             "X2": variables.CANVAS_RIGHT - 10,
             "Y2": 121})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "Smooth Lines",
+            "Setting": ("Draw", "SmoothLines", False),
+            "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 151,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 171})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "Upscale Lines",
+            "Setting": ("Draw", "UpscaleLines", True),
+            "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 181,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 201})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "Anti-Aliasing Lines",
+            "Setting": ("Draw", "AntiAliasingLines", False),
+            "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 211,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 231})
+
+        variables.ITEMS.append({
+            "Type": "Switch",
+            "Text": "SmoothInterpolation",
+            "Setting": ("Draw", "SmoothInterpolation", False),
+            "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
+            "X1": 10,
+            "Y1": 241,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 261})
+
+        variables.ITEMS.append({
+            "Type": "Button",
+            "Text": "Apply Global Canvas Settings to Current File",
+            "Function": lambda: {print("NOT IMPLEMENTED: Apply Global Canvas Settings to Current File")},
+            "X1": 10,
+            "Y1": 271,
+            "X2": variables.CANVAS_RIGHT / 2 - 5,
+            "Y2": 306})
 
     if variables.CONTEXT_MENU[0]:
         Offset = 0

@@ -115,23 +115,34 @@ def UninstallCUDA():
 
 
 def CheckCuda():
+    variables.CUDA_INSTALLED = "Loading..."
+    variables.CUDA_AVAILABLE = "Loading..."
+    variables.CUDA_COMPATIBLE = "Loading..."
+    variables.CUDA_DETAILS = "Loading..."
     def CheckCudaFunction():
-        result = subprocess.run("cd " + variables.PATH + "venv/Scripts & .\\activate.bat & cd " + variables.PATH + " & pip list", shell=True, capture_output=True, text=True)
-        modules = result.stdout
+        Result = subprocess.run("cd " + variables.PATH + "venv/Scripts & .\\activate.bat & cd " + variables.PATH + " & pip list", shell=True, capture_output=True, text=True)
+        Modules = Result.stdout
         CUDA_INSTALLED = True
-        for module in modules.splitlines():
-            if "torch " in module:
-                if "cu" not in module:
+        PYTORCH_MODULES = []
+        for Module in Modules.splitlines():
+            if "torch " in Module:
+                PYTORCH_MODULES.append(Module)
+                if "cu" not in Module:
                     CUDA_INSTALLED = False
-            elif "torchvision " in module:
-                if "cu" not in module:
+            elif "torchvision " in Module:
+                PYTORCH_MODULES.append(Module)
+                if "cu" not in Module:
                     CUDA_INSTALLED = False
-            elif "torchaudio " in module:
-                if "cu" not in module:
+            elif "torchaudio " in Module:
+                PYTORCH_MODULES.append(Module)
+                if "cu" not in Module:
                     CUDA_INSTALLED = False
+        GPUS = [str(GPU.name) for GPU in GPUtil.getGPUs()]
         variables.CUDA_INSTALLED = CUDA_INSTALLED
         variables.CUDA_AVAILABLE = torch.cuda.is_available()
-        variables.CUDA_COMPATIBLE = ("nvidia" in str([str(GPU.name).lower() for GPU in GPUtil.getGPUs()]))
+        variables.CUDA_COMPATIBLE = ("nvidia" in str([GPU.lower() for GPU in GPUS]))
+        variables.CUDA_DETAILS = "\n".join(PYTORCH_MODULES) + "\n" + "\n".join([str(GPU.name).upper() for GPU in GPUtil.getGPUs()] if len(GPUS) > 0 else ["No GPUs found."])
+        variables.RENDER_FRAME = True
         if variables.CUDA_INSTALLED == False and variables.CUDA_COMPATIBLE == True:
             variables.PAGE = "CUDA"
     threading.Thread(target=CheckCudaFunction, daemon=True).start()

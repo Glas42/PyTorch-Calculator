@@ -1,5 +1,6 @@
 from src.crashreport import CrashReport
 import src.variables as variables
+
 import SimpleWindow
 import threading
 import traceback

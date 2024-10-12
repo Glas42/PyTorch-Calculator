@@ -7,6 +7,9 @@
 # Ignore the settings
 /config/settings.json
 
+# Ignore the cache
+/cache
+
 # Ignore the rust app builds
 /rust-app/target
 

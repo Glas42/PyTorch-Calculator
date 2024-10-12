@@ -32,12 +32,12 @@ ScrollEventThread = threading.Thread(target=handleScrollEvents, daemon=True).sta
 def GetTextSize(Text="NONE", TextWidth=100, Fontsize=variables.FONT_SIZE):
     global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked
     Fontscale = 1
-    Textsize, _ = cv2.getTextSize(Text, cv2.FONT_HERSHEY_SIMPLEX, Fontscale, 1)
+    Textsize, _ = cv2.getTextSize(Text, variables.FONT_TYPE, Fontscale, 1)
     WidthCurrentText, HeightCurrentText = Textsize
     maxCountCurrentText = 3
     while WidthCurrentText != TextWidth or HeightCurrentText > Fontsize:
         Fontscale *= min(TextWidth / Textsize[0], Fontsize / Textsize[1])
-        Textsize, _ = cv2.getTextSize(Text, cv2.FONT_HERSHEY_SIMPLEX, Fontscale, 1)
+        Textsize, _ = cv2.getTextSize(Text, variables.FONT_TYPE, Fontscale, 1)
         maxCountCurrentText -= 1
         if maxCountCurrentText <= 0:
             break
@@ -62,7 +62,7 @@ def Label(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, Align="Center", Fontsize=vari
             x = round(X1)
         elif Align == "Right":
             x = round(X1 + (X2-X1) - Width)
-        cv2.putText(variables.FRAME, Text, (x, round(Y1 + (i + 0.5) * LineHeight + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+        cv2.putText(variables.FRAME, Text, (x, round(Y1 + (i + 0.5) * LineHeight + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor, Thickness, cv2.LINE_AA)
 
 
 def Button(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, Fontsize=variables.FONT_SIZE, RoundCorners=5, ButtonSelected=False, TextColor=variables.TEXT_COLOR, ButtonColor=variables.BUTTON_COLOR, ButtonHoverColor=variables.BUTTON_HOVER_COLOR, ButtonSelectedColor=variables.BUTTON_SELECTED_COLOR, ButtonSelectedHoverColor=variables.BUTTON_SELECTED_HOVER_COLOR):
@@ -88,7 +88,7 @@ def Button(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, Fontsize=variables.FONT_SIZE
         cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonColor, RoundCorners, cv2.LINE_AA)
         cv2.rectangle(variables.FRAME, (round(X1+RoundCorners/2), round(Y1+RoundCorners/2)), (round(X2-RoundCorners/2), round(Y2-RoundCorners/2)), ButtonColor, -1, cv2.LINE_AA)
     Text, Fontscale, Thickness, Width, Height = GetTextSize(Text, round((X2-X1)), Fontsize)
-    cv2.putText(variables.FRAME, Text, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+    cv2.putText(variables.FRAME, Text, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor, Thickness, cv2.LINE_AA)
     if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and LeftClicked == False and LastLeftClicked == True and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
         return True, LeftClicked and ButtonHovered, ButtonHovered
     else:
@@ -161,7 +161,7 @@ def Switch(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, SwitchWidth=40, SwitchHeight
             else:
                 cv2.circle(variables.FRAME, (round(X1+SwitchHeight/2), round((Y1+Y2)/2)), round(SwitchHeight/2.5), SwitchKnobColor, -1, cv2.LINE_AA)
     Text, Fontscale, Thickness, Width, Height = GetTextSize(Text, round((X2-X1)), Fontsize)
-    cv2.putText(variables.FRAME, Text, (round(X1 + SwitchWidth + TextPadding), round(Y1 + (Y2-Y1) / 2 + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+    cv2.putText(variables.FRAME, Text, (round(X1 + SwitchWidth + TextPadding), round(Y1 + (Y2-Y1) / 2 + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor, Thickness, cv2.LINE_AA)
     if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and LeftClicked == False and LastLeftClicked == True and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
         if Setting is not None:
             variables.SWITCHES[Text] = not State, CurrentTime
@@ -231,7 +231,7 @@ def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=
             else:
                 ItemText = Item
             ItemText, Fontscale, Thickness, Width, Height = GetTextSize(ItemText, round((X2-X1)), LineHeight / 1.5 if LineHeight / 1.5 < Fontsize else Fontsize)
-            cv2.putText(variables.FRAME, ItemText, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y2 + DropdownPadding + (i + 0.5) * LineHeight + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor if i == 1 else grayedTextColor, Thickness, cv2.LINE_AA)
+            cv2.putText(variables.FRAME, ItemText, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y2 + DropdownPadding + (i + 0.5) * LineHeight + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor if i == 1 else grayedTextColor, Thickness, cv2.LINE_AA)
 
     else:
 
@@ -243,7 +243,7 @@ def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=
 
     TextTranslated = translate.Translate(Text)
     TextTranslated, Fontscale, Thickness, Width, Height = GetTextSize(TextTranslated, round((X2-X1)), Fontsize)
-    cv2.putText(variables.FRAME, TextTranslated, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), cv2.FONT_HERSHEY_SIMPLEX, Fontscale, TextColor, Thickness, cv2.LINE_AA)
+    cv2.putText(variables.FRAME, TextTranslated, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor, Thickness, cv2.LINE_AA)
 
     variables.DROPDOWNS[Text] = DropdownSelected, SelectedItem
     if DropdownChanged:

@@ -1,4 +1,5 @@
 import src.settings as settings
+import cv2
 import os
 
 OS = os.name
@@ -20,7 +21,7 @@ HEIGHT = None
 
 HWND = None
 NAME = "PyTorch-Calculator"
-PAGE = settings.Get("UI", "PAGE", "Canvas")
+PAGE = settings.Get("UI", "Page", "Canvas")
 BREAK = False
 FPS = 60
 
@@ -28,6 +29,7 @@ CONSOLENAME = None
 CONSOLEHWND = None
 
 FONT_SIZE = 11
+FONT_TYPE = cv2.FONT_HERSHEY_SIMPLEX
 POPUP_HEIGHT = 50
 TITLE_BAR_HEIGHT = 50
 TEXT_COLOR = (255, 255, 255) if THEME == "Dark" else (0, 0, 0)
@@ -74,6 +76,7 @@ TRANSLATION_CACHE = {}
 CUDA_AVAILABLE = False
 CUDA_INSTALLED = False
 CUDA_COMPATIBLE = False
+CUDA_DETAILS = None
 
 FILE_PATH = None
 CANVAS_CONTENT = []
