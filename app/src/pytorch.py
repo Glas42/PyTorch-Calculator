@@ -31,139 +31,164 @@ except:
 MODELS = {}
 
 def Initialize(Owner="", Model="", Threaded=True):
-    MODELS[Model] = {}
-    MODELS[Model]["Device"] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    MODELS[Model]["Path"] = f"{variables.PATH}cache/{Model}"
-    MODELS[Model]["Threaded"] = Threaded
-    MODELS[Model]["ModelOwner"] = str(Owner)
+    try:
+        MODELS[Model] = {}
+        MODELS[Model]["Device"] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        MODELS[Model]["Path"] = f"{variables.PATH}cache/{Model}"
+        MODELS[Model]["Threaded"] = Threaded
+        MODELS[Model]["ModelOwner"] = str(Owner)
+    except:
+        CrashReport("PyTorch - Error in function Initialize.", str(traceback.format_exc()))
 
 
 def InstallCUDA():
-    def InstallCUDAFunction():
-        Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--index-url", "https://download.pytorch.org/whl/cu124", "--progress-bar", "raw", "--force-reinstall"]
-        Process = subprocess.Popen(Command, cwd=variables.PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        with open(LOCK_FILE_PATH, "w") as f:
-            f.write(str(Process.pid))
-            f.close()
-        while psutil.pid_exists(Process.pid):
-            time.sleep(0.1)
-            Output = Process.stdout.readline()
-            Output = str(Output.decode().strip()).replace("Progress ", "").split(" of ")
-            if len(Output) == 2:
-                TotalSize = Output[1]
-                DownloadedSize = Output[0]
-                try:
-                    variables.POPUP = [f"Installing CUDA: {round((int(DownloadedSize) / int(TotalSize)) * 100)}%", (int(DownloadedSize) / int(TotalSize)) * 100, 0.5]
-                except:
-                    variables.POPUP = [f"Installing CUDA...", -1, 0.5]
-            else:
-                variables.POPUP = [f"Installing CUDA...", -1, 0.5]
+    try:
+        def InstallCUDAThread():
+            try:
+                Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--index-url", "https://download.pytorch.org/whl/cu124", "--progress-bar", "raw", "--force-reinstall"]
+                Process = subprocess.Popen(Command, cwd=variables.PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                with open(LOCK_FILE_PATH, "w") as f:
+                    f.write(str(Process.pid))
+                    f.close()
+                while psutil.pid_exists(Process.pid):
+                    time.sleep(0.1)
+                    Output = Process.stdout.readline()
+                    Output = str(Output.decode().strip()).replace("Progress ", "").split(" of ")
+                    if len(Output) == 2:
+                        TotalSize = Output[1]
+                        DownloadedSize = Output[0]
+                        try:
+                            variables.POPUP = [f"Installing CUDA: {round((int(DownloadedSize) / int(TotalSize)) * 100)}%", (int(DownloadedSize) / int(TotalSize)) * 100, 0.5]
+                        except:
+                            variables.POPUP = [f"Installing CUDA...", -1, 0.5]
+                    else:
+                        variables.POPUP = [f"Installing CUDA...", -1, 0.5]
+                if os.path.exists(LOCK_FILE_PATH):
+                    os.remove(LOCK_FILE_PATH)
+                print(GREEN + "CUDA installation completed." + NORMAL)
+                variables.POPUP = [f"CUDA installation completed.", 0, 0.5]
+                ui.Restart()
+            except:
+                CrashReport("PyTorch - Error in function InstallCUDAThread.", str(traceback.format_exc()))
+        print(GREEN + "Installing CUDA..." + NORMAL)
+        variables.POPUP = [f"Installing CUDA...", 0, 0.5]
+        LOCK_FILE_PATH = f"{variables.PATH}cache/CUDAInstall.txt"
         if os.path.exists(LOCK_FILE_PATH):
-            os.remove(LOCK_FILE_PATH)
-        print(GREEN + "CUDA installation completed." + NORMAL)
-        variables.POPUP = [f"CUDA installation completed.", 0, 0.5]
-        ui.Restart()
-    print(GREEN + "Installing CUDA..." + NORMAL)
-    variables.POPUP = [f"Installing CUDA...", 0, 0.5]
-    LOCK_FILE_PATH = f"{variables.PATH}cache/CUDAInstall.txt"
-    if os.path.exists(LOCK_FILE_PATH):
-        with open(LOCK_FILE_PATH, "r") as f:
-            PID = int(f.read().strip())
-            f.close()
-        if str(PID) in str(psutil.pids()):
-            print(RED + "CUDA is already being installed." + NORMAL)
-            return
-    threading.Thread(target=InstallCUDAFunction, daemon=True).start()
+            with open(LOCK_FILE_PATH, "r") as f:
+                PID = int(f.read().strip())
+                f.close()
+            if str(PID) in str(psutil.pids()):
+                print(RED + "CUDA is already being installed." + NORMAL)
+                return
+        threading.Thread(target=InstallCUDAThread, daemon=True).start()
+    except:
+        CrashReport("PyTorch - Error in function InstallCUDA.", str(traceback.format_exc()))
 
 
 def UninstallCUDA():
-    def UninstallCUDAFunction():
-        Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--progress-bar", "raw", "--force-reinstall"]
-        Process = subprocess.Popen(Command, cwd=variables.PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        with open(LOCK_FILE_PATH, "w") as f:
-            f.write(str(Process.pid))
-            f.close()
-        while psutil.pid_exists(Process.pid):
-            time.sleep(0.1)
-            Output = Process.stdout.readline()
-            Output = str(Output.decode().strip()).replace("Progress ", "").split(" of ")
-            if len(Output) == 2:
-                TotalSize = Output[1]
-                DownloadedSize = Output[0]
-                try:
-                    variables.POPUP = [f"Uninstalling CUDA: {round((int(DownloadedSize) / int(TotalSize)) * 100)}%", (int(DownloadedSize) / int(TotalSize)) * 100, 0.5]
-                except:
-                    variables.POPUP = [f"Uninstalling CUDA...", -1, 0.5]
-            else:
-                variables.POPUP = [f"Uninstalling CUDA...", -1, 0.5]
+    try:
+        def UninstallCUDAThread():
+            try:
+                Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--progress-bar", "raw", "--force-reinstall"]
+                Process = subprocess.Popen(Command, cwd=variables.PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                with open(LOCK_FILE_PATH, "w") as f:
+                    f.write(str(Process.pid))
+                    f.close()
+                while psutil.pid_exists(Process.pid):
+                    time.sleep(0.1)
+                    Output = Process.stdout.readline()
+                    Output = str(Output.decode().strip()).replace("Progress ", "").split(" of ")
+                    if len(Output) == 2:
+                        TotalSize = Output[1]
+                        DownloadedSize = Output[0]
+                        try:
+                            variables.POPUP = [f"Uninstalling CUDA: {round((int(DownloadedSize) / int(TotalSize)) * 100)}%", (int(DownloadedSize) / int(TotalSize)) * 100, 0.5]
+                        except:
+                            variables.POPUP = [f"Uninstalling CUDA...", -1, 0.5]
+                    else:
+                        variables.POPUP = [f"Uninstalling CUDA...", -1, 0.5]
+                if os.path.exists(LOCK_FILE_PATH):
+                    os.remove(LOCK_FILE_PATH)
+                print(GREEN + "CUDA uninstallation completed." + NORMAL)
+                variables.POPUP = [f"CUDA uninstallation completed.", 0, 0.5]
+                ui.Restart()
+            except:
+                CrashReport("PyTorch - Error in function UninstallCUDAThread.", str(traceback.format_exc()))
+        print(GREEN + "Uninstalling CUDA..." + NORMAL)
+        variables.POPUP = [f"Uninstalling CUDA...", 0, 0.5]
+        LOCK_FILE_PATH = f"{variables.PATH}cache/CUDAInstall.txt"
         if os.path.exists(LOCK_FILE_PATH):
-            os.remove(LOCK_FILE_PATH)
-        print(GREEN + "CUDA uninstallation completed." + NORMAL)
-        variables.POPUP = [f"CUDA uninstallation completed.", 0, 0.5]
-        ui.Restart()
-    print(GREEN + "Uninstalling CUDA..." + NORMAL)
-    variables.POPUP = [f"Uninstalling CUDA...", 0, 0.5]
-    LOCK_FILE_PATH = f"{variables.PATH}cache/CUDAInstall.txt"
-    if os.path.exists(LOCK_FILE_PATH):
-        with open(LOCK_FILE_PATH, "r") as f:
-            PID = int(f.read().strip())
-            f.close()
-        if str(PID) in str(psutil.pids()):
-            print(RED + "CUDA is already being uninstalled." + NORMAL)
-            return
-    threading.Thread(target=UninstallCUDAFunction, daemon=True).start()
+            with open(LOCK_FILE_PATH, "r") as f:
+                PID = int(f.read().strip())
+                f.close()
+            if str(PID) in str(psutil.pids()):
+                print(RED + "CUDA is already being uninstalled." + NORMAL)
+                return
+        threading.Thread(target=UninstallCUDAThread, daemon=True).start()
+    except:
+        CrashReport("PyTorch - Error in function UninstallCUDA.", str(traceback.format_exc()))
 
 
 def CheckCuda():
-    variables.CUDA_INSTALLED = "Loading..."
-    variables.CUDA_AVAILABLE = "Loading..."
-    variables.CUDA_COMPATIBLE = "Loading..."
-    variables.CUDA_DETAILS = "Loading..."
-    def CheckCudaFunction():
-        Result = subprocess.run("cd " + variables.PATH + "venv/Scripts & .\\activate.bat & cd " + variables.PATH + " & pip list", shell=True, capture_output=True, text=True)
-        Modules = Result.stdout
-        CUDA_INSTALLED = True
-        PYTORCH_MODULES = []
-        for Module in Modules.splitlines():
-            if "torch " in Module:
-                PYTORCH_MODULES.append(Module)
-                if "cu" not in Module:
-                    CUDA_INSTALLED = False
-            elif "torchvision " in Module:
-                PYTORCH_MODULES.append(Module)
-                if "cu" not in Module:
-                    CUDA_INSTALLED = False
-            elif "torchaudio " in Module:
-                PYTORCH_MODULES.append(Module)
-                if "cu" not in Module:
-                    CUDA_INSTALLED = False
-        GPUS = [str(GPU.name) for GPU in GPUtil.getGPUs()]
-        variables.CUDA_INSTALLED = CUDA_INSTALLED
-        variables.CUDA_AVAILABLE = torch.cuda.is_available()
-        variables.CUDA_COMPATIBLE = ("nvidia" in str([GPU.lower() for GPU in GPUS]))
-        variables.CUDA_DETAILS = "\n".join(PYTORCH_MODULES) + "\n" + "\n".join([str(GPU.name).upper() for GPU in GPUtil.getGPUs()] if len(GPUS) > 0 else ["No GPUs found."])
-        variables.RENDER_FRAME = True
-        if variables.CUDA_INSTALLED == False and variables.CUDA_COMPATIBLE == True:
-            variables.PAGE = "CUDA"
-    threading.Thread(target=CheckCudaFunction, daemon=True).start()
+    try:
+        variables.CUDA_INSTALLED = "Loading..."
+        variables.CUDA_AVAILABLE = "Loading..."
+        variables.CUDA_COMPATIBLE = "Loading..."
+        variables.CUDA_DETAILS = "Loading..."
+        def CheckCudaThread():
+            try:
+                Result = subprocess.run("cd " + variables.PATH + "venv/Scripts & .\\activate.bat & cd " + variables.PATH + " & pip list", shell=True, capture_output=True, text=True)
+                Modules = Result.stdout
+                CUDA_INSTALLED = True
+                PYTORCH_MODULES = []
+                for Module in Modules.splitlines():
+                    if "torch " in Module:
+                        PYTORCH_MODULES.append(Module)
+                        if "cu" not in Module:
+                            CUDA_INSTALLED = False
+                    elif "torchvision " in Module:
+                        PYTORCH_MODULES.append(Module)
+                        if "cu" not in Module:
+                            CUDA_INSTALLED = False
+                    elif "torchaudio " in Module:
+                        PYTORCH_MODULES.append(Module)
+                        if "cu" not in Module:
+                            CUDA_INSTALLED = False
+                GPUS = [str(GPU.name) for GPU in GPUtil.getGPUs()]
+                variables.CUDA_INSTALLED = CUDA_INSTALLED
+                variables.CUDA_AVAILABLE = torch.cuda.is_available()
+                variables.CUDA_COMPATIBLE = ("nvidia" in str([GPU.lower() for GPU in GPUS]))
+                variables.CUDA_DETAILS = "\n".join(PYTORCH_MODULES) + "\n" + "\n".join([str(GPU.name).upper() for GPU in GPUtil.getGPUs()] if len(GPUS) > 0 else ["No GPUs found."])
+                variables.RENDER_FRAME = True
+                if variables.CUDA_INSTALLED == False and variables.CUDA_COMPATIBLE == True:
+                    variables.PAGE = "CUDA"
+            except:
+                CrashReport("PyTorch - Error in function CheckCudaThread.", str(traceback.format_exc()))
+        threading.Thread(target=CheckCudaThread, daemon=True).start()
+    except:
+        CrashReport("PyTorch - Error in function CheckCuda.", str(traceback.format_exc()))
 
 
 def Loaded(Model="All"):
-    if Model == "All":
-        for Model in MODELS:
+    try:
+        if Model == "All":
+            for Model in MODELS:
+                if MODELS[Model]["Threaded"] == True:
+                    if MODELS[Model]["UpdateThread"].is_alive(): return False
+                    if MODELS[Model]["LoadThread"].is_alive(): return False
+        else:
             if MODELS[Model]["Threaded"] == True:
                 if MODELS[Model]["UpdateThread"].is_alive(): return False
                 if MODELS[Model]["LoadThread"].is_alive(): return False
-    else:
-        if MODELS[Model]["Threaded"] == True:
-            if MODELS[Model]["UpdateThread"].is_alive(): return False
-            if MODELS[Model]["LoadThread"].is_alive(): return False
-    return True
+        return True
+    except:
+        CrashReport("PyTorch - Error in function Loaded.", str(traceback.format_exc()))
+        return False
 
 
 def Load(Model):
     try:
-        def LoadFunction(Model):
+        def LoadThread(Model):
             try:
                 CheckForUpdates(Model)
                 if "UpdateThread" in MODELS[Model]:
@@ -216,17 +241,17 @@ def Load(Model):
                     MODELS[Model]["ModelLoaded"] = False
                     HandleBroken(Model)
             except:
-                CrashReport("PyTorch - Loading Error.", str(traceback.format_exc()))
+                CrashReport("PyTorch - Error in function LoadThread.", str(traceback.format_exc()))
                 variables.POPUP =  ["Failed to load the model!", 0, 0.5]
                 print(DARK_GREY + f"[{Model}] " + RED + "Failed to load the model!" + NORMAL)
                 MODELS[Model]["ModelLoaded"] = False
 
         if TorchAvailable:
             if MODELS[Model]["Threaded"]:
-                MODELS[Model]["LoadThread"] = threading.Thread(target=LoadFunction, args=(Model,), daemon=True)
+                MODELS[Model]["LoadThread"] = threading.Thread(target=LoadThread, args=(Model,), daemon=True)
                 MODELS[Model]["LoadThread"].start()
             else:
-                LoadFunction(Model)
+                LoadThread(Model)
 
     except:
         CrashReport("PyTorch - Error in function Load.", str(traceback.format_exc()))
@@ -236,7 +261,7 @@ def Load(Model):
 
 def CheckForUpdates(Model):
     try:
-        def CheckForUpdatesFunction(Model):
+        def CheckForUpdatesThread(Model):
             try:
                 try:
                     Response = requests.get("https://huggingface.co/", timeout=3)
@@ -297,15 +322,15 @@ def CheckForUpdates(Model):
                     print(DARK_GREY + f"[{Model}] " + RED + "Connection to https://huggingface.co/ is most likely not available in your country. Unable to check for model updates." + NORMAL)
 
             except:
-                CrashReport("PyTorch - Error in function CheckForUpdatesFunction.", str(traceback.format_exc()))
+                CrashReport("PyTorch - Error in function CheckForUpdatesThread.", str(traceback.format_exc()))
                 variables.POPUP =  ["Failed to check for model updates or update the model.", 0, 0.5]
                 print(DARK_GREY + f"[{Model}] " + RED + "Failed to check for model updates or update the model." + NORMAL)
 
         if MODELS[Model]["Threaded"]:
-            MODELS[Model]["UpdateThread"] = threading.Thread(target=CheckForUpdatesFunction, args=(Model,), daemon=True)
+            MODELS[Model]["UpdateThread"] = threading.Thread(target=CheckForUpdatesThread, args=(Model,), daemon=True)
             MODELS[Model]["UpdateThread"].start()
         else:
-            CheckForUpdatesFunction(Model)
+            CheckForUpdatesThread(Model)
 
     except:
         CrashReport("PyTorch - Error in function CheckForUpdates.", str(traceback.format_exc()))
@@ -342,7 +367,7 @@ def Delete(Model):
     except PermissionError:
         global TorchAvailable
         TorchAvailable = False
-        print(DARK_GREY + f"[{Model}] " + RED + "PyTorch - PermissionError in function Delete:\n" + NORMAL + str(traceback.format_exc()))
+        CrashReport("PyTorch - PermissionError in function Delete.", str(traceback.format_exc()))
         console.RestoreConsole()
     except:
         CrashReport("PyTorch - Error in function Delete.", str(traceback.format_exc()))

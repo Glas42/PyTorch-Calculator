@@ -282,7 +282,7 @@ def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=
         return False, False, False
 
 
-def Image(Image="NumpyArrayImage",X1=0, Y1=0, X2=100, Y2=100):
+def Image(Image="NumpyArrayImageHere", X1=0, Y1=0, X2=100, Y2=100):
     try:
         if type(Image) == type(None):
             return
@@ -293,3 +293,24 @@ def Image(Image="NumpyArrayImage",X1=0, Y1=0, X2=100, Y2=100):
         variables.FRAME[Y1:Y2 + 1, X1:X2 + 1] = Image
     except:
         CrashReport("UIComponents - Error in function Image.", str(traceback.format_exc()))
+
+
+def Images(Images=["NumpyArrayImageHere"], Direction="Horizontal", X1=0, Y1=0, X2=100, Y2=100):
+    try:
+        Y1 += variables.TITLE_BAR_HEIGHT
+        Y2 += variables.TITLE_BAR_HEIGHT
+        Width = 0
+        Padding = (X2 - X1) / (len(Images) + 1)
+        for i, Image in enumerate(Images):
+            if type(Image) == type(None):
+                return
+            if Image.shape[2] != 3:
+                Image = cv2.cvtColor(Image, cv2.COLOR_GRAY2BGR)
+            NewX1 = round((X2 - X1) / 2 - Image.shape[1] / 2 + Padding * (i/len(Images)))
+            NewY1 = round((Y2 - Y1) / 2 - Image.shape[0] / 2)
+            NewX2 = round((X2 - X1) / 2 + Image.shape[1] / 2 + Padding * (i/(len(Images)+1)))
+            NewY2 = round((Y2 - Y1) / 2 + Image.shape[0] / 2)
+            print(NewX1, NewY1, NewX2, NewY2)
+            variables.FRAME[NewY1:NewY2, Width + NewX1:Width + NewX2] = cv2.resize(Image, (NewX2 - NewX1, NewY2 - NewY1))
+    except:
+        CrashReport("UIComponents - Error in function Images.", str(traceback.format_exc()))

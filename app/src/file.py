@@ -18,16 +18,13 @@ NORMAL = "\033[0m"
 
 def MovePathPopup(Title=""):
     try:
-        if variables.OS != "nt":
-            return
-        import win32gui, win32con
         def MovePathPopupThread():
             try:
                 while True:
                     HWND = win32gui.FindWindow(None, Title)
                     if HWND != 0:
-                        X, Y = SimpleWindow.GetWindowPosition(variables.NAME)
-                        WIDTH, HEIGHT = SimpleWindow.GetWindowSize(variables.NAME)
+                        X, Y = SimpleWindow.GetPosition(variables.NAME)
+                        WIDTH, HEIGHT = SimpleWindow.GetSize(variables.NAME)
                         win32gui.MoveWindow(HWND, X, Y, WIDTH, HEIGHT, True)
                         win32gui.SetWindowPos(HWND, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
                         win32gui.SetWindowLong(HWND, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(HWND, win32con.GWL_EXSTYLE))
@@ -41,8 +38,8 @@ def MovePathPopup(Title=""):
                 HeightOffset = HEIGHT - (BottomRight[1] - TopLeft[1]) - 32
                 while True:
                     Start = time.time()
-                    X, Y = SimpleWindow.GetWindowPosition(variables.NAME)
-                    WIDTH, HEIGHT = SimpleWindow.GetWindowSize(variables.NAME)
+                    X, Y = SimpleWindow.GetPosition(variables.NAME)
+                    WIDTH, HEIGHT = SimpleWindow.SimpleWindow.GetSize(variables.NAME)
                     if win32gui.FindWindow(None, Title) == 0:
                         break
                     RECT = win32gui.GetClientRect(HWND)
@@ -55,6 +52,9 @@ def MovePathPopup(Title=""):
                         time.sleep(TimeToSleep)
             except:
                 CrashReport("File - Error in function MovePathPopupThread.", str(traceback.format_exc()))
+        if variables.OS != "nt":
+            return
+        import win32gui, win32con
         threading.Thread(target=MovePathPopupThread).start()
     except:
         CrashReport("File - Error in function MovePathPopup.", str(traceback.format_exc()))

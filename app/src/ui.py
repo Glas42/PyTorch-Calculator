@@ -72,7 +72,7 @@ def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
     variables.CANVAS_RIGHT = WindowWidth - 1
     variables.RENDER_FRAME = True
     if variables.DEVMODE == True:
-        SimpleWindow.SetWindowPosition("PyTorch-Calculator (Dev Mode)", (variables.X + variables.WIDTH + 5, variables.Y))
+        SimpleWindow.SetPosition("PyTorch-Calculator (Dev Mode)", (variables.X + variables.WIDTH + 5, variables.Y))
 
 def Restart():
     file.Save(Path=f"{variables.PATH}cache/LastSession.txt")
@@ -97,10 +97,10 @@ def Close(SaveCanvas=True, SaveTranslateCache=True):
 
 def SetTitleBarHeight(TitleBarHeight):
     if variables.OS == "nt":
-        if SimpleWindow.GetWindowStatus(variables.NAME)["Iconic"]:
+        if SimpleWindow.GetMinimized(variables.NAME):
             SimpleWindow.Show(variables.NAME,variables.CACHED_FRAME)
             return
-    WindowWidth, WindowHeight = SimpleWindow.GetWindowSize(variables.NAME)
+    WindowWidth, WindowHeight = SimpleWindow.GetSize(variables.NAME)
     variables.TITLE_BAR_HEIGHT = TitleBarHeight
     variables.BACKGROUND = numpy.zeros((WindowHeight, WindowWidth, 3), numpy.uint8)
     variables.BACKGROUND[:] = variables.BACKGROUND_COLOR
@@ -116,78 +116,29 @@ def SetTitleBarHeight(TitleBarHeight):
     variables.RENDER_FRAME = True
 
 def LoadToolBar():
-    global tools_icon
-    global tools_placeholder
-    tools_icon = cv2.resize(cv2.imread(f'{variables.PATH}app/assets/pen_{variables.THEME.lower()}.png', cv2.IMREAD_UNCHANGED), (20, 20))
-    for x in range(tools_icon.shape[1]):
-        for y in range(tools_icon.shape[0]):
-            if tools_icon[x][y][3] == 0:
-                tools_icon[x][y] = (231, 231, 231, 255) if variables.THEME == "Light" else (47, 47, 47, 255)
-    tools_icon = tools_icon[:, :, :3]
+    for IconName in variables.TOOLBAR:
+        if os.path.exists(f'{variables.PATH}app/assets/{IconName.lower()}_{variables.THEME}.png'):
+            Icon = cv2.resize(cv2.imread(f'{variables.PATH}app/assets/{IconName.lower()}_{variables.THEME.lower()}.png', cv2.IMREAD_UNCHANGED), variables.TOOLBAR_ICON_SIZE)
+            for x in range(Icon.shape[1]):
+                for y in range(Icon.shape[0]):
+                    if Icon[x][y][3] == 0:
+                        Icon[x][y] = (231, 231, 231, 255) if variables.THEME == "Light" else (47, 47, 47, 255)
+            variables.TOOLBAR[IconName] = Icon[:, :, :3]
 
-    def LoadToolbarIcon(name="", size=(25, 25)):
-        if os.path.exists(f'{variables.PATH}app/assets/{name.lower()}_{variables.THEME}.png'):
-            icon = cv2.resize(cv2.imread(f'{variables.PATH}app/assets/{name.lower()}_{variables.THEME.lower()}.png', cv2.IMREAD_UNCHANGED), size)
-            for x in range(icon.shape[1]):
-                for y in range(icon.shape[0]):
-                    if icon[x][y][3] == 0:
-                        icon[x][y] = (231, 231, 231, 255) if variables.THEME == "Light" else (47, 47, 47, 255)
-            icon = icon[:, :, :3]
-            return icon
-    home_icon = LoadToolbarIcon("home")
-    ai_icon = LoadToolbarIcon("ai")
-    grid_line_icon = LoadToolbarIcon("grid_line")
-    grid_dot_icon = LoadToolbarIcon("grid_dot")
-    rectangle_icon = LoadToolbarIcon("rectangle")
-    circle_icon = LoadToolbarIcon("circle")
-    graph_icon = LoadToolbarIcon("graph")
-    color_icon = LoadToolbarIcon("color")
-    text_icon = LoadToolbarIcon("text")
-
-    def GenerateGridImage(images=[]):
-        avg_resolution = 0, 0
-        for image in images:
-            avg_resolution = (avg_resolution[0] + image.shape[1], avg_resolution[1] + image.shape[0])
-        avg_resolution = (avg_resolution[0] / len(images), avg_resolution[1] / len(images))
-        temp = []
-        for image in images:
-            temp.append(cv2.resize(image, (round(avg_resolution[0]), round(avg_resolution[1]))))
-        images = temp
-        variables.TOOLBAR_ROWS = (len(images) + variables.TOOLBAR_COLUMNS - 1) // variables.TOOLBAR_COLUMNS
-        image = numpy.zeros((round(avg_resolution[1]) * variables.TOOLBAR_ROWS + variables.TOOLBAR_PADDING * (variables.TOOLBAR_ROWS - 1), round(avg_resolution[0]) * variables.TOOLBAR_COLUMNS + variables.TOOLBAR_PADDING * (variables.TOOLBAR_COLUMNS - 1), 3), numpy.uint8)
-        image[:] = (231, 231, 231) if variables.THEME == "Light" else (47, 47, 47)
-        x = 0
-        y = 0
-        for i, img in enumerate(images):
-            image[y:y+img.shape[0], x:x+img.shape[1]] = img
-            x += round(avg_resolution[0]) + variables.TOOLBAR_PADDING
-            if (i + 1) % variables.TOOLBAR_COLUMNS == 0:
-                x = 0
-                y += round(avg_resolution[1]) + variables.TOOLBAR_PADDING
-        return image
-    variables.TOOLBAR = GenerateGridImage((home_icon, ai_icon, grid_line_icon, grid_dot_icon, rectangle_icon, circle_icon, graph_icon, color_icon, text_icon))
-    variables.TOOLBAR_HEIGHT = variables.TOOLBAR.shape[0] + 20
-    variables.TOOLBAR_WIDTH = variables.TOOLBAR.shape[1] + 20
-    #if tabControl.tab(tabControl.select(), "text") == "Draw":
-    #    tools.configure(image=tools_icon)
-    #    tools.image = tools_icon
-    #else:
-    #    tools.configure(image=tools_placeholder)
-    #    tools.image = tools_placeholder
 
 def Update():
     CurrentTime = time.time()
 
     if variables.OS == "nt":
-        if SimpleWindow.GetWindowStatus(variables.NAME)["Iconic"]:
+        if SimpleWindow.GetMinimized(variables.NAME):
             SimpleWindow.Show(variables.NAME, variables.CACHED_FRAME)
             return
 
-    if SimpleWindow.GetWindowStatus(variables.NAME)["Open"] == None:
+    if SimpleWindow.GetOpen(variables.NAME) == None:
         Close()
 
-    WindowX, WindowY = SimpleWindow.GetWindowPosition(variables.NAME)
-    WindowWidth, WindowHeight = SimpleWindow.GetWindowSize(variables.NAME)
+    WindowX, WindowY = SimpleWindow.GetPosition(variables.NAME)
+    WindowWidth, WindowHeight = SimpleWindow.GetSize(variables.NAME)
     if (WindowX, WindowY, WindowWidth, WindowHeight) != (variables.X, variables.Y, variables.WIDTH, variables.HEIGHT):
         variables.X, variables.Y, variables.WIDTH, variables.HEIGHT = WindowX, WindowY, WindowWidth, WindowHeight
         Resize(WindowX, WindowY, WindowWidth, WindowHeight)
@@ -394,8 +345,17 @@ def Update():
             "Image": canvas.Frame,
             "X1": 0,
             "Y1": 0,
-            "Y2": variables.CANVAS_BOTTOM,
-            "X2": variables.CANVAS_RIGHT})
+            "X2": variables.CANVAS_RIGHT,
+            "Y2": variables.CANVAS_BOTTOM})
+
+        variables.ITEMS.append({
+            "Type": "Images",
+            "Images": [Image for _, Image in variables.TOOLBAR.items()],
+            "Direction": "Horizontal",
+            "X1": variables.WIDTH // 2 - variables.TOOLBAR_WIDTH // 2,
+            "Y1": 0,
+            "X2": variables.WIDTH // 2 + variables.TOOLBAR_WIDTH // 2,
+            "Y2": variables.CANVAS_BOTTOM})
 
     if variables.PAGE == "File":
         variables.ITEMS.append({
@@ -636,9 +596,9 @@ def Update():
     if variables.RENDER_FRAME or LastLeftClicked != LeftClicked:
         variables.RENDER_FRAME = False
 
-        variables.ITEMS = sorted(variables.ITEMS, key=lambda x: ["Label-First-Render", "Button-First-Render", "Switch-First-Render", "Dropdown-First-Render", "Image-First-Render",
-                                                                 "Label", "Button", "Switch", "Dropdown", "Image",
-                                                                 "Label-Last-Render", "Button-Last-Render", "Switch-Last-Render", "Dropdown-Last-Render", "Image-Last-Render"].index(x["Type"]))
+        variables.ITEMS = sorted(variables.ITEMS, key=lambda x: ["Label-First-Render", "Button-First-Render", "Switch-First-Render", "Dropdown-First-Render", "Image-First-Render", "Images-First-Render",
+                                                                 "Label", "Button", "Switch", "Dropdown", "Image", "Images",
+                                                                 "Label-Last-Render", "Button-Last-Render", "Switch-Last-Render", "Dropdown-Last-Render", "Image-Last-Render", "Images-Last-Render"].index(x["Type"]))
         variables.FRAME = variables.BACKGROUND.copy()
         variables.AREAS = []
 
@@ -681,6 +641,9 @@ def Update():
 
             elif ItemType == "Image":
                 uicomponents.Image(**Item)
+
+            elif ItemType == "Images":
+                uicomponents.Images(**Item)
 
         if len(variables.ITEMS) < len(variables.TABS) + 1 and variables.TITLE_BAR_HEIGHT != 0:
             uicomponents.Label(
