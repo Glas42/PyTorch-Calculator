@@ -23,7 +23,8 @@ def Initialize():
     global EmptyFrame
     global Frame
 
-    SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
+    if variables.DEVMODE:
+        SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
     LastContent = None
     EmptyFrame = numpy.zeros((500, 500, 3), numpy.uint8)
@@ -44,7 +45,8 @@ def Update():
                 Content = (len(variables.CANVAS_CONTENT))
 
                 if variables.PAGE == "Canvas" and LastContent != Content:
-                    Frame = EmptyFrame.copy()
+                    if variables.DEVMODE:
+                        Frame = EmptyFrame.copy()
                     CANVAS_CONTENT = variables.CANVAS_CONTENT
 
                     print(PURPLE + "Analyzing content..." + NORMAL)
@@ -76,6 +78,7 @@ def Update():
             except:
                 CrashReport("Analyze - Error in function Update.", str(traceback.format_exc()))
         threading.Thread(target=UpdateThread, daemon=True).start()
-        SimpleWindow.Show("PyTorch-Calculator (Dev Mode)", Frame)
+        if variables.DEVMODE:
+            SimpleWindow.Show("PyTorch-Calculator (Dev Mode)", Frame)
     except:
         CrashReport("Analyze - Error in function Update.", str(traceback.format_exc()))

@@ -15,6 +15,9 @@ GREEN = "\033[92m"
 GRAY = "\033[90m"
 NORMAL = "\033[0m"
 
+SAVING = False
+OPENING = False
+
 
 def MovePathPopup(Title=""):
     try:
@@ -62,22 +65,30 @@ def MovePathPopup(Title=""):
 
 def New():
     try:
-        Save(Path=f"{variables.PATH}cache/LastSession.txt")
-        print(GREEN + "Creating new file!" + NORMAL)
-        variables.POPUP = ["Creating new file!", 0, 0.5]
-        variables.CANVAS_POSITION = variables.WIDTH // 2, variables.HEIGHT // 2
-        variables.CANVAS_ZOOM = 1
-        variables.CANVAS_SHOW_GRID = True
-        variables.CANVAS_GRID_TYPE = "DOT"
-        variables.CANVAS_CONTENT = []
-        variables.CANVAS_TEMP = []
-        variables.CANVAS_DELETE_LIST = []
-        variables.DRAW_COLOR = (0, 0, 0) if variables.THEME == "light" else (255, 255, 255)
-        variables.PAGE = "Canvas"
-        print(GRAY + f"-> Show Grid: {variables.CANVAS_SHOW_GRID}" + NORMAL)
-        print(GRAY + f"-> Grid Type: {variables.CANVAS_GRID_TYPE}" + NORMAL)
-        print(GRAY + f"-> Color: {variables.DRAW_COLOR}" + NORMAL)
-        print()
+        def NewThread():
+            try:
+                Save(Path=f"{variables.PATH}cache/LastSession.txt")
+                while SAVING or OPENING:
+                    time.sleep(0.1)
+                print(GREEN + "Creating new file..." + NORMAL)
+                variables.POPUP = ["Creating new file...", -1, 0.5]
+                variables.CANVAS_POSITION = variables.WIDTH // 2, variables.HEIGHT // 2
+                variables.CANVAS_ZOOM = 1
+                variables.CANVAS_SHOW_GRID = True
+                variables.CANVAS_GRID_TYPE = "DOT"
+                variables.CANVAS_CONTENT = []
+                variables.CANVAS_TEMP = []
+                variables.CANVAS_DELETE_LIST = []
+                variables.DRAW_COLOR = (0, 0, 0) if variables.THEME == "light" else (255, 255, 255)
+                print(GRAY + f"-> Show Grid: {variables.CANVAS_SHOW_GRID}" + NORMAL)
+                print(GRAY + f"-> Grid Type: {variables.CANVAS_GRID_TYPE}" + NORMAL)
+                print(GRAY + f"-> Color: {variables.DRAW_COLOR}" + NORMAL)
+                print(GREEN + "Created new file successfully!\n" + NORMAL)
+                variables.POPUP = ["Created new file successfully!", 0, 0.5]
+                variables.PAGE = "Canvas"
+            except:
+                CrashReport("File - Error in function NewThread.", str(traceback.format_exc()))
+        threading.Thread(target=NewThread).start()
     except:
         CrashReport("File - Error in function New.", str(traceback.format_exc()))
 
@@ -120,6 +131,10 @@ def Save(Path=""):
                 variables.PAGE = "Canvas"
             except:
                 CrashReport("File - Error in function SaveThread.", str(traceback.format_exc()))
+            global SAVING
+            SAVING = False
+        global SAVING
+        SAVING = True
         threading.Thread(target=SaveThread).start()
     except:
         CrashReport("File - Error in function Save.", str(traceback.format_exc()))
@@ -158,6 +173,10 @@ def Open(Path=""):
                 variables.PAGE = "Canvas"
             except:
                 CrashReport("File - Error in function OpenThread.", str(traceback.format_exc()))
+            global OPENING
+            OPENING = False
+        global OPENING
+        OPENING = True
         threading.Thread(target=OpenThread).start()
     except:
         CrashReport("File - Error in function Open.", str(traceback.format_exc()))
