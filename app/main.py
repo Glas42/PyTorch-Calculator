@@ -6,6 +6,7 @@ import src.translate as translate
 import src.variables as variables
 import src.keyboard as keyboard
 import src.settings as settings
+import src.analyze as analyze
 import src.console as console
 import src.pytorch as pytorch
 import src.updater as updater
@@ -32,15 +33,14 @@ if settings.Get("Console", "HideConsole", False):
 translate.Initialize()
 #pytorch.CheckCuda()
 ui.Initialize()
+analyze.Initialize()
 updater.CheckForUpdates()
 
 mouse.Run()
 keyboard.Run()
 
 if variables.DEVMODE:
-    import SimpleWindow
     import hashlib
-    import numpy
     Scripts = []
     Scripts.append(("Main", f"{variables.PATH}app/main.py"))
     for Object in os.listdir(f"{variables.PATH}app/src"):
@@ -52,14 +52,11 @@ if variables.DEVMODE:
             LastScripts[i] = Hash
         except:
             pass
-    SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
-    DevFrame = numpy.zeros((500, 500, 3), numpy.uint8)
 
 while variables.BREAK == False:
     Start = time.time()
 
     if variables.DEVMODE:
-        SimpleWindow.Show("PyTorch-Calculator (Dev Mode)", DevFrame)
         for i, (Script, Path) in enumerate(Scripts):
             try:
                 Hash = hashlib.md5(open(Path, "rb").read()).hexdigest()
@@ -71,6 +68,8 @@ while variables.BREAK == False:
                 pass
 
     canvas.Update()
+
+    analyze.Update()
 
     ui.Update()
 

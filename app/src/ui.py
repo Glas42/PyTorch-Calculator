@@ -348,14 +348,14 @@ def Update():
             "X2": variables.CANVAS_RIGHT,
             "Y2": variables.CANVAS_BOTTOM})
 
-        variables.ITEMS.append({
-            "Type": "Images",
-            "Images": [Image for _, Image in variables.TOOLBAR.items()],
-            "Direction": "Horizontal",
-            "X1": variables.WIDTH // 2 - variables.TOOLBAR_WIDTH // 2,
-            "Y1": 0,
-            "X2": variables.WIDTH // 2 + variables.TOOLBAR_WIDTH // 2,
-            "Y2": variables.CANVAS_BOTTOM})
+        #variables.ITEMS.append({
+        #    "Type": "Images",
+        #    "Images": [Image for _, Image in variables.TOOLBAR.items()],
+        #    "Direction": "Horizontal",
+        #    "X1": variables.WIDTH // 2 - variables.TOOLBAR_WIDTH // 2,
+        #    "Y1": 0,
+        #    "X2": variables.WIDTH // 2 + variables.TOOLBAR_WIDTH // 2,
+        #    "Y2": variables.CANVAS_BOTTOM})
 
     if variables.PAGE == "File":
         variables.ITEMS.append({
