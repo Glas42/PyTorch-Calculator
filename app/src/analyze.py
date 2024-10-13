@@ -61,6 +61,7 @@ def Update():
                                     line = line[1:]
                                 CombinedLines.append(line)
                             Combinations.append(CombinedLines)
+                    print("NOT IMPLEMENTED: Optimize combination search by only combining items which overlap + maybe 5 closest other lines.")
                     print(GRAY + f"-> Possible combinations: {len(Combinations)}" + NORMAL)
 
                     print(BLUE + "Interpreting combinations..." + NORMAL)
