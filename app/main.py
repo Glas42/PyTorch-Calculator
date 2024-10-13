@@ -7,6 +7,7 @@ import src.pytorch as pytorch
 import src.updater as updater
 import src.canvas as canvas
 import src.mouse as mouse
+import src.file as file
 import src.ui as ui
 
 import time
@@ -16,8 +17,11 @@ import os
 os.system("cls" if variables.OS == "nt" else "clear")
 print("\nPyTorch-Calculator\n------------------\n")
 
-if "--dev" in sys.argv:
-    variables.DEVMODE = True
+for Argument in sys.argv:
+    if "--dev" in Argument.lower():
+        variables.DEVMODE = True
+    elif os.path.exists(Argument) and Argument.lower().endswith(".txt"):
+        file.Open(Argument)
 
 if os.path.exists(f"{variables.PATH}cache") == False:
     os.makedirs(f"{variables.PATH}cache")

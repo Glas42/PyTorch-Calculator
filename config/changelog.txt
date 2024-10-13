@@ -1,1 +1,7 @@
 App Rewrite!
+- Switched to my own window lib for UI. (Dont resize the window, it might break, will be fixed in the future)
+- Added the option to open, save and create new files.
+- Improved the .bat scripts.
+- Added a translator for the UI.
+- Added a CUDA installer.
+- UI fixes.

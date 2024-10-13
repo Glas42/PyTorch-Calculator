@@ -10,6 +10,7 @@ unidecode
 keyboard
 requests
 pywin32
+tkinter
 gputil
 psutil
 pynput

@@ -6,6 +6,7 @@ import src.console as console
 import src.pytorch as pytorch
 import src.updater as updater
 import src.canvas as canvas
+import src.file as file
 
 import SimpleWindow
 import subprocess
@@ -75,12 +76,13 @@ def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
 
 def Restart():
     if variables.DEVMODE == True:
-        subprocess.Popen(f"python {variables.PATH}app/main.py --dev", cwd=variables.PATH)
+        subprocess.Popen(f"python {variables.PATH}app/main.py --dev {variables.PATH}cache/LastSession.txt", cwd=variables.PATH)
     else:
-        subprocess.Popen(f"{variables.PATH}Start.bat", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        subprocess.Popen(f"{variables.PATH}Start.bat {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE)
     Close()
 
 def Close():
+    file.Save(Path=f"{variables.PATH}cache/LastSession.txt")
     translate.SaveCache()
     settings.Set("UI", "X", variables.X)
     settings.Set("UI", "Y", variables.Y)
@@ -174,7 +176,7 @@ def Update():
     CurrentTime = time.time()
 
     if variables.OS == "nt":
-        if SimpleWindow.GetWindowStatus(variables.NAME)["Iconic"] == False:
+        if SimpleWindow.GetWindowStatus(variables.NAME)["Iconic"]:
             SimpleWindow.Show(variables.NAME, variables.CACHED_FRAME)
             return
 
@@ -425,13 +427,49 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "SmoothInterpolation",
+            "Text": "Smooth Interpolation",
             "State": variables.SMOOTH_INTERPOLATION,
             "Function": lambda: {setattr(variables, "SMOOTH_INTERPOLATION", not variables.SMOOTH_INTERPOLATION), setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
             "Y1": 101,
             "X2": variables.CANVAS_RIGHT - 10,
             "Y2": 121})
+
+        variables.ITEMS.append({
+            "Type": "Button",
+            "Text": "Save",
+            "Function": lambda: {file.Save(Path=variables.FILE_PATH)},
+            "X1": 10,
+            "Y1": 131,
+            "X2": variables.CANVAS_RIGHT / 2 - 5,
+            "Y2": 166})
+
+        variables.ITEMS.append({
+            "Type": "Button",
+            "Text": "Save as...",
+            "Function": lambda: {file.Save()},
+            "X1": variables.CANVAS_RIGHT / 2 + 5,
+            "Y1": 131,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 166})
+
+        variables.ITEMS.append({
+            "Type": "Button",
+            "Text": "Open",
+            "Function": lambda: {file.Open()},
+            "X1": 10,
+            "Y1": 176,
+            "X2": variables.CANVAS_RIGHT / 2 - 5,
+            "Y2": 211})
+
+        variables.ITEMS.append({
+            "Type": "Button",
+            "Text": "New",
+            "Function": lambda: {file.New()},
+            "X1": variables.CANVAS_RIGHT / 2 + 5,
+            "Y1": 176,
+            "X2": variables.CANVAS_RIGHT - 10,
+            "Y2": 211})
 
     if variables.PAGE == "Settings":
         variables.ITEMS.append({
@@ -517,7 +555,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "SmoothInterpolation",
+            "Text": "Smooth Interpolation",
             "Setting": ("Draw", "SmoothInterpolation", False),
             "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,

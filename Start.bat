@@ -49,7 +49,7 @@ echo Running App
 echo -----------
 echo.
 
-python app/main.py
+python app/main.py %*
 
 :end
 pause
