@@ -1,3 +1,7 @@
+import os
+os.system("cls" if os.name == "nt" else "clear")
+print("\nPyTorch-Calculator\n------------------\n")
+
 import src.translate as translate
 import src.variables as variables
 import src.keyboard as keyboard
@@ -12,10 +16,6 @@ import src.ui as ui
 
 import time
 import sys
-import os
-
-os.system("cls" if variables.OS == "nt" else "clear")
-print("\nPyTorch-Calculator\n------------------\n")
 
 for Argument in sys.argv:
     if "--dev" in Argument.lower():

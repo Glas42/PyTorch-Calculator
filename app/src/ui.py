@@ -75,15 +75,18 @@ def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
         SimpleWindow.SetWindowPosition("PyTorch-Calculator (Dev Mode)", (variables.X + variables.WIDTH + 5, variables.Y))
 
 def Restart():
+    file.Save(Path=f"{variables.PATH}cache/LastSession.txt")
     if variables.DEVMODE == True:
         subprocess.Popen(f"python {variables.PATH}app/main.py --dev {variables.PATH}cache/LastSession.txt", cwd=variables.PATH)
     else:
         subprocess.Popen(f"{variables.PATH}Start.bat {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE)
-    Close()
+    Close(SaveCanvas=False)
 
-def Close():
-    file.Save(Path=f"{variables.PATH}cache/LastSession.txt")
-    translate.SaveCache()
+def Close(SaveCanvas=True, SaveTranslateCache=True):
+    if SaveCanvas:
+        file.Save(Path=f"{variables.PATH}cache/LastSession.txt")
+    if SaveTranslateCache:
+        translate.SaveCache()
     settings.Set("UI", "X", variables.X)
     settings.Set("UI", "Y", variables.Y)
     settings.Set("UI", "Width", variables.WIDTH)
@@ -485,10 +488,22 @@ def Update():
         variables.ITEMS.append({
             "Type": "Button",
             "Text": "Check Cuda (GPU) Support",
-            "Function": lambda: {pytorch.CheckCuda(), setattr(variables, "PAGE", "CUDA"), SetTitleBarHeight(0)},
+            "Function": lambda: {pytorch.CheckCuda(), setattr(variables, "PAGE", "CUDA")},
             "X1": 10,
             "Y1": 41,
             "X2": variables.CANVAS_RIGHT / 2 - 5,
+            "Y2": 76})
+
+        variables.ITEMS.append({
+            "Type": "Button",
+            "Text": "Restart App in Dev Mode",
+            "Function": lambda: {
+                file.Save(Path=f"{variables.PATH}cache/LastSession.txt"),
+                subprocess.Popen(f"{variables.PATH}Start.bat --dev {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE),
+                Close(SaveCanvas=False)},
+            "X1": variables.CANVAS_RIGHT / 2 + 5,
+            "Y1": 41,
+            "X2": variables.CANVAS_RIGHT - 10,
             "Y2": 76})
 
         variables.ITEMS.append({
