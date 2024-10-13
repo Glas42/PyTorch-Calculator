@@ -52,7 +52,7 @@ def Update():
                     print(GRAY + f"-> Points: {sum([len(line) if len(line[0]) != 4 else len(line[1:]) for line in CANVAS_CONTENT])}" + NORMAL)
 
                     print(BLUE + "Generating combinations..." + NORMAL)
-                    Combinations = []
+                    Combinations = [line[1:] for line in CANVAS_CONTENT]
                     for r in range(2, len(CANVAS_CONTENT) + 1):
                         for Combination in itertools.combinations(CANVAS_CONTENT, r):
                             CombinedLines = []
