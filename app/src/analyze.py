@@ -19,6 +19,8 @@ UPDATING = False
 
 
 def Initialize():
+    global MaxLinesToCompareToAtOnce
+    global MaxClosestLinesToConsider
     global LastContent
     global EmptyFrame
     global BaseImage
@@ -26,6 +28,9 @@ def Initialize():
 
     if variables.DEVMODE:
         SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
+
+    MaxLinesToCompareToAtOnce = 5
+    MaxClosestLinesToConsider = 5
 
     LastContent = None
     EmptyFrame = numpy.zeros((500, 500, 3), numpy.uint8)
@@ -60,15 +65,16 @@ def Update():
 
                     print(BLUE + "Generating combinations..." + NORMAL)
                     Combinations = [[line[1:]] for line in CANVAS_CONTENT]
-                    for r in range(2, len(CANVAS_CONTENT) + 1):
-                        for Combination in itertools.combinations(CANVAS_CONTENT, r):
-                            CombinedLines = []
-                            for line in Combination:
-                                if len(line[0]) == 4:
-                                    line = line[1:]
-                                CombinedLines.append(line)
-                            Combinations.append(CombinedLines)
-                    print("NOT IMPLEMENTED: Optimize combination search by only combining items which overlap + maybe 5 closest other lines.")
+                    for r in range(2, min(len(CANVAS_CONTENT) + 1, MaxLinesToCompareToAtOnce + 1)):
+                        for i in range(len(CANVAS_CONTENT)):
+                            ClosestLines = CANVAS_CONTENT[i:i + MaxClosestLinesToConsider]
+                            for Combination in itertools.combinations(ClosestLines, r):
+                                CombinedLines = []
+                                for line in Combination:
+                                    if len(line[0]) == 4:
+                                        line = line[1:]
+                                    CombinedLines.append(line)
+                                Combinations.append(CombinedLines)
                     print(GRAY + f"-> Possible combinations: {len(Combinations)}" + NORMAL)
 
                     print(BLUE + "Interpreting combinations..." + NORMAL)
