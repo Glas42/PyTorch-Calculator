@@ -12,9 +12,11 @@
 
 # Ignore the C++ app files and builds
 /cpp-app/cpp-app.vcxproj.user
+/cpp-app/cpp-app.aps
 /cpp-app/cpp-app
 /cpp-app/x64
 /cpp-app/.vs
+/.vs
 
 # Ignore the dataset
 /train/raw_dataset/*
