@@ -1,7 +1,5 @@
-App Rewrite!
-- Switched to my own window lib for UI. (Dont resize the window, it might break, will be fixed in the future)
-- Added the option to open, save and create new files.
-- Improved the .bat scripts.
-- Added a translator for the UI.
-- Added a CUDA installer.
-- UI fixes.
+- Restart in dev move button
+- Better crash reporter
+- Improved the file handling
+- Added the base of the analyzer
+-> Currently working on the analyzer and the ML models for the detection!
