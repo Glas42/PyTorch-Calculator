@@ -30,22 +30,22 @@ def Update():
             CANVAS_POSITION = variables.CANVAS_POSITION
             CANVAS_ZOOM = variables.CANVAS_ZOOM
             if variables.CANVAS_SHOW_GRID == True:
-                grid_size = 50
-                grid_width = round(Frame.shape[1] / (grid_size * CANVAS_ZOOM))
-                grid_height = round(Frame.shape[0] / (grid_size * CANVAS_ZOOM))
+                GridSize = 50
+                GridWidth = round(Frame.shape[1] / (GridSize * CANVAS_ZOOM))
+                GridHeight = round(Frame.shape[0] / (GridSize * CANVAS_ZOOM))
                 if CANVAS_ZOOM > 0.05:
                     if variables.CANVAS_GRID_TYPE == "LINE":
-                        for X in range(0, grid_width):
-                            PointX = round((X * grid_size + CANVAS_POSITION[0] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
+                        for X in range(0, GridWidth):
+                            PointX = round((X * GridSize + CANVAS_POSITION[0] / CANVAS_ZOOM % GridSize) * CANVAS_ZOOM)
                             cv2.line(Frame, (PointX, 0), (PointX, Frame.shape[0]), (127, 127, 127), 1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
-                        for Y in range(0, grid_height):
-                            PointY = round((Y * grid_size + CANVAS_POSITION[1] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
+                        for Y in range(0, GridHeight):
+                            PointY = round((Y * GridSize + CANVAS_POSITION[1] / CANVAS_ZOOM % GridSize) * CANVAS_ZOOM)
                             cv2.line(Frame, (0, PointY), (Frame.shape[1], PointY), (127, 127, 127), 1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
                     else:
-                        for X in range(0, grid_width):
-                            PointX = round((X * grid_size + CANVAS_POSITION[0] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
-                            for Y in range(0, grid_height):
-                                PointY = round((Y * grid_size + CANVAS_POSITION[1] / CANVAS_ZOOM % grid_size) * CANVAS_ZOOM)
+                        for X in range(0, GridWidth):
+                            PointX = round((X * GridSize + CANVAS_POSITION[0] / CANVAS_ZOOM % GridSize) * CANVAS_ZOOM)
+                            for Y in range(0, GridHeight):
+                                PointY = round((Y * GridSize + CANVAS_POSITION[1] / CANVAS_ZOOM % GridSize) * CANVAS_ZOOM)
                                 cv2.circle(Frame, (PointX, PointY), 1, (127, 127, 127), -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
 
             LastPoint = None

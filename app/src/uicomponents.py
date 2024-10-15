@@ -119,14 +119,14 @@ def Switch(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, SwitchWidth=40, SwitchHeight
         Y1 += variables.TITLE_BAR_HEIGHT
         Y2 += variables.TITLE_BAR_HEIGHT
         Text = translate.Translate(Text)
-        if Text in variables.SWITCHES:
-            State = variables.SWITCHES[Text][0]
+        if Text + str(Setting) in variables.SWITCHES:
+            State = variables.SWITCHES[Text + str(Setting)][0]
         else:
             if Setting is not None:
                 State = settings.Get(str(Setting[0]), str(Setting[1]), Setting[2])
-            variables.SWITCHES[Text] = State, 0
+            variables.SWITCHES[Text + str(Setting)] = State, 0
 
-        x = CurrentTime - variables.SWITCHES[Text][1]
+        x = CurrentTime - variables.SWITCHES[Text + str(Setting)][1]
         if x < 0.3333:
             x *= 3
             animationState = 1 - math.pow(2, -10 * x)
@@ -181,8 +181,8 @@ def Switch(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, SwitchWidth=40, SwitchHeight
         Text, Fontscale, Thickness, Width, Height = GetTextSize(Text, round((X2-X1)), Fontsize)
         cv2.putText(variables.FRAME, Text, (round(X1 + SwitchWidth + TextPadding), round(Y1 + (Y2-Y1) / 2 + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor, Thickness, cv2.LINE_AA)
         if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 and LeftClicked == False and LastLeftClicked == True and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
+            variables.SWITCHES[Text + str(Setting)] = not State, CurrentTime
             if Setting is not None:
-                variables.SWITCHES[Text] = not State, CurrentTime
                 settings.Set(str(Setting[0]), str(Setting[1]), not State)
             return True, LeftClicked and SwitchHovered, SwitchHovered
         else:
@@ -192,16 +192,16 @@ def Switch(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, SwitchWidth=40, SwitchHeight
         return False, False, False
 
 
-def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=100, DropdownHeight=100, DropdownPadding=5, RoundCorners=5, Fontsize=variables.FONT_SIZE, TextColor=variables.TEXT_COLOR, grayedTextColor=variables.GRAYED_TEXT_COLOR, DropdownColor=variables.DROPDOWN_COLOR, DropdownHoverColor=variables.DROPDOWN_HOVER_COLOR):
+def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=100, DropdownHeight=100, DropdownPadding=5, RoundCorners=5, Fontsize=variables.FONT_SIZE, TextColor=variables.TEXT_COLOR, GrayedTextColor=variables.GRAYED_TEXT_COLOR, DropdownColor=variables.DROPDOWN_COLOR, DropdownHoverColor=variables.DROPDOWN_HOVER_COLOR):
     try:
         global ForegroundWindow, FrameWidth, FrameHeight, MouseX, MouseY, LeftClicked, RightClicked, LastLeftClicked, LastRightClicked, ScrollEventQueue
         Y1 += variables.TITLE_BAR_HEIGHT
         Y2 += variables.TITLE_BAR_HEIGHT
-        if Text not in variables.DROPDOWNS:
+        if Text + str(Items) not in variables.DROPDOWNS:
             DefaultItem = int(max(min(DefaultItem, len(Items) - 1), 0))
-            variables.DROPDOWNS[Text] = False, settings.Get("DropdownSelections", str(Text), DefaultItem)
+            variables.DROPDOWNS[Text + str(Items)] = False, settings.Get("DropdownSelections", str(Text), DefaultItem)
 
-        DropdownSelected, SelectedItem = variables.DROPDOWNS[Text]
+        DropdownSelected, SelectedItem = variables.DROPDOWNS[Text + str(Items)]
 
         if X1 <= MouseX * FrameWidth <= X2 and Y1 <= MouseY * FrameHeight <= Y2 + ((DropdownHeight + DropdownPadding) if DropdownSelected else 0) and ForegroundWindow and (variables.CONTEXT_MENU[0] == False or Text in str(variables.CONTEXT_MENU_ITEMS)):
             DropdownHovered = True
@@ -253,7 +253,7 @@ def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=
                 else:
                     ItemText = Item
                 ItemText, Fontscale, Thickness, Width, Height = GetTextSize(ItemText, round((X2-X1)), LineHeight / 1.5 if LineHeight / 1.5 < Fontsize else Fontsize)
-                cv2.putText(variables.FRAME, ItemText, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y2 + DropdownPadding + (i + 0.5) * LineHeight + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor if i == 1 else grayedTextColor, Thickness, cv2.LINE_AA)
+                cv2.putText(variables.FRAME, ItemText, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y2 + DropdownPadding + (i + 0.5) * LineHeight + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor if i == 1 else GrayedTextColor, Thickness, cv2.LINE_AA)
 
         else:
 
@@ -267,7 +267,7 @@ def Dropdown(Text="NONE", Items=["NONE"], DefaultItem=0, X1=0, Y1=0, X2=100, Y2=
         TextTranslated, Fontscale, Thickness, Width, Height = GetTextSize(TextTranslated, round((X2-X1)), Fontsize)
         cv2.putText(variables.FRAME, TextTranslated, (round(X1 + (X2-X1) / 2 - Width / 2), round(Y1 + (Y2-Y1) / 2 + Height / 2)), variables.FONT_TYPE, Fontscale, TextColor, Thickness, cv2.LINE_AA)
 
-        variables.DROPDOWNS[Text] = DropdownSelected, SelectedItem
+        variables.DROPDOWNS[Text + str(Items)] = DropdownSelected, SelectedItem
         if DropdownChanged:
             settings.Set("DropdownSelections", str(Text), int(SelectedItem))
         if DropdownSelected:

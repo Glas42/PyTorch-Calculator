@@ -58,7 +58,7 @@ def MovePathPopup(Title=""):
         if variables.OS != "nt":
             return
         import win32gui, win32con
-        threading.Thread(target=MovePathPopupThread).start()
+        threading.Thread(target=MovePathPopupThread, daemon=True).start()
     except:
         CrashReport("File - Error in function MovePathPopup.", str(traceback.format_exc()))
 
@@ -88,7 +88,7 @@ def New():
                 variables.PAGE = "Canvas"
             except:
                 CrashReport("File - Error in function NewThread.", str(traceback.format_exc()))
-        threading.Thread(target=NewThread).start()
+        threading.Thread(target=NewThread, daemon=True).start()
     except:
         CrashReport("File - Error in function New.", str(traceback.format_exc()))
 
@@ -135,7 +135,7 @@ def Save(Path=""):
             SAVING = False
         global SAVING
         SAVING = True
-        threading.Thread(target=SaveThread).start()
+        threading.Thread(target=SaveThread, daemon=True).start()
     except:
         CrashReport("File - Error in function Save.", str(traceback.format_exc()))
 
@@ -177,6 +177,6 @@ def Open(Path=""):
             OPENING = False
         global OPENING
         OPENING = True
-        threading.Thread(target=OpenThread).start()
+        threading.Thread(target=OpenThread, daemon=True).start()
     except:
         CrashReport("File - Error in function Open.", str(traceback.format_exc()))
