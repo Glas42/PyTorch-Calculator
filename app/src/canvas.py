@@ -19,8 +19,7 @@ def Update():
                         variables.CANVAS_GRID_TYPE,
                         len(variables.CANVAS_TEMP),
                         len(variables.CANVAS_DELETE_LIST),
-                        variables.TEXT_COLOR,
-                        variables.TOOLBAR_HOVERED)
+                        variables.TEXT_COLOR)
 
         if variables.PAGE == "Canvas" and LastContent != Content:
             if variables.CANVAS.shape != (variables.CANVAS_BOTTOM + 1, variables.WIDTH, 3):
@@ -89,11 +88,6 @@ def Update():
                         PointY = round((i[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         if 0 <= PointX < Frame.shape[1] or 0 <= PointY < Frame.shape[0]:
                             cv2.circle(Frame, (PointX, PointY), 3, variables.TEXT_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
-
-            if variables.TOOLBAR_HOVERED == True:
-                cv2.rectangle(Frame, (Frame.shape[1] - variables.TOOLBAR_WIDTH -1, 20), (Frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "Light" else (47, 47, 47), 20, cv2.LINE_AA)
-                cv2.rectangle(Frame, (Frame.shape[1] - variables.TOOLBAR_WIDTH - 1, 20), (Frame.shape[1] - 21, variables.TOOLBAR_HEIGHT), (231, 231, 231) if variables.THEME == "Light" else (47, 47, 47), -1, cv2.LINE_AA)
-                Frame[20:variables.TOOLBAR_HEIGHT, Frame.shape[1] - variables.TOOLBAR_WIDTH -1:Frame.shape[1] - 21] = cv2.resize(variables.TOOLBAR, (variables.TOOLBAR_WIDTH - 20, variables.TOOLBAR_HEIGHT - 20))
 
             variables.CANVAS_CHANGED = True
             LastContent = Content

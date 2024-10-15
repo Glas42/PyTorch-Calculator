@@ -56,7 +56,6 @@ def Initialize():
 
     SimpleWindow.Initialize(Name=variables.NAME, Size=(WindowWidth, WindowHeight), Position=(WindowX, WindowY), TitleBarColor=variables.TAB_BAR_COLOR, Resizable=True, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
-    LoadToolBar()
     Update()
 
 def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
@@ -114,17 +113,6 @@ def SetTitleBarHeight(TitleBarHeight):
     variables.CANVAS_BOTTOM = WindowHeight - 1 - variables.TITLE_BAR_HEIGHT
     variables.CANVAS_RIGHT = WindowWidth - 1
     variables.RENDER_FRAME = True
-
-def LoadToolBar():
-    for IconName in variables.TOOLBAR:
-        if os.path.exists(f'{variables.PATH}app/assets/{IconName.lower()}_{variables.THEME}.png'):
-            Icon = cv2.resize(cv2.imread(f'{variables.PATH}app/assets/{IconName.lower()}_{variables.THEME.lower()}.png', cv2.IMREAD_UNCHANGED), variables.TOOLBAR_ICON_SIZE)
-            for x in range(Icon.shape[1]):
-                for y in range(Icon.shape[0]):
-                    if Icon[x][y][3] == 0:
-                        Icon[x][y] = (231, 231, 231, 255) if variables.THEME == "Light" else (47, 47, 47, 255)
-            variables.TOOLBAR[IconName] = Icon[:, :, :3]
-
 
 def Update():
     CurrentTime = time.time()
@@ -347,15 +335,6 @@ def Update():
             "Y1": 0,
             "X2": variables.CANVAS_RIGHT,
             "Y2": variables.CANVAS_BOTTOM})
-
-        #variables.ITEMS.append({
-        #    "Type": "Images",
-        #    "Images": [Image for _, Image in variables.TOOLBAR.items()],
-        #    "Direction": "Horizontal",
-        #    "X1": variables.WIDTH // 2 - variables.TOOLBAR_WIDTH // 2,
-        #    "Y1": 0,
-        #    "X2": variables.WIDTH // 2 + variables.TOOLBAR_WIDTH // 2,
-        #    "Y2": variables.CANVAS_BOTTOM})
 
     if variables.PAGE == "File":
         variables.ITEMS.append({

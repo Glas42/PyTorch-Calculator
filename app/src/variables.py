@@ -91,12 +91,6 @@ CANVAS_DELETE_LIST = []
 HOVERING_CANVAS = False
 CANVAS_CHANGED = False
 
-TOOLBAR = {"home": None, "ai": None, "grid_line": None, "grid_dot": None, "rectangle": None, "circle": None, "graph": None, "color": None, "text": None}
-TOOLBAR_ICON_SIZE = (25, 25)
-TOOLBAR_HOVERED = False
-TOOLBAR_WIDTH = 500
-TOOLBAR_HEIGHT = TOOLBAR_ICON_SIZE[1] + 10
-
 SMOOTH_LINES = settings.Get("Draw", "SmoothLines", False)
 UPSCALE_LINES = settings.Get("Draw", "UpscaleLines", True)
 ANTI_ALIASING_LINES = settings.Get("Draw", "AntiAliasingLines", False)

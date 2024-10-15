@@ -53,6 +53,7 @@ def Run():
                     WindowWidth, WindowHeight = SimpleWindow.GetSize(variables.NAME)
                     MouseX, MouseY = mouse.get_position()
                     WindowY += variables.TITLE_BAR_HEIGHT
+                    WindowHeight -= variables.TITLE_BAR_HEIGHT
 
                     LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
                     RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
@@ -66,24 +67,18 @@ def Run():
                         if GetMouseSpeed() != variables.DEFAULT_MOUSE_SPEED:
                             SetMouseSpeed(variables.DEFAULT_MOUSE_SPEED)
 
-                    if WindowX + WindowWidth - 40 <= MouseX <= WindowX + WindowWidth and WindowY - 40 <= MouseY <= WindowY and variables.TOOLBAR_HOVERED == False:
-                        variables.TOOLBAR_HOVERED = True
-                    elif WindowX + WindowWidth - variables.TOOLBAR_WIDTH - 20 <= MouseX <= WindowX + WindowWidth and WindowY - 40 <= MouseY <= WindowY + variables.TOOLBAR_HEIGHT + 20 and variables.TOOLBAR_HOVERED == True:
-                        variables.TOOLBAR_HOVERED = True
-                    else:
-                        variables.TOOLBAR_HOVERED = False
+                    if WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight:
 
-                        if WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight:
-                            with pynput.mouse.Events() as Events:
-                                Event = Events.get()
-                                if isinstance(Event, pynput.mouse.Events.Scroll):
-                                    CanvasX = (MouseX - WindowX - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
-                                    CanvasY = (MouseY - WindowY - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
-                                    if variables.CANVAS_ZOOM < 10000:
-                                        variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if Event.dy > 0 else variables.CANVAS_ZOOM / 1.1
-                                    elif Event.dy < 0:
-                                        variables.CANVAS_ZOOM /= 1.1
-                                    variables.CANVAS_POSITION = (MouseX - WindowX - CanvasX * variables.CANVAS_ZOOM, MouseY - WindowY - CanvasY * variables.CANVAS_ZOOM)
+                        with pynput.mouse.Events() as Events:
+                            Event = Events.get()
+                            if isinstance(Event, pynput.mouse.Events.Scroll):
+                                CanvasX = (MouseX - WindowX - variables.CANVAS_POSITION[0]) / variables.CANVAS_ZOOM
+                                CanvasY = (MouseY - WindowY - variables.CANVAS_POSITION[1]) / variables.CANVAS_ZOOM
+                                if variables.CANVAS_ZOOM < 10000:
+                                    variables.CANVAS_ZOOM = variables.CANVAS_ZOOM * 1.1 if Event.dy > 0 else variables.CANVAS_ZOOM / 1.1
+                                elif Event.dy < 0:
+                                    variables.CANVAS_ZOOM /= 1.1
+                                variables.CANVAS_POSITION = (MouseX - WindowX - CanvasX * variables.CANVAS_ZOOM, MouseY - WindowY - CanvasY * variables.CANVAS_ZOOM)
 
                         if RightClicked == False:
                             MoveStart = MouseX - variables.CANVAS_POSITION[0], MouseY - variables.CANVAS_POSITION[1]

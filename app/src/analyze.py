@@ -20,7 +20,8 @@ UPDATING = False
 
 def Initialize():
     global MaxLinesToCompareToAtOnce
-    global MaxClosestLinesToConsider
+    global MaxLastLinesToConsider
+    global LineThickness
     global LastContent
     global EmptyFrame
     global BaseImage
@@ -29,8 +30,9 @@ def Initialize():
     if variables.DEVMODE:
         SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
-    MaxLinesToCompareToAtOnce = 5
-    MaxClosestLinesToConsider = 5
+    MaxLinesToCompareToAtOnce = 3  # Set to 0 or less to compare to all at once
+    MaxLastLinesToConsider = 3  # Will be limited to MaxLinesToCompareToAtOnce when greater than MaxLinesToCompareToAtOnce except MaxLinesToCompareToAtOnce is 0 or less
+    LineThickness = 2
 
     LastContent = None
     EmptyFrame = numpy.zeros((500, 500, 3), numpy.uint8)
@@ -61,27 +63,33 @@ def Update():
 
                     print(PURPLE + "Analyzing content..." + NORMAL)
                     print(GRAY + f"-> Lines: {len(CANVAS_CONTENT)}" + NORMAL)
-                    print(GRAY + f"-> Points: {sum([len(line) if len(line[0]) != 4 else len(line[1:]) for line in CANVAS_CONTENT])}" + NORMAL)
+                    print(GRAY + f"-> Points: {sum([len(Line) if len(Line[0]) != 4 else len(Line[1:]) for Line in CANVAS_CONTENT])}" + NORMAL)
 
                     print(BLUE + "Generating combinations..." + NORMAL)
-                    Combinations = [[line[1:]] for line in CANVAS_CONTENT]
-                    for r in range(2, min(len(CANVAS_CONTENT) + 1, MaxLinesToCompareToAtOnce + 1)):
+                    Combinations = [[Line[1:]] for Line in CANVAS_CONTENT]
+                    for r in range(2, min(len(CANVAS_CONTENT) + 1, float("inf") if MaxLinesToCompareToAtOnce < 1 else (MaxLinesToCompareToAtOnce + 1))):
                         for i in range(len(CANVAS_CONTENT)):
-                            ClosestLines = CANVAS_CONTENT[i:i + MaxClosestLinesToConsider]
-                            for Combination in itertools.combinations(ClosestLines, r):
+                            if MaxLastLinesToConsider > 0:
+                                OtherLines = CANVAS_CONTENT[i:i + MaxLastLinesToConsider + 2]
+                            else:
+                                OtherLines = CANVAS_CONTENT
+                            for Combination in itertools.combinations(OtherLines, r):
                                 CombinedLines = []
-                                for line in Combination:
-                                    if len(line[0]) == 4:
-                                        line = line[1:]
-                                    CombinedLines.append(line)
-                                Combinations.append(CombinedLines)
+                                for Line in Combination:
+                                    if len(Line[0]) == 4:
+                                        Line = Line[1:]
+                                    CombinedLines.append(Line)
+                                CombinedLines.sort(key=lambda Line: min([Point[0] for Point in Line]))
+                                if CombinedLines not in Combinations:
+                                    Combinations.append(CombinedLines)
                     print(GRAY + f"-> Possible combinations: {len(Combinations)}" + NORMAL)
 
                     print(BLUE + "Interpreting combinations..." + NORMAL)
 
+                    Images = []
+
                     for Combination in Combinations:
                         Image = BaseImage.copy()
-                        LastLen = 0
                         MinX = min([Point[0] for Line in Combination for Point in Line])
                         MinY = min([Point[1] for Line in Combination for Point in Line])
                         MaxX = max([Point[0] for Line in Combination for Point in Line])
@@ -95,14 +103,41 @@ def Update():
                             LastPoint = None
                             for Point in Line:
                                 if LastPoint != None:
-                                    cv2.line(Image, (round((LastPoint[0] - MinX) * Scale + XOffset), round((LastPoint[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), 1)
+                                    cv2.line(Image, (round((LastPoint[0] - MinX) * Scale + XOffset), round((LastPoint[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), LineThickness)
                                 elif len(Line) == 1:
-                                    cv2.line(Image, (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), 1)
+                                    cv2.line(Image, (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), LineThickness)
                                 LastPoint = Point
-                        if len(Combination) > LastLen:
-                            LastLen = len(Combination)
-                            EmptyFrame = cv2.resize(Image, (500, 500))
-                            Frame = EmptyFrame.copy()
+                        Images.append(Image)
+
+
+                    NumRows = int(numpy.ceil(numpy.sqrt(len(Images))))
+                    if NumRows != 0:
+                        NumCols = int(numpy.ceil(len(Images) / NumRows))
+
+                        GridWidth = NumCols * Images[0].shape[1]
+                        GridHeight = NumRows * Images[0].shape[0]
+                        GridImage = numpy.zeros((GridHeight, GridWidth, 3), numpy.uint8)
+
+                        for i, image in enumerate(Images):
+                            row = i // NumCols
+                            col = i % NumCols
+                            x = col * image.shape[1]
+                            y = row * image.shape[0]
+                            GridImage[y:y+(image.shape[0]-1), x:x+(image.shape[1]-1)] = cv2.resize(image, (image.shape[1]-1, image.shape[0]-1))
+
+                        for i in range(NumRows + 1):
+                            Y = i * Images[0].shape[0] - 1
+                            if Y < 0:
+                                Y = 0
+                            cv2.line(GridImage, (0, Y), (GridWidth - 1, Y), (255, 255, 255), 1)
+                        for i in range(NumCols + 1):
+                            X = i * Images[0].shape[1] - 1
+                            if X < 0:
+                                X = 0
+                            cv2.line(GridImage, (X, 0), (X, GridHeight - 1), (255, 255, 255), 1)
+
+                        Frame = GridImage
+
 
                     print("NOT IMPLEMENTED: Check all combinations using a classification model.")
 
