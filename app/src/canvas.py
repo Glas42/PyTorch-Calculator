@@ -16,10 +16,10 @@ def Update():
                         variables.CANVAS_POSITION,
                         variables.CANVAS_ZOOM,
                         variables.CANVAS_SHOW_GRID,
-                        variables.CANVAS_GRID_TYPE,
+                        variables.CANVAS_LINE_GRID,
                         len(variables.CANVAS_TEMP),
                         len(variables.CANVAS_DELETE_LIST),
-                        variables.TEXT_COLOR)
+                        variables.DRAW_COLOR)
 
         if variables.PAGE == "Canvas" and LastContent != Content:
             if variables.CANVAS.shape != (variables.CANVAS_BOTTOM + 1, variables.WIDTH, 3):
@@ -34,7 +34,7 @@ def Update():
                 GridWidth = round(Frame.shape[1] / (GridSize * CANVAS_ZOOM))
                 GridHeight = round(Frame.shape[0] / (GridSize * CANVAS_ZOOM))
                 if CANVAS_ZOOM > 0.05:
-                    if variables.CANVAS_GRID_TYPE == "LINE":
+                    if variables.CANVAS_LINE_GRID == True:
                         for X in range(0, GridWidth):
                             PointX = round((X * GridSize + CANVAS_POSITION[0] / CANVAS_ZOOM % GridSize) * CANVAS_ZOOM)
                             cv2.line(Frame, (PointX, 0), (PointX, Frame.shape[0]), (127, 127, 127), 1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
@@ -56,14 +56,14 @@ def Update():
                     PointX2 = round((X + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     PointY2 = round((Y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                     if 0 <= PointX1 < Frame.shape[1] or 0 <= PointY1 < Frame.shape[0] or 0 <= PointX2 < Frame.shape[1] or 0 <= PointY2 < Frame.shape[0]:
-                        cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.TEXT_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                        cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.DRAW_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
                 LastPoint = (X, Y)
 
             if len(variables.CANVAS_TEMP) == 1:
                 PointX = round((variables.CANVAS_TEMP[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 PointY = round((variables.CANVAS_TEMP[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                 if 0 <= PointX < Frame.shape[1] or 0 <= PointY < Frame.shape[0]:
-                    cv2.circle(Frame, (PointX, PointY), 3, variables.TEXT_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                    cv2.circle(Frame, (PointX, PointY), 3, variables.DRAW_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
             for i in CANVAS_CONTENT:
                 LastPoint = None
                 MinX, MinY, MaxX, MaxY = i[0]
@@ -81,13 +81,13 @@ def Update():
                             PointX2 = round((X + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                             PointY2 = round((Y + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                             if 0 <= PointX1 < Frame.shape[1] or 0 <= PointY1 < Frame.shape[0] or 0 <= PointX2 < Frame.shape[1] or 0 <= PointY2 < Frame.shape[0]:
-                                cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.TEXT_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                                cv2.line(Frame, (PointX1, PointY1), (PointX2, PointY2), variables.DRAW_COLOR, 3, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
                         LastPoint = (X, Y)
                     if len(i) == 1:
                         PointX = round((i[0][0] + CANVAS_POSITION[0] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         PointY = round((i[0][1] + CANVAS_POSITION[1] * 1/CANVAS_ZOOM) * CANVAS_ZOOM)
                         if 0 <= PointX < Frame.shape[1] or 0 <= PointY < Frame.shape[0]:
-                            cv2.circle(Frame, (PointX, PointY), 3, variables.TEXT_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
+                            cv2.circle(Frame, (PointX, PointY), 3, variables.DRAW_COLOR, -1, cv2.LINE_AA if variables.ANTI_ALIASING_LINES == True else cv2.LINE_8)
 
             variables.CANVAS_CHANGED = True
             LastContent = Content

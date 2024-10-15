@@ -500,7 +500,7 @@ def Update():
         variables.ITEMS.append({
             "Type": "Switch",
             "Text": "Anti-Aliasing Lines",
-            "Setting": ("Draw", "AntiAliasingLines", False),
+            "Setting": ("Draw", "AntiAliasingLines", True),
             "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
             "Y1": 211,

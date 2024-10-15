@@ -85,7 +85,7 @@ CANVAS_CONTENT = []
 CANVAS_POSITION = None, None
 CANVAS_ZOOM = 1
 CANVAS_SHOW_GRID = True
-CANVAS_GRID_TYPE = "DOT"
+CANVAS_LINE_GRID = False
 CANVAS_TEMP = []
 CANVAS_DELETE_LIST = []
 HOVERING_CANVAS = False
@@ -93,7 +93,7 @@ CANVAS_CHANGED = False
 
 SMOOTH_LINES = settings.Get("Draw", "SmoothLines", False)
 UPSCALE_LINES = settings.Get("Draw", "UpscaleLines", True)
-ANTI_ALIASING_LINES = settings.Get("Draw", "AntiAliasingLines", False)
+ANTI_ALIASING_LINES = settings.Get("Draw", "AntiAliasingLines", True)
 SMOOTH_INTERPOLATION = settings.Get("Draw", "SmoothInterpolation", False)
 MOUSE_SLOWDOWN = settings.Get("Draw", "MouseSlowdown", 1)
 

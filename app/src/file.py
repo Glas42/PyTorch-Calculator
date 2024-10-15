@@ -75,19 +75,31 @@ def New():
                 variables.CANVAS_POSITION = variables.WIDTH // 2, variables.HEIGHT // 2
                 variables.CANVAS_ZOOM = 1
                 variables.CANVAS_SHOW_GRID = True
-                variables.CANVAS_GRID_TYPE = "DOT"
+                variables.CANVAS_LINE_GRID = False
+                variables.DRAW_COLOR = (255, 255, 255) if variables.THEME == "Dark" else (0, 0, 0)
+                variables.SMOOTH_LINES = settings.Get("Draw", "SmoothLines", False)
+                variables.UPSCALE_LINES = settings.Get("Draw", "UpscaleLines", True)
+                variables.ANTI_ALIASING_LINES = settings.Get("Draw", "AntiAliasingLines", True)
+                variables.SMOOTH_INTERPOLATION = settings.Get("Draw", "SmoothInterpolation", False)
+                variables.MOUSE_SLOWDOWN = settings.Get("Draw", "MouseSlowdown", 1)
                 variables.CANVAS_CONTENT = []
                 variables.CANVAS_TEMP = []
                 variables.CANVAS_DELETE_LIST = []
-                variables.DRAW_COLOR = (0, 0, 0) if variables.THEME == "light" else (255, 255, 255)
+                variables.DROPDOWNS = {}
+                variables.SWITCHES = {}
                 print(GRAY + f"-> Show Grid: {variables.CANVAS_SHOW_GRID}" + NORMAL)
-                print(GRAY + f"-> Grid Type: {variables.CANVAS_GRID_TYPE}" + NORMAL)
+                print(GRAY + f"-> Line Grid: {variables.CANVAS_LINE_GRID}" + NORMAL)
                 print(GRAY + f"-> Color: {variables.DRAW_COLOR}" + NORMAL)
+                print(GRAY + f"-> Smooth Lines: {variables.SMOOTH_LINES}" + NORMAL)
+                print(GRAY + f"-> Upscale Lines: {variables.UPSCALE_LINES}" + NORMAL)
+                print(GRAY + f"-> Anti-Aliasing Lines: {variables.ANTI_ALIASING_LINES}" + NORMAL)
+                print(GRAY + f"-> Smooth Interpolation: {variables.SMOOTH_INTERPOLATION}" + NORMAL)
                 print(GREEN + "Created new file successfully!\n" + NORMAL)
                 variables.POPUP = ["Created new file successfully!", 0, 0.5]
                 variables.PAGE = "Canvas"
             except:
                 CrashReport("File - Error in function NewThread.", str(traceback.format_exc()))
+                variables.POPUP = ["Error creating new file.", 0, 0.5]
         threading.Thread(target=NewThread, daemon=True).start()
     except:
         CrashReport("File - Error in function New.", str(traceback.format_exc()))
@@ -115,22 +127,31 @@ def Save(Path=""):
                 if f"{variables.PATH}cache" not in variables.FILE_PATH:
                     settings.Set("File", "LastDirectory", os.path.dirname(variables.FILE_PATH))
                 print(GRAY + f"-> {variables.FILE_PATH}" + NORMAL)
-                with open(variables.FILE_PATH, "w") as f:
-                    f.write(f"""
-                        {variables.CANVAS_POSITION}#
-                        {variables.CANVAS_ZOOM}#
-                        {variables.CANVAS_SHOW_GRID}#
-                        {variables.CANVAS_GRID_TYPE}#
-                        {variables.CANVAS_CONTENT}#
-                        {variables.CANVAS_TEMP}#
-                        {variables.CANVAS_DELETE_LIST}#
-                        {variables.DRAW_COLOR}
+                with open(variables.FILE_PATH, "w") as F:
+                    F.write(f"""
+                        CANVAS_POSITION#{variables.CANVAS_POSITION}###
+                        CANVAS_ZOOM#{variables.CANVAS_ZOOM}###
+                        CANVAS_SHOW_GRID#{variables.CANVAS_SHOW_GRID}###
+                        CANVAS_LINE_GRID#{variables.CANVAS_LINE_GRID}###
+                        DRAW_COLOR#{variables.DRAW_COLOR}###
+                        SMOOTH_LINES#{variables.SMOOTH_LINES}###
+                        UPSCALE_LINES#{variables.UPSCALE_LINES}###
+                        ANTI_ALIASING_LINES#{variables.ANTI_ALIASING_LINES}###
+                        SMOOTH_INTERPOLATION#{variables.SMOOTH_INTERPOLATION}###
+                        MOUSE_SLOWDOWN#{variables.MOUSE_SLOWDOWN}###
+                        CANVAS_CONTENT#{variables.CANVAS_CONTENT}###
+                        CANVAS_TEMP#{variables.CANVAS_TEMP}###
+                        CANVAS_DELETE_LIST#{variables.CANVAS_DELETE_LIST}
                     """.replace(" ", "").replace("\n", ""))
                 print(GREEN + "File saved successfully!\n" + NORMAL)
-                variables.POPUP = ["File saved successfully!", 0, 0.5]
+                if f"{variables.PATH}cache" not in variables.FILE_PATH:
+                    variables.POPUP = ["File saved successfully!", 0, 0.5]
+                else:
+                    variables.POPUP = POPUP = [None, 0, 0.5]
                 variables.PAGE = "Canvas"
             except:
                 CrashReport("File - Error in function SaveThread.", str(traceback.format_exc()))
+                variables.POPUP = ["File not saved!", 0, 0.5]
             global SAVING
             SAVING = False
         global SAVING
@@ -158,21 +179,22 @@ def Open(Path=""):
                 if f"{variables.PATH}cache" not in variables.FILE_PATH:
                     settings.Set("File", "LastDirectory", os.path.dirname(variables.FILE_PATH))
                 print(GRAY + f"-> {variables.FILE_PATH}" + NORMAL)
-                with open(variables.FILE_PATH, "r") as f:
-                    content = str(f.read()).split("#")
-                    variables.CANVAS_POSITION = eval(content[0])
-                    variables.CANVAS_ZOOM = float(content[1])
-                    variables.CANVAS_SHOW_GRID = bool(content[2])
-                    variables.CANVAS_GRID_TYPE = str(content[3])
-                    variables.CANVAS_CONTENT = eval(content[4])
-                    variables.CANVAS_TEMP = eval(content[5])
-                    variables.CANVAS_DELETE_LIST = eval(content[6])
-                    variables.DRAW_COLOR = eval(content[7])
+                with open(variables.FILE_PATH, "r") as F:
+                    Content = str(F.read()).replace("\n", "").replace(" ", "")
+                    for Item in Content.split("###"):
+                        Key, Value = Item.split("#")
+                        setattr(variables, Key, eval(Value))
+                variables.DROPDOWNS = {}
+                variables.SWITCHES = {}
                 print(GREEN + "File opened successfully!\n" + NORMAL)
-                variables.POPUP = ["File opened successfully!", 0, 0.5]
+                if f"{variables.PATH}cache" not in variables.FILE_PATH:
+                    variables.POPUP = ["File opened successfully!", 0, 0.5]
+                else:
+                    variables.POPUP = POPUP = [None, 0, 0.5]
                 variables.PAGE = "Canvas"
             except:
                 CrashReport("File - Error in function OpenThread.", str(traceback.format_exc()))
+                variables.POPUP = ["File not opened!", 0, 0.5]
             global OPENING
             OPENING = False
         global OPENING
