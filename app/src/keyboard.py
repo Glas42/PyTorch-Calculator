@@ -36,11 +36,13 @@ def Run():
                         if len(variables.CANVAS_CONTENT) > 0:
                             variables.CANVAS_DELETE_LIST.append(variables.CANVAS_CONTENT[-1])
                             variables.CANVAS_CONTENT.pop()
+                        variables.RENDER_FRAME = True
 
                     if CtrlYClicked == True and LastCtrlYClicked == False:
                         if len(variables.CANVAS_DELETE_LIST) > 0:
                             variables.CANVAS_CONTENT.append(variables.CANVAS_DELETE_LIST[-1])
                             variables.CANVAS_DELETE_LIST.pop()
+                        variables.RENDER_FRAME = True
 
                     LastCtrlZClicked = CtrlZClicked
                     LastCtrlYClicked = CtrlYClicked

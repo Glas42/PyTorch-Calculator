@@ -43,10 +43,12 @@ def Run():
                 LastRightClicked = False
                 LastMouseX = 0
                 LastMouseY = 0
+                WasDisabled = False
                 MoveStart = 0, 0
                 while variables.BREAK == False:
-                    if SimpleWindow.GetForeground(variables.NAME) == False or variables.PAGE != "Canvas":
+                    if SimpleWindow.GetForeground(variables.NAME) == False or variables.PAGE != "Canvas" or variables.CONTEXT_MENU[0]:
                         time.sleep(0.1)
+                        WasDisabled = True
                         continue
 
                     WindowX, WindowY = SimpleWindow.GetPosition(variables.NAME)
@@ -57,6 +59,22 @@ def Run():
 
                     LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
                     RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
+
+                    if WasDisabled:
+                        while True:
+                            WindowX, WindowY = SimpleWindow.GetPosition(variables.NAME)
+                            WindowWidth, WindowHeight = SimpleWindow.GetSize(variables.NAME)
+                            MouseX, MouseY = mouse.get_position()
+                            WindowY += variables.TITLE_BAR_HEIGHT
+                            WindowHeight -= variables.TITLE_BAR_HEIGHT
+
+                            LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
+                            RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight
+                            if LeftClicked == False and RightClicked == False:
+                                WasDisabled = False
+                                LastLeftClicked = False
+                                LastRightClicked = False
+                                break
 
                     if WindowX <= MouseX <= WindowX + WindowWidth and WindowY <= MouseY <= WindowY + WindowHeight:
                         variables.HOVERING_CANVAS = True
