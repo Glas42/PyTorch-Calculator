@@ -1,12 +1,15 @@
 from src.crashreport import CrashReport
+from torchvision import transforms
 import src.variables as variables
 import SimpleWindow
 import itertools
 import threading
 import traceback
 import numpy
+import torch
 import time
 import cv2
+import os
 
 
 BLUE = "\033[94m"
@@ -30,6 +33,49 @@ def Initialize():
     if variables.DEVMODE:
         SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
+
+    global METADATA, DEVICE, MODEL, IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS, MODEL_OUTPUTS, CLASSES
+    METADATA = {"data": []}
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    MODEL = None
+    for File in os.listdir(f"{variables.PATH}cache"):
+        if File.endswith(".pt"):
+            MODEL = torch.jit.load(f"{variables.PATH}cache/{File}", _extra_files=METADATA, map_location=DEVICE)
+            break
+
+    METADATA = eval(METADATA["data"])
+    for Item in METADATA:
+        Item = str(Item)
+        if "image_width" in Item:
+            IMG_WIDTH = int(Item.split("#")[1])
+        if "image_height" in Item:
+            IMG_HEIGHT = int(Item.split("#")[1])
+        if "image_channels" in Item:
+            IMG_CHANNELS = str(Item.split("#")[1])
+        if "outputs" in Item:
+            MODEL_OUTPUTS = int(Item.split("#")[1])
+
+    CLASSES = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "+",
+        "-",
+        "*",
+        ":",
+        "(",
+        ")"
+    ]
+
+
     MaxLinesToCompareToAtOnce = 3  # Set to 0 or less to compare to all at once
     MaxLastLinesToConsider = 3  # Will be limited to MaxLinesToCompareToAtOnce when greater than MaxLinesToCompareToAtOnce except MaxLinesToCompareToAtOnce is 0 or less
     LineThickness = 2
@@ -38,6 +84,20 @@ def Initialize():
     EmptyFrame = numpy.zeros((500, 500, 3), numpy.uint8)
     BaseImage = numpy.zeros((50, 50, 3), numpy.uint8)
     Frame = EmptyFrame.copy()
+
+
+def ClassifyImage(Image):
+    if MODEL != None:
+        Image = numpy.array(Image, dtype=numpy.float32)
+        Image = cv2.cvtColor(Image, cv2.COLOR_RGB2GRAY)
+        Image = cv2.resize(Image, (IMG_WIDTH, IMG_HEIGHT))
+        Image = Image / 255.0
+        Image = transforms.ToTensor()(Image).unsqueeze(0).to(DEVICE)
+        with torch.no_grad():
+            Output = numpy.array(MODEL(Image)[0].tolist())
+        Confidence = max(Output)
+        Output = numpy.argmax(Output)
+    return CLASSES[Output], Confidence
 
 
 def Update():
@@ -119,10 +179,12 @@ def Update():
                         GridImage = numpy.zeros((GridHeight, GridWidth, 3), numpy.uint8)
 
                         for i, image in enumerate(Images):
+                            Class, Confidence = ClassifyImage(image)
                             row = i // NumCols
                             col = i % NumCols
                             x = col * image.shape[1]
                             y = row * image.shape[0]
+                            cv2.putText(image, f"{Class if Confidence > 0.9 else '?'}", (1, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
                             GridImage[y:y+(image.shape[0]-1), x:x+(image.shape[1]-1)] = cv2.resize(image, (image.shape[1]-1, image.shape[0]-1))
 
                         for i in range(NumRows + 1):
@@ -138,8 +200,6 @@ def Update():
 
                         Frame = GridImage
 
-
-                    print("NOT IMPLEMENTED: Check all combinations using a classification model.")
 
                     print(PURPLE + f"Analyzing completed!" + NORMAL)
                     print(GRAY + f"-> {round((time.perf_counter() - Start), 2)}s" + NORMAL)
