@@ -222,6 +222,8 @@ def Load(Model):
                             MODELS[Model]["EPOCHS"] = int(Item.split("#")[1])
                         if "batch" in Item:
                             MODELS[Model]["BATCH_SIZE"] = int(Item.split("#")[1])
+                        if "class_list" in Item:
+                            MODELS[Model]["CLASS_LIST"] = eval(Item.split("#")[1])
                         if "image_count" in Item:
                             MODELS[Model]["IMAGE_COUNT"] = int(Item.split("#")[1])
                         if "training_time" in Item:

@@ -256,8 +256,8 @@ def main():
 
     TrainTransform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.RandomRotation(15),
-        transforms.RandomCrop((round(IMG_HEIGHT * random.uniform(0.75, 1)), round(IMG_WIDTH * random.uniform(0.75, 1)))),
+        transforms.RandomRotation(10),
+        transforms.RandomCrop((round(IMG_HEIGHT * random.uniform(0.5, 1)), round(IMG_WIDTH * random.uniform(0.5, 1)))),
         transforms.Resize((IMG_HEIGHT, IMG_WIDTH))
     ])
 
@@ -504,7 +504,7 @@ def main():
     for i in range(5):
         try:
             LastModel = torch.jit.script(Model)
-            torch.jit.save(LastModel, os.path.join(MODEL_PATH, f"ClassificationModel-LAST-{TRAINING_DATE}.pt"), _extra_files=Metadata)
+            torch.jit.save(LastModel, os.path.join(MODEL_PATH, f"DetectionModel-LAST-{TRAINING_DATE}.pt"), _extra_files=Metadata)
             LastModelSaved = True
             break
         except:
@@ -586,7 +586,7 @@ def main():
     for i in range(5):
         try:
             BestModel = torch.jit.script(BestModel)
-            torch.jit.save(BestModel, os.path.join(MODEL_PATH, f"ClassificationModel-BEST-{TRAINING_DATE}.pt"), _extra_files=Metadata)
+            torch.jit.save(BestModel, os.path.join(MODEL_PATH, f"DetectionModel-BEST-{TRAINING_DATE}.pt"), _extra_files=Metadata)
             BestModelSaved = True
             break
         except:

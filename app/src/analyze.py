@@ -1,15 +1,13 @@
 from src.crashreport import CrashReport
-from torchvision import transforms
 import src.variables as variables
+import src.pytorch as pytorch
 import SimpleWindow
 import itertools
 import threading
 import traceback
 import numpy
-import torch
 import time
 import cv2
-import os
 
 
 BLUE = "\033[94m"
@@ -33,31 +31,8 @@ def Initialize():
     if variables.DEVMODE:
         SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
-
-    global METADATA, DEVICE, MODEL, IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS, MODEL_CLASSES, MODEL_CLASSLIST
-    METADATA = {"data": []}
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    MODEL = None
-    for File in os.listdir(f"{variables.PATH}cache"):
-        if File.endswith(".pt"):
-            MODEL = torch.jit.load(f"{variables.PATH}cache/{File}", _extra_files=METADATA, map_location=DEVICE)
-            break
-
-    METADATA = eval(METADATA["data"])
-    for Item in METADATA:
-        Item = str(Item)
-        if "image_width" in Item:
-            IMG_WIDTH = int(Item.split("#")[1])
-        if "image_height" in Item:
-            IMG_HEIGHT = int(Item.split("#")[1])
-        if "image_channels" in Item:
-            IMG_CHANNELS = str(Item.split("#")[1])
-        if "classes" in Item:
-            MODEL_CLASSES = int(Item.split("#")[1])
-        if "class_list" in Item:
-            MODEL_CLASSLIST = eval(Item.split("#")[1])
-
+    pytorch.Initialize(Owner="Glas42", Model="PyTorch-Calculator")
+    pytorch.Load("PyTorch-Calculator")
 
     MaxLinesToCompareToAtOnce = 3  # Set to 0 or less to compare to all at once
     MaxLastLinesToConsider = 3  # Will be limited to MaxLinesToCompareToAtOnce when greater than MaxLinesToCompareToAtOnce except MaxLinesToCompareToAtOnce is 0 or less
@@ -70,17 +45,17 @@ def Initialize():
 
 
 def ClassifyImage(Image):
-    if MODEL != None:
-        Image = numpy.array(Image, dtype=numpy.float32)
-        Image = cv2.cvtColor(Image, cv2.COLOR_RGB2GRAY)
-        Image = cv2.resize(Image, (IMG_WIDTH, IMG_HEIGHT))
-        Image = Image / 255.0
-        Image = transforms.ToTensor()(Image).unsqueeze(0).to(DEVICE)
-        with torch.no_grad():
-            Output = numpy.array(MODEL(Image)[0].tolist())
-        Confidence = max(Output)
-        Output = numpy.argmax(Output)
-    return MODEL_CLASSLIST[Output], Confidence
+    if pytorch.Loaded("PyTorch-Calculator") == False or pytorch.TorchAvailable == False: return None, 0
+    Image = numpy.array(Image, dtype=numpy.float32)
+    Image = cv2.cvtColor(Image, cv2.COLOR_RGB2GRAY)
+    Image = cv2.resize(Image, (pytorch.MODELS["PyTorch-Calculator"]["IMG_WIDTH"], pytorch.MODELS["PyTorch-Calculator"]["IMG_HEIGHT"]))
+    Image = Image / 255.0
+    Image = pytorch.transforms.ToTensor()(Image).unsqueeze(0).to(pytorch.MODELS["PyTorch-Calculator"]["Device"])
+    with pytorch.torch.no_grad():
+        Output = numpy.array(pytorch.MODELS["PyTorch-Calculator"]["Model"](Image)[0].tolist())
+    Confidence = max(Output)
+    Output = numpy.argmax(Output)
+    return pytorch.MODELS["PyTorch-Calculator"]["CLASS_LIST"][Output], Confidence
 
 
 def Update():
