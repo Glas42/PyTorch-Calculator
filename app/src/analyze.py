@@ -1,4 +1,5 @@
 from src.crashreport import CrashReport
+import src.uicomponents as uicomponents
 import src.variables as variables
 import src.pytorch as pytorch
 import SimpleWindow
@@ -45,7 +46,8 @@ def Initialize():
 
 
 def ClassifyImage(Image):
-    if pytorch.Loaded("PyTorch-Calculator") == False or pytorch.TorchAvailable == False: return None, 0
+    if pytorch.TorchAvailable == False: return None, 0
+    while pytorch.Loaded("PyTorch-Calculator") == False and pytorch.TorchAvailable == True: time.sleep(0.1)
     Image = numpy.array(Image, dtype=numpy.float32)
     Image = cv2.cvtColor(Image, cv2.COLOR_RGB2GRAY)
     Image = cv2.resize(Image, (pytorch.MODELS["PyTorch-Calculator"]["IMG_WIDTH"], pytorch.MODELS["PyTorch-Calculator"]["IMG_HEIGHT"]))
@@ -55,7 +57,7 @@ def ClassifyImage(Image):
         Output = numpy.array(pytorch.MODELS["PyTorch-Calculator"]["Model"](Image)[0].tolist())
     Confidence = max(Output)
     Output = numpy.argmax(Output)
-    return pytorch.MODELS["PyTorch-Calculator"]["CLASS_LIST"][Output], Confidence
+    return pytorch.MODELS["PyTorch-Calculator"]["CLASS_LIST"][Output] if Confidence > 0.95 else "None", Confidence
 
 
 def Update():
@@ -142,7 +144,10 @@ def Update():
                             col = i % NumCols
                             x = col * image.shape[1]
                             y = row * image.shape[0]
-                            cv2.putText(image, f"{Class if Confidence > 0.9 else '?'}", (1, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+                            Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(f"{Class}", image.shape[1] - 4, 10)
+                            cv2.rectangle(image, (0, 0), (Width + 2, Height + 2), (0, 0, 0), -1)
+                            cv2.rectangle(image, (0, 0), (Width + 2, Height + 2), (127, 127, 127), 1)
+                            cv2.putText(image, Text, (2, Height), variables.FONT_TYPE, Fontscale, (0, 255, 0) if Class != "None" else (0, 0, 255), Thickness, cv2.LINE_AA)
                             GridImage[y:y+(image.shape[0]-1), x:x+(image.shape[1]-1)] = cv2.resize(image, (image.shape[1]-1, image.shape[0]-1))
 
                         for i in range(NumRows + 1):
