@@ -1,55 +1,124 @@
-print("Initializing...")
-
-import numpy as np
+import numpy
 import cv2
+import sys
 import os
 
-PATH = os.path.dirname(__file__) + "\\"
-DATA_FOLDER = PATH + "dataset\\"
-RAW_DATA_FOLDER = PATH + "raw_dataset\\"
+PATH = os.path.dirname(__file__).replace("\\", "/")
+PATH += "/" if PATH[-1] != "/" else ""
+SRC_DATA_FOLDER = PATH + "dataset/raw/"
+DST_DATA_FOLDER = PATH + "dataset/final/"
 
-resolution = input("Resolution: ")
-if not resolution.isnumeric() or int(resolution) <= 1:
-    print(f"Invalid resolution {resolution}, defaulting to 512x512")
-    resolution = 512
-resolution = int(resolution)
+RESOLUTION = 50
+LINE_THICKNESS = 2
 
-thickness = input("Text Thickness: ")
-if not thickness.isnumeric() or int(thickness) <= 0:
-    print(f"Invalid thickness {thickness}, defaulting to 1")
-    thickness = 1
-thickness = int(thickness)
+RED = "\033[91m"
+GREEN = "\033[92m"
+PURPLE = "\033[95m"
+GRAY = "\033[90m"
+NORMAL = "\033[0m"
 
-if len(os.listdir(DATA_FOLDER)) > 0:
-    previous_dataset = input("Previous dataset found, what to do?\nr: remove old data\na: append new data to the old data\n")
-    if previous_dataset.lower() == "r":
-        for file in os.listdir(DATA_FOLDER):
-            os.remove(DATA_FOLDER + file)
-    elif previous_dataset.lower() == "a":
-        pass
+if os.path.exists(SRC_DATA_FOLDER) == False:
+    os.makedirs(SRC_DATA_FOLDER)
+if os.path.exists(DST_DATA_FOLDER) == False:
+    os.makedirs(DST_DATA_FOLDER)
+
+print(f"Resolution in pixels? {GRAY}({RESOLUTION}){NORMAL}")
+Resolution = None
+while True:
+    if Resolution == None:
+        Resolution = input("-> ")
     else:
-        print("Invalid input, exiting...")
-        exit()
+        Resolution = input(f"{RED}->{NORMAL} ")
+    try:
+        if Resolution == "":
+            if os.name == "nt":
+                sys.stdout.write("\033[1A\033[K")
+                print(f"{GREEN}->{NORMAL} {RESOLUTION}")
+            break
+        if int(Resolution) > 0:
+            RESOLUTION = int(Resolution)
+            if os.name == "nt":
+                sys.stdout.write("\033[1A\033[K")
+                print(f"{GREEN}->{NORMAL} {RESOLUTION}")
+            break
+        else:
+            raise
+    except:
+        if os.name == "nt":
+            sys.stdout.write("\033[1A\033[K")
+        else:
+            print(RED + "Invalid input!" + NORMAL)
 
-print("\nRendering...")
+print(f"Line thickness in pixels? {GRAY}({LINE_THICKNESS}){NORMAL}")
+LineThickness = None
+while True:
+    if LineThickness == None:
+        LineThickness = input("-> ")
+    else:
+        LineThickness = input(f"{RED}->{NORMAL} ")
+    try:
+        if LineThickness == "":
+            if os.name == "nt":
+                sys.stdout.write("\033[1A\033[K")
+                print(f"{GREEN}->{NORMAL} {RESOLUTION}")
+            break
+        if int(LineThickness) > 0:
+            LINE_THICKNESS = int(LineThickness)
+            if os.name == "nt":
+                sys.stdout.write("\033[1A\033[K")
+                print(f"{GREEN}->{NORMAL} {RESOLUTION}")
+            break
+        else:
+            raise
+    except:
+        if os.name == "nt":
+            sys.stdout.write("\033[1A\033[K")
+        else:
+            print(RED + "Invalid input!" + NORMAL)
 
-for file in os.listdir(RAW_DATA_FOLDER):
-    frame = np.zeros((resolution, resolution, 1), np.uint8)
-    with open(RAW_DATA_FOLDER + file, "r") as f:
-        content = str(f.read()).split("#")
-        content_class, content_points = content
-        list = eval(content_points)
-        for points in list:
-            last_point = None
-            for point in points:
-                if last_point == None:
-                    last_point = point
-                cv2.line(frame, (round(last_point[0] * (resolution - thickness * 2) + thickness), round(last_point[1] * (resolution - thickness * 2) + thickness)), (round(point[0] * (resolution - thickness * 2) + thickness), round(point[1] * (resolution - thickness * 2) + thickness)), (255, 255, 255), thickness)
-                last_point = point
-        name = str(round(len(os.listdir(DATA_FOLDER)) / 2))
-        cv2.imwrite(DATA_FOLDER + name + ".png", frame)
-        with open(DATA_FOLDER + name + ".txt", "w", encoding="utf-8") as f:
-            f.write(content_class)
-            f.close()
+print()
+print(PURPLE + "Rendering dataset..." + NORMAL)
 
-print("Done!")
+for File in os.listdir(DST_DATA_FOLDER):
+    os.remove(f"{DST_DATA_FOLDER}{File}")
+
+Count = 0
+Total = len(os.listdir(SRC_DATA_FOLDER))
+for File in os.listdir(SRC_DATA_FOLDER):
+    with open(SRC_DATA_FOLDER + File, "r") as F:
+        Content = F.read()
+        Class, ClassIndex, CanvasContent = Content.split("###")
+
+        ClassIndex = int(ClassIndex)
+        CanvasContent = eval(CanvasContent)
+
+        if len(CanvasContent) > 0:
+            Image = numpy.zeros((RESOLUTION, RESOLUTION, 3), numpy.uint8)
+            MinX = min([Point[0] if len(Point) == 2 else float("inf") for Line in CanvasContent for Point in Line])
+            MinY = min([Point[1] if len(Point) == 2 else float("inf") for Line in CanvasContent for Point in Line])
+            MaxX = max([Point[0] if len(Point) == 2 else float("-inf") for Line in CanvasContent for Point in Line])
+            MaxY = max([Point[1] if len(Point) == 2 else float("-inf") for Line in CanvasContent for Point in Line])
+            ScaleX = ((Image.shape[1] - 1 - LINE_THICKNESS) / (MaxX - MinX)) if MaxX - MinX != 0 else 1e9
+            ScaleY = ((Image.shape[0] - 1 - LINE_THICKNESS)  / (MaxY - MinY)) if MaxY - MinY != 0 else 1e9
+            Scale = min(ScaleX, ScaleY)
+            XOffset = ((Image.shape[1] - 1 - LINE_THICKNESS) - (MaxX - MinX) * Scale) / 2
+            YOffset = ((Image.shape[0] - 1 - LINE_THICKNESS) - (MaxY - MinY) * Scale) / 2
+            for Line in CanvasContent:
+                if len(Line[0]) == 4:
+                    Line = Line[1:]
+                LastPoint = None
+                for Point in Line:
+                    if LastPoint != None:
+                        cv2.line(Image, (round((LastPoint[0] - MinX) * Scale + XOffset + LINE_THICKNESS / 2), round((LastPoint[1] - MinY) * Scale + YOffset + LINE_THICKNESS / 2)), (round((Point[0] - MinX) * Scale + XOffset + LINE_THICKNESS / 2), round((Point[1] - MinY) * Scale + YOffset + LINE_THICKNESS / 2)), (255, 255, 255), LINE_THICKNESS)
+                    elif len(Line) == 1:
+                        cv2.circle(Image, (round((Point[0] - MinX) * Scale + XOffset + LINE_THICKNESS / 2), round((Point[1] - MinY) * Scale + YOffset + LINE_THICKNESS / 2)), LINE_THICKNESS, (255, 255, 255), -1)
+                    LastPoint = Point
+            cv2.imwrite(f"{DST_DATA_FOLDER}{File.replace('.txt', '.png')}", Image)
+            with open(f"{DST_DATA_FOLDER}{File}", "w") as F:
+                F.write(f"{ClassIndex}")
+
+        Count += 1
+        print(f"\r{GRAY}-> Progress: {round(Count / Total * 100)}%" + NORMAL, end="", flush=True)
+print(f"\r{GRAY}-> Progress: 100%" + NORMAL, end="", flush=True)
+
+print(PURPLE + "\nDone, you can start training now!" + NORMAL)

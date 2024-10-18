@@ -447,8 +447,8 @@ while True:
         Name = len(os.listdir(DATA_FOLDER)) + 1
         while os.path.exists(f"{DATA_FOLDER}{Name}.txt"):
             Name += 1
-        with open(f"{DATA_FOLDER}{Name}.txt", "w") as f:
-            f.write(f"{CurrentClass}###{CurrentClassIndex}###{CANVAS_CONTENT}")
+        with open(f"{DATA_FOLDER}{Name}.txt", "w") as F:
+            F.write(f"{CurrentClass}###{CurrentClassIndex}###{CANVAS_CONTENT}")
         CANVAS_CONTENT = []
         CANVAS_TEMP = []
         CANVAS_DELETE_LIST = []
