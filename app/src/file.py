@@ -108,6 +108,7 @@ def New():
 def Save(Path=""):
     try:
         def SaveThread():
+            global SAVING
             try:
                 print(GREEN + "Saving file..." + NORMAL)
                 variables.POPUP = ["Saving file...", -1, 0.5]
@@ -119,6 +120,7 @@ def Save(Path=""):
                 if variables.FILE_PATH == "":
                     print(RED + "File not saved!\n" + NORMAL)
                     variables.POPUP = ["File not saved!", 0, 0.5]
+                    SAVING = False
                     return
                 if variables.FILE_PATH.endswith(".txt") == False:
                     variables.FILE_PATH += ".txt"
@@ -152,7 +154,6 @@ def Save(Path=""):
             except:
                 CrashReport("File - Error in function SaveThread.", str(traceback.format_exc()))
                 variables.POPUP = ["File not saved!", 0, 0.5]
-            global SAVING
             SAVING = False
         global SAVING
         SAVING = True
@@ -164,6 +165,7 @@ def Save(Path=""):
 def Open(Path=""):
     try:
         def OpenThread():
+            global OPENING
             try:
                 print(GREEN + "Opening file..." + NORMAL)
                 variables.POPUP = ["Opening file...", -1, 0.5]
@@ -175,6 +177,7 @@ def Open(Path=""):
                 if variables.FILE_PATH == "" or os.path.exists(variables.FILE_PATH) == False:
                     print(RED + "File not opened!\n" + NORMAL)
                     variables.POPUP = ["File not opened!", 0, 0.5]
+                    OPENING = False
                     return
                 if f"{variables.PATH}cache" not in variables.FILE_PATH:
                     settings.Set("File", "LastDirectory", os.path.dirname(variables.FILE_PATH))
@@ -195,7 +198,6 @@ def Open(Path=""):
             except:
                 CrashReport("File - Error in function OpenThread.", str(traceback.format_exc()))
                 variables.POPUP = ["File not opened!", 0, 0.5]
-            global OPENING
             OPENING = False
         global OPENING
         OPENING = True

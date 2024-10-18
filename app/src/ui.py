@@ -435,10 +435,10 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Button",
-            "Text": "Restart App in Dev Mode",
+            "Text": "Restart App in Dev Mode" if variables.DEVMODE == False else "Restart App in Normal Mode",
             "Function": lambda: {
                 file.Save(Path=f"{variables.PATH}cache/LastSession.txt"),
-                subprocess.Popen(f"{variables.PATH}Start.bat --dev {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE),
+                subprocess.Popen(f"{variables.PATH}Start.bat --dev {variables.PATH}cache/LastSession.txt" if variables.DEVMODE == False else f"{variables.PATH}Start.bat {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE),
                 Close(SaveCanvas=False)},
             "X1": variables.CANVAS_RIGHT / 2 + 5,
             "Y1": 41,
@@ -452,7 +452,7 @@ def Update():
             "DefaultItem": 27,
             "Function": lambda: {
                 translate.SaveCache(),
-                settings.Set("UI", "Language", translate.GetAvailableLanguages()[[Name for Name, _ in translate.GetAvailableLanguages().items()][variables.DROPDOWNS["Language"][1]]]),
+                settings.Set("UI", "Language", translate.GetAvailableLanguages()[[Name for Name, _ in translate.GetAvailableLanguages().items()][variables.DROPDOWNS["Language" + str([Name for Name, _ in translate.GetAvailableLanguages().items()])][1]]]),
                 setattr(variables, "LANGUAGE", settings.Get("UI", "Language", "en")),
                 setattr(variables, "TRANSLATION_CACHE", {}),
                 setattr(variables, "RENDER_FRAME", True),
@@ -469,7 +469,7 @@ def Update():
             "Items": ["Dark", "Light"],
             "DefaultItem": 0,
             "Function": lambda: {
-                settings.Set("UI", "Theme", ["Dark", "Light"][variables.DROPDOWNS["Theme"][1]]),
+                settings.Set("UI", "Theme", ["Dark", "Light"][variables.DROPDOWNS["Theme" + str(["Dark", "Light"])][1]]),
                 Restart() if variables.THEME != settings.Get("UI", "Theme", "Dark") else None
                 },
             "X1": variables.CANVAS_RIGHT / 2 + 5,
@@ -520,7 +520,15 @@ def Update():
         variables.ITEMS.append({
             "Type": "Button",
             "Text": "Apply Global Canvas Settings to Current File",
-            "Function": lambda: {print("NOT IMPLEMENTED: Apply Global Canvas Settings to Current File")},
+            "Function": lambda: {
+                setattr(variables, "SMOOTH_LINES", settings.Get("Draw", "SmoothLines", False)),
+                setattr(variables, "UPSCALE_LINES", settings.Get("Draw", "UpscaleLines", True)),
+                setattr(variables, "ANTI_ALIASING_LINES", settings.Get("Draw", "AntiAliasingLines", True)),
+                setattr(variables, "SMOOTH_INTERPOLATION", settings.Get("Draw", "SmoothInterpolation", False)),
+                setattr(variables, "DROPDOWNS", {}),
+                setattr(variables, "SWITCHES", {}),
+                setattr(variables, "PAGE", "File"),
+                setattr(variables, "POPUP", ["Applied Global Canvas Settings to Current File", 0, 0.5])},
             "X1": 10,
             "Y1": 271,
             "X2": variables.CANVAS_RIGHT / 2 - 5,
