@@ -25,7 +25,7 @@ PATH = os.path.dirname(__file__).replace("\\", "/") + ("/" if os.path.dirname(__
 DATA_PATH = PATH + "dataset/final/"
 MODEL_PATH = PATH + "models/"
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-NUM_EPOCHS = 1000
+NUM_EPOCHS = 100
 BATCH_SIZE = 50
 IMG_WIDTH = 50
 IMG_HEIGHT = 50
@@ -52,14 +52,14 @@ CLASSES = []
 for File in os.listdir(DATA_PATH):
     if File.endswith(".txt"):
         with open(DATA_PATH + File, "r") as F:
-            ClassIndex = int(F.read())
-            if ClassIndex not in CLASSES:
-                CLASSES.append(ClassIndex)
+            Class = F.read()
+            if Class not in CLASSES:
+                CLASSES.append(Class)
+CLASSLIST = sorted(CLASSES)
 CLASSES = len(CLASSES)
 if CLASSES == 0:
     print("No classes found, exiting...")
     exit()
-print(CLASSES)
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -109,9 +109,8 @@ if CACHE:
                 if os.path.exists(LabelsFile):
                     with open(LabelsFile, 'r') as F:
                         Content = str(F.read())
-                        if Content.isdigit() and 0 <= int(Content) < CLASSES:
-                            Label = [0] * CLASSES
-                            Label[int(Content)] = 1
+                        Label = [0] * CLASSES
+                        Label[CLASSLIST.index(Content)] = 1
                     Images.append(Image)
                     Labels.append(Label)
 
@@ -157,10 +156,9 @@ else:
             Image = Image / 255.0
 
             with open(LabelPath, 'r') as F:
-                content = str(F.read())
-                if content.isdigit() and 0 <= int(content) < CLASSES:
-                    Label = [0] * CLASSES
-                    Label[int(content)] = 1
+                Content = str(F.read())
+                Label = [0] * CLASSES
+                Label[CLASSLIST.index(Content)] = 1
 
             Image = np.array(Image, dtype=np.float32)
             Image = self.Transform(Image)
@@ -469,6 +467,7 @@ def main():
                 f"batch#{BATCH_SIZE}",
                 f"classes#{CLASSES}",
                 f"outputs#{CLASSES}",
+                f"class_list#{CLASSLIST}",
                 f"image_count#{IMG_COUNT}",
                 f"image_width#{IMG_WIDTH}",
                 f"image_height#{IMG_HEIGHT}",
@@ -550,6 +549,7 @@ def main():
                 f"batch#{BATCH_SIZE}",
                 f"classes#{CLASSES}",
                 f"outputs#{CLASSES}",
+                f"class_list#{CLASSLIST}",
                 f"image_count#{IMG_COUNT}",
                 f"image_width#{IMG_WIDTH}",
                 f"image_height#{IMG_HEIGHT}",

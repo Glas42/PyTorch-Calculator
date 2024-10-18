@@ -115,7 +115,7 @@ for File in os.listdir(SRC_DATA_FOLDER):
                     LastPoint = Point
             cv2.imwrite(f"{DST_DATA_FOLDER}{File.replace('.txt', '.png')}", Image)
             with open(f"{DST_DATA_FOLDER}{File}", "w") as F:
-                F.write(f"{ClassIndex}")
+                F.write(f"{Class}")
 
         Count += 1
         print(f"\r{GRAY}-> Progress: {round(Count / Total * 100)}%" + NORMAL, end="", flush=True)
