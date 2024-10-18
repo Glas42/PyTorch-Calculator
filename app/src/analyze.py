@@ -34,7 +34,7 @@ def Initialize():
         SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
 
-    global METADATA, DEVICE, MODEL, IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS, MODEL_OUTPUTS, CLASSES
+    global METADATA, DEVICE, MODEL, IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS, MODEL_CLASSES, MODEL_CLASSLIST
     METADATA = {"data": []}
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -53,27 +53,10 @@ def Initialize():
             IMG_HEIGHT = int(Item.split("#")[1])
         if "image_channels" in Item:
             IMG_CHANNELS = str(Item.split("#")[1])
-        if "outputs" in Item:
-            MODEL_OUTPUTS = int(Item.split("#")[1])
-
-    CLASSES = [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "+",
-        "-",
-        "*",
-        ":",
-        "(",
-        ")"
-    ]
+        if "classes" in Item:
+            MODEL_CLASSES = int(Item.split("#")[1])
+        if "class_list" in Item:
+            MODEL_CLASSLIST = eval(Item.split("#")[1])
 
 
     MaxLinesToCompareToAtOnce = 3  # Set to 0 or less to compare to all at once
@@ -97,7 +80,7 @@ def ClassifyImage(Image):
             Output = numpy.array(MODEL(Image)[0].tolist())
         Confidence = max(Output)
         Output = numpy.argmax(Output)
-    return CLASSES[Output], Confidence
+    return MODEL_CLASSLIST[Output], Confidence
 
 
 def Update():
@@ -106,7 +89,7 @@ def Update():
             try:
                 global UPDATING
                 while UPDATING:
-                    time.sleep(0.1)
+                    time.sleep(0.01)
                 UPDATING = True
                 global LastContent
                 global EmptyFrame
