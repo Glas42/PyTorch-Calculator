@@ -26,7 +26,7 @@
 /train/models/*
 
 # Ignore the tensorboard logs
-/train/logs/*
+/train/tensorboard
 
 # Ignore the old app files
 /app-old

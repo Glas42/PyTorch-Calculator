@@ -6,13 +6,13 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
-from torch.cuda.amp import GradScaler, autocast
 import torch.optim.lr_scheduler as lr_scheduler
+from torch.amp import GradScaler, autocast
 from torchvision import transforms
+from PIL import Image as PILImage
 import torch.optim as optim
 import multiprocessing
 import torch.nn as nn
-from PIL import Image
 import numpy as np
 import threading
 import random
@@ -25,16 +25,16 @@ PATH = os.path.dirname(__file__).replace("\\", "/") + ("/" if os.path.dirname(__
 DATA_PATH = PATH + "dataset/final/"
 MODEL_PATH = PATH + "models/"
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-NUM_EPOCHS = 100
-BATCH_SIZE = 500
+NUM_EPOCHS = 1000
+BATCH_SIZE = 50
 IMG_WIDTH = 50
 IMG_HEIGHT = 50
-LEARNING_RATE = 0.001
-MAX_LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0001
+MAX_LEARNING_RATE = 0.01
 TRAIN_VAL_RATIO = 0.8
 NUM_WORKERS = 0
-DROPOUT = 0.1
-PATIENCE = 10
+DROPOUT = 0.3
+PATIENCE = -1
 SHUFFLE = True
 PIN_MEMORY = False
 DROP_LAST = True
@@ -96,10 +96,10 @@ if CACHE:
     def LoadData(Files=None, Type=None):
         Images = []
         Labels = []
-        print(f"\r{timestamp()}Caching {type} dataset...           ", end='', flush=True)
+        print(f"\r{timestamp()}Caching {Type} dataset...           ", end='', flush=True)
         for File in os.listdir(DATA_PATH):
             if File in Files:
-                Image = Image.open(os.path.join(DATA_PATH, File)).convert('L')
+                Image = PILImage.open(os.path.join(DATA_PATH, File)).convert('L')
                 Image = np.array(Image)
 
                 Image = cv2.resize(Image, (IMG_WIDTH, IMG_HEIGHT))
@@ -116,7 +116,7 @@ if CACHE:
                     Labels.append(Label)
 
             if len(Images) % (round(len(Files) / 100) if round(len(Files) / 100) > 0 else 1) == 0:
-                print(f"\r{timestamp()}Caching {type} dataset... ({round(100 * len(Images) / len(Files))}%)", end='', flush=True)
+                print(f"\r{timestamp()}Caching {Type} dataset... ({round(100 * len(Images) / len(Files))}%)", end='', flush=True)
 
         return np.array(Images, dtype=np.float32), np.array(Labels, dtype=np.float32)
 
@@ -150,7 +150,7 @@ else:
             ImagePath = os.path.join(DATA_PATH, ImageName)
             LabelPath = os.path.join(DATA_PATH, ImageName.replace(ImageName.split('.')[-1], 'txt'))
 
-            Image = Image.open(ImagePath).convert('L')
+            Image = PILImage.open(ImagePath).convert('L')
             Image = np.array(Image)
 
             Image = cv2.resize(Image, (IMG_WIDTH, IMG_HEIGHT))
@@ -222,17 +222,17 @@ class ConvolutionalNeuralNetwork(nn.Module):
 def main():
     Model = ConvolutionalNeuralNetwork().to(DEVICE)
 
-    def getModelSizeMB(Model):
+    def GetModelSizeMB(Model):
         TotalParams = 0
         for Param in Model.parameters():
             TotalParams += np.prod(Param.size())
         TrainableParams = sum(p.numel() for p in Model.parameters() if p.requires_grad)
         NonTrainableParams = TotalParams - TrainableParams
-        bytesPerParam = next(Model.parameters()).elementSize()
-        ModelSizeMb = (TotalParams * bytesPerParam) / (1024 ** 2)
+        BytesPerParam = next(Model.parameters()).element_size()
+        ModelSizeMb = (TotalParams * BytesPerParam) / (1024 ** 2)
         return TotalParams, TrainableParams, NonTrainableParams, ModelSizeMb
 
-    TotalParams, TrainableParams, NonTrainableParams, ModelSizeMb = getModelSizeMB(Model)
+    TotalParams, TrainableParams, NonTrainableParams, ModelSizeMb = GetModelSizeMB(Model)
 
     print()
     print(timestamp() + "Model properties:")
@@ -245,16 +245,16 @@ def main():
 
     print(timestamp() + "Loading...")
 
-    if not os.path.exists(f"{PATH}TensorBoardLogs"):
-        os.makedirs(f"{PATH}TensorBoardLogs")
+    if not os.path.exists(f"{PATH}tensorboard"):
+        os.makedirs(f"{PATH}tensorboard")
 
-    for OBJ in os.listdir(f"{PATH}TensorBoardLogs"):
+    for OBJ in os.listdir(f"{PATH}tensorboard"):
         try:
-            shutil.rmtree(f"{PATH}TensorBoardLogs/{OBJ}")
+            shutil.rmtree(f"{PATH}tensorboard/{OBJ}")
         except:
-            os.remove(f"{PATH}TensorBoardLogs/{OBJ}")
+            os.remove(f"{PATH}tensorboard/{OBJ}")
 
-    Summary = SummaryWriter(f"{PATH}TensorBoardLogs", comment="Train-Detection-Model", flush_secs=20)
+    Summary = SummaryWriter(f"{PATH}tensorboard", comment="Train-Detection-Model", flush_secs=20)
 
     TrainTransform = transforms.Compose([
         transforms.ToTensor(),
@@ -283,13 +283,13 @@ def main():
         TrainDataset = CustomDataset(TrainFiles, Transform=TrainTransform)
         ValDataset = CustomDataset(ValFiles, Transform=ValTransform)
 
-    TrainDataloader = DataLoader(TrainDataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, drop_last=DROP_LAST)
-    ValDataloader = DataLoader(ValDataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, drop_last=DROP_LAST)
+    TrainDataLoader = DataLoader(TrainDataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY, drop_last=DROP_LAST)
+    ValDataLoader = DataLoader(ValDataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
 
-    Scaler = GradScaler()
+    Scaler = GradScaler(device=str(DEVICE))
     Criterion = nn.CrossEntropyLoss()
     Optimizer = optim.Adam(Model.parameters(), lr=LEARNING_RATE)
-    Scheduler = lr_scheduler.OneCycleLR(Optimizer, max_lr=MAX_LEARNING_RATE, steps_per_epoch=len(TrainDataloader), epochs=NUM_EPOCHS)
+    Scheduler = lr_scheduler.OneCycleLR(Optimizer, max_lr=MAX_LEARNING_RATE, steps_per_epoch=len(TrainDataLoader), epochs=NUM_EPOCHS)
 
     BestValidationLoss = float('inf')
     BestModel = None
@@ -350,10 +350,10 @@ def main():
 
         Model.train()
         RunningTrainingLoss = 0.0
-        for i, Data in enumerate(TrainDataloader, 0):
+        for i, Data in enumerate(TrainDataLoader, 0):
             Inputs, Labels = Data[0].to(DEVICE, non_blocking=True), Data[1].to(DEVICE, non_blocking=True)
             Optimizer.zero_grad()
-            with autocast():
+            with autocast(device_type=str(DEVICE)):
                 Outputs = Model(Inputs)
                 Loss = Criterion(Outputs, Labels)
             Scaler.scale(Loss).backward()
@@ -361,7 +361,7 @@ def main():
             Scaler.update()
             Scheduler.step()
             RunningTrainingLoss += Loss.item()
-        RunningTrainingLoss /= len(TrainDataloader)
+        RunningTrainingLoss /= len(TrainDataLoader)
         TrainingLoss = RunningTrainingLoss
 
         EpochTrainingTime = time.time() - EpochTrainingStartTime
@@ -371,13 +371,13 @@ def main():
 
         Model.eval()
         RunningValidationLoss = 0.0
-        with torch.no_grad(), autocast():
-            for i, Data in enumerate(ValDataloader, 0):
+        with torch.no_grad(), autocast(device_type=str(DEVICE)):
+            for i, Data in enumerate(ValDataLoader, 0):
                 Inputs, Labels = Data[0].to(DEVICE, non_blocking=True), Data[1].to(DEVICE, non_blocking=True)
                 Outputs = Model(Inputs)
                 Loss = Criterion(Outputs, Labels)
                 RunningValidationLoss += Loss.item()
-        RunningValidationLoss /= len(ValDataloader)
+        RunningValidationLoss /= len(ValDataLoader)
         ValidationLoss = RunningValidationLoss
 
         EpochValidationTime = time.time() - EpochValidationStartTime
@@ -439,11 +439,11 @@ def main():
     TotalTrain = 0
     CorrectTrain = 0
     with torch.no_grad():
-        for Data in TrainDataloader:
+        for Data in TrainDataLoader:
             Images, Labels = Data
             Images, Labels = Images.to(DEVICE), Labels.to(DEVICE)
             Outputs = Model(Images)
-            _, Predicted = torch.max(Outputs.Data, 1)
+            _, Predicted = torch.max(Outputs.data, 1)
             TotalTrain += Labels.size(0)
             CorrectTrain += (Predicted == torch.argmax(Labels, dim=1)).sum().item()
     TrainingDatasetAccuracy = str(round(100 * (CorrectTrain / TotalTrain), 2)) + "%"
@@ -453,11 +453,11 @@ def main():
     TotalVal = 0
     CorrectVal = 0
     with torch.no_grad():
-        for Data in ValDataloader:
+        for Data in ValDataLoader:
             Images, Labels = Data
             Images, Labels = Images.to(DEVICE), Labels.to(DEVICE)
             Outputs = Model(Images)
-            _, Predicted = torch.max(Outputs.Data, 1)
+            _, Predicted = torch.max(Outputs.data, 1)
             TotalVal += Labels.size(0)
             CorrectVal += (Predicted == torch.argmax(Labels, dim=1)).sum().item()
     ValidationDatasetAccuracy = str(round(100 * (CorrectVal / TotalVal), 2)) + "%"
@@ -487,7 +487,7 @@ def main():
                 f"architecture#{MetadataModel}",
                 f"torch_version#{torch.__version__}",
                 f"numpy_version#{np.__version__}",
-                f"pil_version#{Image.__version__}",
+                f"pil_version#{PILImage.__version__}",
                 f"train_transform#{TrainTransform}",
                 f"val_transform#{ValTransform}",
                 f"optimizer#{MetadataOptimizer}",
@@ -520,7 +520,7 @@ def main():
     TotalTrain = 0
     CorrectTrain = 0
     with torch.no_grad():
-        for Data in TrainDataloader:
+        for Data in TrainDataLoader:
             Images, Labels = Data
             Images, Labels = Images.to(DEVICE), Labels.to(DEVICE)
             Outputs = BestModel(Images)
@@ -534,7 +534,7 @@ def main():
     TotalVal = 0
     CorrectVal = 0
     with torch.no_grad():
-        for Data in ValDataloader:
+        for Data in ValDataLoader:
             Images, Labels = Data
             Images, Labels = Images.to(DEVICE), Labels.to(DEVICE)
             Outputs = BestModel(Images)
@@ -568,7 +568,7 @@ def main():
                 f"architecture#{MetadataModel}",
                 f"torch_version#{torch.__version__}",
                 f"numpy_version#{np.__version__}",
-                f"pil_version#{Image.__version__}",
+                f"pil_version#{PILImage.__version__}",
                 f"train_transform#{TrainTransform}",
                 f"val_transform#{ValTransform}",
                 f"optimizer#{MetadataOptimizer}",
