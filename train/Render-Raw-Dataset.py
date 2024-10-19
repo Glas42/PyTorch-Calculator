@@ -129,7 +129,7 @@ print(PURPLE + "Rendering an additional class generated based on the normal data
 Count = 0
 Total = len(os.listdir(SRC_DATA_FOLDER))
 for i in range(Total):
-    Files = random.sample(os.listdir(SRC_DATA_FOLDER), random.randint(2, 3))
+    Files = random.sample(os.listdir(SRC_DATA_FOLDER), random.randint(2, 2))
     AllContents = []
 
     for File in Files:
@@ -146,38 +146,33 @@ for i in range(Total):
 
             if len(CanvasContent) > 0:
                 for Line in CanvasContent:
-                    AllContents.append(Line)
-
-
-    NewContents = []
-    for Line in AllContents:
-        MinX = min([Point[0] for Point in Line])
-        MinY = min([Point[1] for Point in Line])
-        MaxY = max([Point[1] for Point in Line])
-        Height = 1
-        NewLine = []
-        for Point in Line:
-            if len(Point) != 2:
-                continue
-            NewX = (Point[0] - MinX) * Height/(MaxY - MinY) if MaxY - MinY != 0 else 0
-            NewY = (Point[1] - MinY) * Height/(MaxY - MinY) if MaxY - MinY != 0 else 0
-            NewLine.append((NewX, NewY))
-        NewContents.append(NewLine)
-
+                    if len(Line[0]) == 4:
+                        Line = Line[1:]
+                    MinX = min([Point[0] if len(Point) == 2 else float("inf") for Point in Line])
+                    MinY = min([Point[1] if len(Point) == 2 else float("inf") for Point in Line])
+                    MaxX = max([Point[0] if len(Point) == 2 else float("-inf") for Point in Line])
+                    MaxY = max([Point[1] if len(Point) == 2 else float("-inf") for Point in Line])
+                    ScaleX = MaxX - MinX
+                    ScaleY = MaxY - MinY
+                    Scale = max(ScaleX, ScaleY)
+                    XOffset = (MaxX - MinX - ScaleX) / 2
+                    YOffset = (MaxY - MinY - ScaleY) / 2
+                    NewLine = []
+                    for Point in Line:
+                        NewX = (Point[0] - MinX) / Scale if Scale != 0 else 0 + XOffset
+                        NewY = (Point[1] - MinY) / Scale if Scale != 0 else 0 + YOffset
+                        NewLine.append((NewX, NewY))
+                    AllContents.append(NewLine)
 
     CanvasContent = []
-    for Line in NewContents:
-        XOffset = random.randint(0, 3)
-        YOffset = random.randint(0, 3)
-        Scale = random.uniform(0.75, 1.25)
+    for Line in AllContents:
+        XOffset = random.randint(0, 1)
+        YOffset = random.randint(0, 1)
         NewLine = []
         for Point in Line:
-            if len(Point) != 2:
-                continue
-            Point = Point[0] * Scale + XOffset, Point[1] * Scale + YOffset
+            Point = (Point[0] + XOffset, Point[1] + YOffset)
             NewLine.append(Point)
         CanvasContent.append(NewLine)
-
 
     Image = numpy.zeros((RESOLUTION, RESOLUTION, 3), numpy.uint8)
     MinX = min([Point[0] if len(Point) == 2 else float("inf") for Line in CanvasContent for Point in Line])
@@ -200,7 +195,7 @@ for i in range(Total):
                 cv2.circle(Image, (round((Point[0] - MinX) * Scale + XOffset + LINE_THICKNESS / 2), round((Point[1] - MinY) * Scale + YOffset + LINE_THICKNESS / 2)), LINE_THICKNESS, (255, 255, 255), -1)
             LastPoint = Point
 
-    Name = len(os.listdir(DST_DATA_FOLDER)) + 1
+    Name = len(os.listdir(DST_DATA_FOLDER)) // 2 + 1
     while os.path.exists(f"{DST_DATA_FOLDER}{Name}.txt"):
         Name += 1
     cv2.imwrite(f"{DST_DATA_FOLDER}{Name}.png", Image)

@@ -57,7 +57,7 @@ def ClassifyImage(Image):
         Output = numpy.array(pytorch.MODELS["PyTorch-Calculator"]["Model"](Image)[0].tolist())
     Confidence = max(Output)
     Output = numpy.argmax(Output)
-    return pytorch.MODELS["PyTorch-Calculator"]["CLASS_LIST"][Output] if Confidence > 0.95 else "None", Confidence
+    return pytorch.MODELS["PyTorch-Calculator"]["CLASS_LIST"][Output] if Confidence > 0.8 else "None", Confidence
 
 
 def Update():
