@@ -3,10 +3,10 @@ import threading
 import traceback
 import ctypes
 import pynput
+import random
 import mouse
 import numpy
 import time
-import mss
 import cv2
 import os
 
@@ -42,7 +42,8 @@ CLASSES = [
            "/",
            "=",
            "(",
-           ")"
+           ")",
+           "None"
 ]
 
 AMOUNT = [0] * len(CLASSES)
@@ -292,6 +293,7 @@ CanvasFrame = None
 PreviewFrame = None
 LastContent = None
 LastFinalContent = None
+NoneExample = random.sample([Item for Item in CLASSES if Item != "None"], random.randint(2, 4))
 
 RunMouse()
 RunKeyboard()
@@ -313,9 +315,12 @@ while True:
     LeftClicked = ctypes.windll.user32.GetKeyState(0x01) & 0x8000 != 0 and 0 <= MouseX <= 1 and 0 <= MouseY <= 1
     RightClicked = ctypes.windll.user32.GetKeyState(0x02) & 0x8000 != 0 and 0 <= MouseX <= 1 and 0 <= MouseY <= 1
 
-    CurrentClass = CLASSES[AMOUNT.index(min(AMOUNT))]
-    CurrentClassIndex = CLASSES.index(CurrentClass)
-
+    if AMOUNT[CLASSES.index("None")] // 10 < min([AMOUNT[i] for i in range(len(CLASSES)) if CLASSES[i] != "None"]):
+        CurrentClassIndex = CLASSES.index("None")
+        CurrentClass = "None"
+    else:
+        CurrentClassIndex = AMOUNT.index(min([AMOUNT[i] for i in range(len(CLASSES)) if CLASSES[i] != "None"]))
+        CurrentClass = CLASSES[CurrentClassIndex]
 
     Frame = FRAME.copy()
 
@@ -423,18 +428,25 @@ while True:
         PreviewFrame = Image
 
 
-    Label(Text=f"Draw:\n> {CurrentClass} <",
+    Label(Text=f"Draw:\n> {CurrentClass} <" if CurrentClass != "None" else "Draw:\n",
           X1=CanvasFrame.shape[1],
           Y1=10,
           X2=WINDOW_WIDTH,
           Y2=75,
           Fontsize=15)
 
+    if CurrentClass == "None":
+        Label(Text=f"Anything the AI\nshould ignore when\nshown in the app.\nFor example multiple\nsymbols at once\nin one image.\nFor example include:\n{', '.join(NoneExample)}",
+              X1=CanvasFrame.shape[1],
+              Y1=50,
+              X2=WINDOW_WIDTH,
+              Y2=180)
+
     Label(Text="Preview:",
           X1=CanvasFrame.shape[1],
-          Y1=100,
+          Y1=WINDOW_HEIGHT - 85 - SIDEBAR - 35,
           X2=WINDOW_WIDTH,
-          Y2=135)
+          Y2=WINDOW_HEIGHT - 85 - SIDEBAR)
 
     Changed, Pressed, Hovered = Button(Text="Continue",
                                        X1=CanvasFrame.shape[1] + 5,
@@ -443,17 +455,19 @@ while True:
                                        Y2=WINDOW_HEIGHT - 5)
 
     if Changed:
-        if os.path.exists(f"{DATA_FOLDER}") == False:
-            os.mkdir(f"{DATA_FOLDER}")
-        Name = len(os.listdir(DATA_FOLDER)) + 1
-        while os.path.exists(f"{DATA_FOLDER}{Name}.txt"):
-            Name += 1
-        with open(f"{DATA_FOLDER}{Name}.txt", "w") as F:
-            F.write(f"{CurrentClass}###{CurrentClassIndex}###{CANVAS_CONTENT}")
-        CANVAS_CONTENT = []
-        CANVAS_TEMP = []
-        CANVAS_DELETE_LIST = []
-        AMOUNT[CurrentClassIndex] += 1
+        if len(CANVAS_CONTENT) > 0:
+            if os.path.exists(f"{DATA_FOLDER}") == False:
+                os.mkdir(f"{DATA_FOLDER}")
+            Name = len(os.listdir(DATA_FOLDER)) + 1
+            while os.path.exists(f"{DATA_FOLDER}{Name}.txt"):
+                Name += 1
+            with open(f"{DATA_FOLDER}{Name}.txt", "w") as F:
+                F.write(f"{CurrentClass}###{CurrentClassIndex}###{CANVAS_CONTENT}")
+            CANVAS_CONTENT = []
+            CANVAS_TEMP = []
+            CANVAS_DELETE_LIST = []
+            AMOUNT[CurrentClassIndex] += 1
+            NoneExample = random.sample([Item for Item in CLASSES if Item != "None"], random.randint(2, 4))
 
     Changed, Pressed, Hovered = Button(Text="Undo",
                                        X1=CanvasFrame.shape[1] + 5,
@@ -481,7 +495,7 @@ while True:
 
     Frame[0:WINDOW_HEIGHT, 0:WINDOW_WIDTH - SIDEBAR] = CanvasFrame
 
-    Frame[140:140 + SIDEBAR - 10, CanvasFrame.shape[1] + 5:WINDOW_WIDTH - 5] = cv2.resize(PreviewFrame, (SIDEBAR - 10, SIDEBAR - 10))
+    Frame[WINDOW_HEIGHT - 85 - SIDEBAR:WINDOW_HEIGHT - 95, CanvasFrame.shape[1] + 5:WINDOW_WIDTH - 5] = cv2.resize(PreviewFrame, (SIDEBAR - 10, SIDEBAR - 10))
 
     cv2.line(Frame, (CanvasFrame.shape[1] - 1, 0), (CanvasFrame.shape[1] - 1, CanvasFrame.shape[0] - 1), (255, 255, 255), 1, cv2.LINE_AA)
 

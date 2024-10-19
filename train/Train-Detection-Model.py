@@ -26,9 +26,7 @@ DATA_PATH = PATH + "dataset/final/"
 MODEL_PATH = PATH + "models/"
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 NUM_EPOCHS = 500
-BATCH_SIZE = 100
-IMG_WIDTH = 50
-IMG_HEIGHT = 50
+BATCH_SIZE = 50
 LEARNING_RATE = 0.001
 MAX_LEARNING_RATE = 0.001
 TRAIN_VAL_RATIO = 0.8
@@ -40,9 +38,14 @@ PIN_MEMORY = False
 DROP_LAST = True
 CACHE = True
 
+IMG_WIDTH = 0
+IMG_HEIGHT = 0
 IMG_COUNT = 0
 for File in os.listdir(DATA_PATH):
     if File.endswith(".png"):
+        Image = cv2.imread(DATA_PATH + File)
+        IMG_WIDTH = Image.shape[1] if Image.shape[1] > IMG_WIDTH else IMG_WIDTH
+        IMG_HEIGHT = Image.shape[0] if Image.shape[0] > IMG_HEIGHT else IMG_HEIGHT
         IMG_COUNT += 1
 if IMG_COUNT == 0:
     print("No images found, exiting...")
@@ -257,7 +260,7 @@ def main():
     TrainTransform = transforms.Compose([
         transforms.ToTensor(),
         transforms.RandomRotation(10),
-        transforms.RandomCrop((round(IMG_HEIGHT * random.uniform(0.5, 1)), round(IMG_WIDTH * random.uniform(0.5, 1)))),
+        transforms.RandomCrop((round(IMG_HEIGHT * random.uniform(0.75, 1)), round(IMG_WIDTH * random.uniform(0.75, 1)))),
         transforms.Resize((IMG_HEIGHT, IMG_WIDTH))
     ])
 

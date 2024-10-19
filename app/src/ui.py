@@ -16,7 +16,6 @@ import numpy
 import math
 import time
 import cv2
-import os
 
 
 def Initialize():
