@@ -1,5 +1,6 @@
 - Imporved the analyzer
 - Switched to a new file format
-- Added a ML model to https://huggingface.co/Glas42/PyTorch-Calculator/tree/main/model\n(Will be automatically downloaded)
+- Added a ML model to https://huggingface.co/Glas42/PyTorch-Calculator/tree/main/model
+(Will be automatically downloaded)
 - Added the scripts for creating datasets and training models
 - Added a detection preview (No rules applied there yet, so a '=' is displayed as '-', '-' and '=')
