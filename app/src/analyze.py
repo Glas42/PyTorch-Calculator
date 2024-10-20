@@ -22,7 +22,7 @@ UPDATING = False
 
 def Initialize():
     global MaxLinesToCompareToAtOnce
-    global MaxLastLinesToConsider
+    global MaxClosestLinesToConsider
     global LineThickness
     global LastContent
     global EmptyFrame
@@ -39,7 +39,7 @@ def Initialize():
     pytorch.Load("PyTorch-Calculator")
 
     MaxLinesToCompareToAtOnce = 3  # Set to 0 or less to compare to all at once
-    MaxLastLinesToConsider = 3  # Will be limited to MaxLinesToCompareToAtOnce when greater than MaxLinesToCompareToAtOnce except MaxLinesToCompareToAtOnce is 0 or less
+    MaxClosestLinesToConsider = 3  # Will be limited to MaxLinesToCompareToAtOnce when greater than MaxLinesToCompareToAtOnce except MaxLinesToCompareToAtOnce is 0 or less
     LineThickness = 2
 
     LastContent = None
@@ -74,6 +74,7 @@ def Update():
                 UPDATING = True
                 global LastContent
                 global EmptyFrame
+                global BaseImage
                 global Frame
                 global CleanFrame
 
@@ -86,6 +87,10 @@ def Update():
 
                     Start = time.perf_counter()
 
+                    if pytorch.Loaded("PyTorch-Calculator") == True and pytorch.TorchAvailable == True:
+                        if pytorch.MODELS["PyTorch-Calculator"]["IMG_WIDTH"] != BaseImage.shape[1] or pytorch.MODELS["PyTorch-Calculator"]["IMG_HEIGHT"] != BaseImage.shape[0]:
+                            BaseImage = numpy.zeros((pytorch.MODELS["PyTorch-Calculator"]["IMG_WIDTH"], pytorch.MODELS["PyTorch-Calculator"]["IMG_HEIGHT"], 3), numpy.uint8)
+
                     print(PURPLE + "Analyzing content..." + NORMAL)
                     print(GRAY + f"-> Lines: {len(CANVAS_CONTENT)}" + NORMAL)
                     print(GRAY + f"-> Points: {sum([len(Line) if len(Line[0]) != 4 else len(Line[1:]) for Line in CANVAS_CONTENT])}" + NORMAL)
@@ -94,8 +99,12 @@ def Update():
                     Combinations = [[Line[1:]] for Line in CANVAS_CONTENT]
                     for r in range(2, min(len(CANVAS_CONTENT) + 1, float("inf") if MaxLinesToCompareToAtOnce < 1 else (MaxLinesToCompareToAtOnce + 1))):
                         for i in range(len(CANVAS_CONTENT)):
-                            if MaxLastLinesToConsider > 0:
-                                OtherLines = CANVAS_CONTENT[i:i + MaxLastLinesToConsider + 2]
+                            if MaxClosestLinesToConsider > 0:
+                                MinX, MinY, MaxX, MaxY = CANVAS_CONTENT[i][0]
+                                X = (MinX + MaxX) / 2
+                                Y = (MinY + MaxY) / 2
+                                Distances = [numpy.sqrt((Line[0][0] - X) ** 2 + (Line[0][1] - Y) ** 2) for Line in CANVAS_CONTENT]
+                                OtherLines = [CANVAS_CONTENT[j] for j in numpy.argsort(Distances)[:MaxClosestLinesToConsider]]
                             else:
                                 OtherLines = CANVAS_CONTENT
                             for Combination in itertools.combinations(OtherLines, r):
@@ -165,9 +174,12 @@ def Update():
 
 
                             if Class != "None":
-                                X = round(((MaxX + MinX) / 2 - AbsoluteMinX) * Scale + XOffset)
-                                Y = round(((MaxY + MinY) / 2 - AbsoluteMinY) * Scale + YOffset)
-                                cv2.putText(CleanFrame, Class, (round(X), round(Y)), variables.FONT_TYPE, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+                                X1 = round((MaxX - AbsoluteMinX) * Scale + XOffset)
+                                X2 = round((MinX - AbsoluteMinX) * Scale + XOffset)
+                                Y1 = round((MaxY - AbsoluteMinY) * Scale + YOffset)
+                                Y2 = round((MinY - AbsoluteMinY) * Scale + YOffset)
+                                Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(Class, variables.FONT_SIZE, variables.FONT_SIZE)
+                                cv2.putText(CleanFrame, Text, (round((X1 + X2) / 2 - Width / 2), round((Y1 + Y2) / 2 - Height / 2)), variables.FONT_TYPE, Fontscale, (255, 255, 255), Thickness, cv2.LINE_AA)
 
 
                             Row = i // NumCols
