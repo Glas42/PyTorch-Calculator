@@ -28,9 +28,12 @@ def Initialize():
     global EmptyFrame
     global BaseImage
     global Frame
+    global CleanFrame
 
     if variables.DEVMODE:
-        SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(500, 500), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
+        SimpleWindow.Initialize(Name="PyTorch-Calculator (Dev Mode)", Size=(400, 400), Position=(variables.X + variables.WIDTH + 5, variables.Y + 430 + 5), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
+
+    SimpleWindow.Initialize(Name="PyTorch-Calculator Detection", Size=(400, 400), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
     pytorch.Initialize(Owner="Glas42", Model="PyTorch-Calculator")
     pytorch.Load("PyTorch-Calculator")
@@ -40,9 +43,10 @@ def Initialize():
     LineThickness = 2
 
     LastContent = None
-    EmptyFrame = numpy.zeros((500, 500, 3), numpy.uint8)
+    EmptyFrame = numpy.zeros((400, 400, 3), numpy.uint8)
     BaseImage = numpy.zeros((50, 50, 3), numpy.uint8)
     Frame = EmptyFrame.copy()
+    CleanFrame = EmptyFrame.copy()
 
 
 def ClassifyImage(Image):
@@ -71,6 +75,7 @@ def Update():
                 global LastContent
                 global EmptyFrame
                 global Frame
+                global CleanFrame
 
                 Content = (len(variables.CANVAS_CONTENT))
 
@@ -107,6 +112,7 @@ def Update():
                     print(BLUE + "Interpreting combinations..." + NORMAL)
 
                     Images = []
+                    Coordinates = []
 
                     for Combination in Combinations:
                         Image = BaseImage.copy()
@@ -128,6 +134,21 @@ def Update():
                                     cv2.line(Image, (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), LineThickness)
                                 LastPoint = Point
                         Images.append(Image)
+                        Coordinates.append((MinX, MinY, MaxX, MaxY))
+
+
+                    CleanFrame = EmptyFrame.copy()
+                    if len(Images) != 0:
+                        AbsoluteMinX = min([MinX for (MinX, MinY, MaxX, MaxY) in Coordinates])
+                        AbsoluteMinY = min([MinY for (MinX, MinY, MaxX, MaxY) in Coordinates])
+                        AbsoluteMaxX = max([MaxX for (MinX, MinY, MaxX, MaxY) in Coordinates])
+                        AbsoluteMaxY = max([MaxY for (MinX, MinY, MaxX, MaxY) in Coordinates])
+
+                        ScaleX = ((CleanFrame.shape[1] - 1) / (AbsoluteMaxX - AbsoluteMinX)) if AbsoluteMaxX - AbsoluteMinX != 0 else 1e9
+                        ScaleY = ((CleanFrame.shape[0] - 1)  / (AbsoluteMaxY - AbsoluteMinY)) if AbsoluteMaxY - AbsoluteMinY != 0 else 1e9
+                        Scale = min(ScaleX, ScaleY)
+                        XOffset = ((CleanFrame.shape[1] - 1) - (AbsoluteMaxX - AbsoluteMinX) * Scale) / 2
+                        YOffset = ((CleanFrame.shape[0] - 1) - (AbsoluteMaxY - AbsoluteMinY) * Scale) / 2
 
 
                     NumRows = int(numpy.ceil(numpy.sqrt(len(Images))))
@@ -138,17 +159,26 @@ def Update():
                         GridHeight = NumRows * Images[0].shape[0]
                         GridImage = numpy.zeros((GridHeight, GridWidth, 3), numpy.uint8)
 
-                        for i, image in enumerate(Images):
-                            Class, Confidence = ClassifyImage(image)
-                            row = i // NumCols
-                            col = i % NumCols
-                            x = col * image.shape[1]
-                            y = row * image.shape[0]
-                            Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(f"{Class}", image.shape[1] - 4, 10)
-                            cv2.rectangle(image, (0, 0), (Width + 2, Height + 2), (0, 0, 0), -1)
-                            cv2.rectangle(image, (0, 0), (Width + 2, Height + 2), (127, 127, 127), 1)
-                            cv2.putText(image, Text, (2, Height), variables.FONT_TYPE, Fontscale, (0, 255, 0) if Class != "None" else (0, 0, 255), Thickness, cv2.LINE_AA)
-                            GridImage[y:y+(image.shape[0]-1), x:x+(image.shape[1]-1)] = cv2.resize(image, (image.shape[1]-1, image.shape[0]-1))
+                        for i, Image in enumerate(Images):
+                            MinX, MinY, MaxX, MaxY = Coordinates[i]
+                            Class, Confidence = ClassifyImage(Image)
+
+
+                            if Class != "None":
+                                X = round(((MaxX + MinX) / 2 - AbsoluteMinX) * Scale + XOffset)
+                                Y = round(((MaxY + MinY) / 2 - AbsoluteMinY) * Scale + YOffset)
+                                cv2.putText(CleanFrame, Class, (round(X), round(Y)), variables.FONT_TYPE, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+
+
+                            Row = i // NumCols
+                            Col = i % NumCols
+                            X = Col * Image.shape[1]
+                            Y = Row * Image.shape[0]
+                            Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(f"{Class}", Image.shape[1] - 4, 10)
+                            cv2.rectangle(Image, (0, 0), (Width + 2, Height + 2), (0, 0, 0), - 1)
+                            cv2.rectangle(Image, (0, 0), (Width + 2, Height + 2), (127, 127, 127), 1)
+                            cv2.putText(Image, Text, (2, Height), variables.FONT_TYPE, Fontscale, (0, 255, 0) if Class != "None" else (0, 0, 255), Thickness, cv2.LINE_AA)
+                            GridImage[Y:Y + (Image.shape[0] - 1), X:X + (Image.shape[1] - 1)] = cv2.resize(Image, (Image.shape[1] - 1, Image.shape[0] - 1))
 
                         for i in range(NumRows + 1):
                             Y = i * Images[0].shape[0] - 1
@@ -176,5 +206,6 @@ def Update():
         threading.Thread(target=UpdateThread, daemon=True).start()
         if variables.DEVMODE:
             SimpleWindow.Show("PyTorch-Calculator (Dev Mode)", Frame)
+        SimpleWindow.Show("PyTorch-Calculator Detection", CleanFrame)
     except:
         CrashReport("Analyze - Error in function Update.", str(traceback.format_exc()))
