@@ -1,79 +1,20 @@
-#include <windows.h>
-#include <dwmapi.h>
+// cpp-app.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
 
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+#include <iostream>
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int main()
 {
-    WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = WndProc;
-    wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)CreateSolidBrush(RGB(28, 28, 28));
-    wc.lpszClassName = L"WindowClass";
-
-    RegisterClass(&wc);
-    HWND hWnd = CreateWindowEx(0, L"WindowClass", L"PyTorch-Calculator", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
-    if (hWnd == NULL)
-    {
-        return 0;
-    }
-
-    COLORREF color = RGB(28, 28, 28);
-    DwmSetWindowAttribute(hWnd, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &color, sizeof(color));
-
-    ShowWindow(hWnd, nCmdShow);
-    MSG msg = { 0 };
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    return 0;
+    std::cout << "Hello World!\n";
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    static HWND hLabel;
-    static HWND hButton;
+// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu
 
-    switch (message)
-    {
-    case WM_CREATE:
-        // Create a static control (label)
-        hLabel = CreateWindow(
-            L"STATIC",
-            L"PyTorch-Calculator",
-            WS_VISIBLE | WS_CHILD | SS_CENTER,
-            50, 50, 200, 20,
-            hWnd,
-            NULL,
-            (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-            NULL);
-
-
-        hButton = CreateWindow(
-            L"BUTTON",
-            L"Exit",
-            WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            50, 100, 200, 20,
-            hWnd,
-            NULL,
-            (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-            NULL
-        );
-
-		SendMessage(hButton, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
-
-        SendMessage(hLabel, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
-        break;
-
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
-}
+// Tips for Getting Started: 
+//   1. Use the Solution Explorer window to add/manage files
+//   2. Use the Team Explorer window to connect to source control
+//   3. Use the Output window to see build output and other messages
+//   4. Use the Error List window to view errors
+//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
+//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

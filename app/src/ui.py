@@ -70,7 +70,7 @@ def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
     variables.CANVAS_RIGHT = WindowWidth - 1
     variables.RENDER_FRAME = True
     if variables.DEVMODE == True:
-        SimpleWindow.SetPosition("PyTorch-Calculator (Dev Mode)", (variables.X + variables.WIDTH + 5, variables.Y + variables.HEIGHT + 5))
+        SimpleWindow.SetPosition("PyTorch-Calculator (Dev Mode)", (variables.X + variables.WIDTH + 5, variables.Y + 430 + 5))
     SimpleWindow.SetPosition("PyTorch-Calculator Detection", (variables.X + variables.WIDTH + 5, variables.Y))
 
 def Restart():

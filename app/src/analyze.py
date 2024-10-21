@@ -21,6 +21,7 @@ UPDATING = False
 
 
 def Initialize():
+    global Rules
     global MaxLinesToCompareToAtOnce
     global MaxClosestLinesToConsider
     global LineThickness
@@ -38,9 +39,57 @@ def Initialize():
     pytorch.Initialize(Owner="Glas42", Model="PyTorch-Calculator")
     pytorch.Load("PyTorch-Calculator")
 
+
+    Rules = [{
+        "IfClass": "-",
+        "PartOfClass": "+",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": "-",
+        "PartOfClass": "=",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": "(",
+        "PartOfClass": "+",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": ")",
+        "PartOfClass": "+",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": "-",
+        "PartOfClass": "/",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": "(",
+        "PartOfClass": "4",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": ")",
+        "PartOfClass": "4",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": "7",
+        "PartOfClass": "*",
+        "ThenClass": "None"
+    },
+    {
+        "IfClass": "-",
+        "PartOfClass": "5",
+        "ThenClass": "None"
+    }]
+
     MaxLinesToCompareToAtOnce = 3  # Set to 0 or less to compare to all at once
     MaxClosestLinesToConsider = 3  # Will be limited to MaxLinesToCompareToAtOnce when greater than MaxLinesToCompareToAtOnce except MaxLinesToCompareToAtOnce is 0 or less
     LineThickness = 2
+
 
     LastContent = None
     EmptyFrame = numpy.zeros((400, 400, 3), numpy.uint8)
@@ -84,6 +133,7 @@ def Update():
                     if variables.DEVMODE:
                         Frame = EmptyFrame.copy()
                     CANVAS_CONTENT = variables.CANVAS_CONTENT
+                    CleanContent = []
 
                     Start = time.perf_counter()
 
@@ -143,22 +193,7 @@ def Update():
                                     cv2.line(Image, (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), LineThickness)
                                 LastPoint = Point
                         Images.append(Image)
-                        Coordinates.append((MinX, MinY, MaxX, MaxY))
-
-
-                    CleanFrame = EmptyFrame.copy()
-                    if len(Images) != 0:
-                        AbsoluteMinX = min([MinX for (MinX, MinY, MaxX, MaxY) in Coordinates])
-                        AbsoluteMinY = min([MinY for (MinX, MinY, MaxX, MaxY) in Coordinates])
-                        AbsoluteMaxX = max([MaxX for (MinX, MinY, MaxX, MaxY) in Coordinates])
-                        AbsoluteMaxY = max([MaxY for (MinX, MinY, MaxX, MaxY) in Coordinates])
-
-                        ScaleX = ((CleanFrame.shape[1] - 1) / (AbsoluteMaxX - AbsoluteMinX)) if AbsoluteMaxX - AbsoluteMinX != 0 else 1e9
-                        ScaleY = ((CleanFrame.shape[0] - 1)  / (AbsoluteMaxY - AbsoluteMinY)) if AbsoluteMaxY - AbsoluteMinY != 0 else 1e9
-                        Scale = min(ScaleX, ScaleY)
-                        XOffset = ((CleanFrame.shape[1] - 1) - (AbsoluteMaxX - AbsoluteMinX) * Scale) / 2
-                        YOffset = ((CleanFrame.shape[0] - 1) - (AbsoluteMaxY - AbsoluteMinY) * Scale) / 2
-
+                        Coordinates.append((MinX, MinY, MaxX, MaxY, Combinations.index(Combination)))
 
                     NumRows = int(numpy.ceil(numpy.sqrt(len(Images))))
                     if NumRows != 0:
@@ -169,18 +204,10 @@ def Update():
                         GridImage = numpy.zeros((GridHeight, GridWidth, 3), numpy.uint8)
 
                         for i, Image in enumerate(Images):
-                            MinX, MinY, MaxX, MaxY = Coordinates[i]
+                            MinX, MinY, MaxX, MaxY, Index = Coordinates[i]
                             Class, Confidence = ClassifyImage(Image)
-
-
                             if Class != "None":
-                                X1 = round((MaxX - AbsoluteMinX) * Scale + XOffset)
-                                X2 = round((MinX - AbsoluteMinX) * Scale + XOffset)
-                                Y1 = round((MaxY - AbsoluteMinY) * Scale + YOffset)
-                                Y2 = round((MinY - AbsoluteMinY) * Scale + YOffset)
-                                Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(Class, variables.FONT_SIZE, variables.FONT_SIZE)
-                                cv2.putText(CleanFrame, Text, (round((X1 + X2) / 2 - Width / 2), round((Y1 + Y2) / 2 - Height / 2)), variables.FONT_TYPE, Fontscale, (255, 255, 255), Thickness, cv2.LINE_AA)
-
+                                CleanContent.append((MinX, MinY, MaxX, MaxY, Index, Class, Confidence))
 
                             Row = i // NumCols
                             Col = i % NumCols
@@ -204,6 +231,83 @@ def Update():
                             cv2.line(GridImage, (X, 0), (X, GridHeight - 1), (255, 255, 255), 1)
 
                         Frame = GridImage
+
+
+
+                    CleanFrame = EmptyFrame.copy()
+
+                    if len(CleanContent) != 0:
+
+                        UpdatedCleanContent = []
+                        for Item in CleanContent:
+                            UpdatedItem = Item
+                            for Rule in Rules:
+                                if Item[5] == Rule["IfClass"]:
+                                    for Combination in Combinations:
+                                        if len(CANVAS_CONTENT) > Item[4]:
+                                            if any(Point in Line for Line in Combination for Point in CANVAS_CONTENT[Item[4]]):
+                                                if Rule["PartOfClass"] in [OtherItem[5] for OtherItem in CleanContent if OtherItem[4] == Combinations.index(Combination)]:
+                                                    UpdatedItem = (Item[0], Item[1], Item[2], Item[3], Item[4], Rule["ThenClass"], Item[6])
+                                                    break
+                            if UpdatedItem[5] != "None":
+                                UpdatedCleanContent.append(UpdatedItem)
+                        CleanContent = UpdatedCleanContent
+
+
+                        FinalCleanContent = []
+
+                        for i in range(len(CleanContent)):
+                            BoxA = CleanContent[i]
+                            ShouldKeep = True
+
+                            for j in range(len(FinalCleanContent)):
+                                BoxB = FinalCleanContent[j]
+
+                                xA = max(BoxA[0], BoxB[0])
+                                yA = max(BoxA[1], BoxB[1])
+                                xB = min(BoxA[2], BoxB[2])
+                                yB = min(BoxA[3], BoxB[3])
+
+                                interArea = max(0, xB - xA) * max(0, yB - yA)
+
+                                BoxAArea = (BoxA[2] - BoxA[0]) * (BoxA[3] - BoxA[1])
+                                BoxBArea = (BoxB[2] - BoxB[0]) * (BoxB[3] - BoxB[1])
+
+                                IoU = interArea / float(BoxAArea + BoxBArea - interArea) if (BoxAArea + BoxBArea - interArea) > 0 else 0
+
+                                if IoU > 0.5:
+                                    if BoxA[6] > BoxB[6]:
+                                        FinalCleanContent[j] = BoxA
+                                    ShouldKeep = False
+                                    break
+
+                            if ShouldKeep:
+                                FinalCleanContent.append(BoxA)
+
+                        CleanContent = FinalCleanContent
+
+
+                        AbsoluteMinX = min([MinX for (MinX, MinY, MaxX, MaxY, _, _, _) in CleanContent])
+                        AbsoluteMinY = min([MinY for (MinX, MinY, MaxX, MaxY, _, _, _) in CleanContent])
+                        AbsoluteMaxX = max([MaxX for (MinX, MinY, MaxX, MaxY, _, _, _) in CleanContent])
+                        AbsoluteMaxY = max([MaxY for (MinX, MinY, MaxX, MaxY, _, _, _) in CleanContent])
+
+                    for Item in CleanContent:
+                        MinX, MinY, MaxX, MaxY, _, Class, Confidence = Item
+
+                        ScaleX = ((CleanFrame.shape[1] - 1) / (AbsoluteMaxX - AbsoluteMinX)) if AbsoluteMaxX - AbsoluteMinX != 0 else 1e9
+                        ScaleY = ((CleanFrame.shape[0] - 1)  / (AbsoluteMaxY - AbsoluteMinY)) if AbsoluteMaxY - AbsoluteMinY != 0 else 1e9
+                        Scale = min(ScaleX, ScaleY)
+                        XOffset = ((CleanFrame.shape[1] - 1) - (AbsoluteMaxX - AbsoluteMinX) * Scale) / 2
+                        YOffset = ((CleanFrame.shape[0] - 1) - (AbsoluteMaxY - AbsoluteMinY) * Scale) / 2
+
+                        X1 = round((MaxX - AbsoluteMinX) * Scale + XOffset)
+                        X2 = round((MinX - AbsoluteMinX) * Scale + XOffset)
+                        Y1 = round((MaxY - AbsoluteMinY) * Scale + YOffset)
+                        Y2 = round((MinY - AbsoluteMinY) * Scale + YOffset)
+                        Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(Class, 100, 20)
+                        cv2.putText(CleanFrame, Text, (round((X1 + X2) / 2 - Width / 2), round((Y1 + Y2) / 2 - Height / 2)), variables.FONT_TYPE, Fontscale, (255, 255, 255), Thickness, cv2.LINE_AA)
+
 
 
                     print(PURPLE + f"Analyzing completed!" + NORMAL)
