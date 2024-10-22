@@ -306,7 +306,7 @@ def Update():
                         Y1 = round((MaxY - AbsoluteMinY) * Scale + YOffset)
                         Y2 = round((MinY - AbsoluteMinY) * Scale + YOffset)
                         Text, Fontscale, Thickness, Width, Height = uicomponents.GetTextSize(Class, 100, 20)
-                        cv2.putText(CleanFrame, Text, (round((X1 + X2) / 2 - Width / 2), round((Y1 + Y2) / 2 - Height / 2)), variables.FONT_TYPE, Fontscale, (255, 255, 255), Thickness, cv2.LINE_AA)
+                        cv2.putText(CleanFrame, Text, (round((X1 + X2) / 2 - Width / 2), round((Y1 + Y2) / 2 + Height / 2)), variables.FONT_TYPE, Fontscale, (255, 255, 255), Thickness, cv2.LINE_AA)
 
 
 
