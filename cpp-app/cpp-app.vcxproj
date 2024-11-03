@@ -128,6 +128,32 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cpp-app.cpp" />
+    <ClCompile Include="src\analyze.cpp" />
+    <ClCompile Include="src\canvas.cpp" />
+    <ClCompile Include="src\console.cpp" />
+    <ClCompile Include="src\crashreport.cpp" />
+    <ClCompile Include="src\file.cpp" />
+    <ClCompile Include="src\keyboard.cpp" />
+    <ClCompile Include="src\mouse.cpp" />
+    <ClCompile Include="src\pytorch.cpp" />
+    <ClCompile Include="src\settings.cpp" />
+    <ClCompile Include="src\translate.cpp" />
+    <ClCompile Include="src\ui.cpp" />
+    <ClCompile Include="src\updater.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\analyze.h" />
+    <ClInclude Include="src\canvas.h" />
+    <ClInclude Include="src\console.h" />
+    <ClInclude Include="src\crashreport.h" />
+    <ClInclude Include="src\file.h" />
+    <ClInclude Include="src\keyboard.h" />
+    <ClInclude Include="src\mouse.h" />
+    <ClInclude Include="src\pytorch.h" />
+    <ClInclude Include="src\settings.h" />
+    <ClInclude Include="src\translate.h" />
+    <ClInclude Include="src\ui.h" />
+    <ClInclude Include="src\updater.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
