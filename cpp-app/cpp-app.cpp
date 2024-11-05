@@ -14,19 +14,10 @@
 
 int main()
 {
-    std::cout << "Calling the functions!\n";
-    Analyze();
-    Canvas();
-	Console();
-	CrashReport();
-	File();
-	Keyboard();
-	Mouse();
-	PyTorch();
-	Settings();
-	Translate();
-	UI();
-	Updater();
-    std::cout << "Called the functions!";
+
+	PyTorchInitialize();
+
+	std::cout << "\n";
+	system("pause");
 	return 0;
 }

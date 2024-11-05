@@ -54,6 +54,9 @@
     <ClCompile Include="src\analyze.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\variables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\canvas.h">
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\analyze.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\variables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
