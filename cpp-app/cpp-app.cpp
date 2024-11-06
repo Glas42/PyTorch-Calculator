@@ -3,8 +3,6 @@
 int main() {
 	PyTorchExampleTensor();
 
-	std::cout << std::endl;
-
 	#ifdef BUILD_TYPE_DEBUG
 		int ConsoleWidth = 80;
 		CONSOLE_SCREEN_BUFFER_INFO csbi;

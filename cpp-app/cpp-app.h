@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#include <iostream>
-#include <windows.h>
-
 #include "src/analyze.h"
 #include "src/canvas.h"
 #include "src/console.h"
@@ -15,3 +12,6 @@
 #include "src/translate.h"
 #include "src/ui.h"
 #include "src/updater.h"
+
+#include <windows.h>
+#include <iostream>
