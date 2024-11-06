@@ -1,4 +1,3 @@
-#include <iostream>
 #include "crashreport.h"
 
 void CrashReport()

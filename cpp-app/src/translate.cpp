@@ -1,4 +1,3 @@
-#include <iostream>
 #include "translate.h"
 
 void Translate()

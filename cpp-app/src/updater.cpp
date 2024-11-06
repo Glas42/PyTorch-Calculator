@@ -1,4 +1,3 @@
-#include <iostream>
 #include "updater.h"
 
 void Updater()

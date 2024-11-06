@@ -1,4 +1,3 @@
-#include <iostream>
 #include "console.h"
 
 void Console()

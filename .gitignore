@@ -10,11 +10,8 @@
 # Ignore the cache
 /cache
 
-# Ignore the C++ app files and builds
-/cpp-app/cpp-app.vcxproj.user
-/cpp-app/cpp-app.aps
-/cpp-app/cpp-app
-/cpp-app/x64
+# Ignore the C++ app builds and VS files
+/cpp-app/out
 /cpp-app/.vs
 /.vs
 

@@ -1,23 +1,19 @@
-#include <iostream>
-#include "src/analyze.h"
-#include "src/canvas.h"
-#include "src/console.h"
-#include "src/crashreport.h"
-#include "src/file.h"
-#include "src/keyboard.h"
-#include "src/mouse.h"
-#include "src/pytorch.h"
-#include "src/settings.h"
-#include "src/translate.h"
-#include "src/ui.h"
-#include "src/updater.h"
+﻿#include "cpp-app.h"
 
-int main()
-{
+int main() {
+	PyTorchExampleTensor();
 
-	PyTorchInitialize();
+	std::cout << std::endl;
 
-	std::cout << "\n";
-	system("pause");
-	return 0;
+	#ifdef BUILD_TYPE_DEBUG
+		int ConsoleWidth = 80;
+		CONSOLE_SCREEN_BUFFER_INFO csbi;
+		if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+			ConsoleWidth = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+		}
+		std::cout << "\n" << std::string(ConsoleWidth, '-') << std::endl;
+	#elif defined(BUILD_TYPE_RELEASE)
+		std::cout << std::endl;
+		system("pause");
+	#endif
 }
