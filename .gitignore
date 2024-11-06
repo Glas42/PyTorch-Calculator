@@ -12,7 +12,9 @@
 
 # Ignore the C++ app builds and VS files
 /cpp-app/build
+/cpp-app/.vscode
 /cpp-app/.vs
+/.vscode
 /.vs
 
 # Ignore the dataset
