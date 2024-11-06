@@ -11,7 +11,7 @@
 /cache
 
 # Ignore the C++ app builds and VS files
-/cpp-app/out
+/cpp-app/build
 /cpp-app/.vs
 /.vs
 

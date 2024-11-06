@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.8)
 
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
@@ -11,7 +11,7 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
     add_compile_definitions(BUILD_TYPE_RELEASE)
 endif()
 
-project ("cpp-app")
+project("cpp-app")
 
 set(CMAKE_PREFIX_PATH "C:/Users/olefr/LibTorch")
 
