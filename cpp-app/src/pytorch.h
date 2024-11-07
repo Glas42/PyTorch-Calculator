@@ -9,8 +9,10 @@
 #include <iostream>
 #include <string>
 
-void PyTorchExampleTensor();
-
-void PyTorchInitialize(std::string Owner = "", std::string Model = "", bool Threaded = true);
+class PyTorch {
+    public:
+    static void ExampleTensor();
+    static void Initialize(std::string Owner = "", std::string Model = "", bool Threaded = true);
+};
 
 #endif

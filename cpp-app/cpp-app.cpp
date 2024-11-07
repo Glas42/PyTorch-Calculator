@@ -1,10 +1,16 @@
 ﻿#include "cpp-app.h"
 
 int main() {
-	PyTorchExampleTensor();
-	PyTorchInitialize("Glas42", "PyTorch-Calculator", true);
+	if (std::filesystem::exists(PATH + "cache") == false) {
+		std::filesystem::create_directory(PATH + "cache");
+	}
 
-	#ifdef BUILD_TYPE_RELEASE
+	UI::Initialize();
+
+	PyTorch::ExampleTensor();
+	PyTorch::Initialize("Glas42", "PyTorch-Calculator", true);
+
+	if (BUILD_TYPE == "Release") {
 		system("pause");
-	#endif
+	}
 }

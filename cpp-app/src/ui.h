@@ -3,6 +3,9 @@
 
 #include <iostream>
 
-void UI();
+class UI {
+    public: 
+    static void Initialize();
+};
 
 #endif

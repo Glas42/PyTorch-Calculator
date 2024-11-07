@@ -1,6 +1,6 @@
 #include "ui.h"
 
-void UI()
+void UI::Initialize()
 {
-	std::cout << "Message from the UI() function!" << std::endl;
+	std::cout << "The app would now create the UI" << std::endl;
 }

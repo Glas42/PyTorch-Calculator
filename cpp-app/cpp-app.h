@@ -13,5 +13,4 @@
 #include "src/ui.h"
 #include "src/updater.h"
 
-#include <windows.h>
 #include <iostream>

@@ -26,6 +26,3 @@
 
 # Ignore the tensorboard logs
 /train/tensorboard
-
-# Ignore the old app files
-/app-old
