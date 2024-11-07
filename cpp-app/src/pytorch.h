@@ -9,8 +9,6 @@
 #include <iostream>
 #include <string>
 
-extern std::map<std::string, std::map<std::string, std::string>> MODELS;
-
 void PyTorchExampleTensor();
 
 void PyTorchInitialize(std::string Owner = "", std::string Model = "", bool Threaded = true);
