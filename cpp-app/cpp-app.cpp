@@ -9,17 +9,22 @@ int main() {
 
 	std::cout << "Close the window to continue!" << std::endl;
 
-	cv::Mat Frame = OpenCV::EmptyImage(500, 200, 3, 0, 0, 0);
-	OpenCV::ShowImage("Close the window to continue!", Frame, false);
-	OpenCV::SetWindowCaptionColor(L"Close the window to continue!", 0, 0, 0);
-	OpenCV::SetWindowBorderColor(L"Close the window to continue!", 200, 0, 0);
-	OpenCV::ShowImage("Close the window to continue!", Frame, true);
+	//cv::Mat Frame = OpenCV::EmptyImage(500, 200, 3, 0, 0, 0);
+	//OpenCV::ShowImage("Close the window to continue!", Frame, false);
+	//OpenCV::SetWindowCaptionColor(L"Close the window to continue!", 0, 0, 0);
+	//OpenCV::SetWindowBorderColor(L"Close the window to continue!", 200, 0, 0);
+	//OpenCV::ShowImage("Close the window to continue!", Frame, true);
 
-	PyTorch::LoadExampleModel();
+	//PyTorch::LoadExampleModel();
 
-	PyTorch::ExampleTensor();
-	PyTorch::Initialize("Glas42", "PyTorch-Calculator", true);
-	PyTorch::Loaded("PyTorch-Calculator");
+	//PyTorch::ExampleTensor();
+	//PyTorch::Initialize("Glas42", "PyTorch-Calculator", true);
+	//PyTorch::Loaded("PyTorch-Calculator");
+
+	while (true) {
+		UI::Example();
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 
 
 	if (BUILD_TYPE == "Release") {

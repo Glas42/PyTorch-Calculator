@@ -6,35 +6,40 @@
 #include <algorithm>
 #include <iostream>
 
+#include "opencv.h"
+
 extern std::string PATH;
 extern std::string BUILD_TYPE;
+
+extern cv::Mat FRAME;
+
 extern int FONT_SIZE;
 extern int FONT_TYPE;
 extern int POPUP_HEIGHT;
 extern int TITLE_BAR_HEIGHT;
 extern std::string THEME;
-extern std::vector<int> TEXT_COLOR;
-extern std::vector<int> DRAW_COLOR;
-extern std::vector<int> GRAYED_TEXT_COLOR;
-extern std::vector<int> BACKGROUND_COLOR;
-extern std::vector<int> TAB_BAR_COLOR;
-extern std::vector<int> TAB_BUTTON_COLOR;
-extern std::vector<int> TAB_BUTTON_HOVER_COLOR;
-extern std::vector<int> TAB_BUTTON_SELECTED_COLOR;
-extern std::vector<int> TAB_BUTTON_SELECTED_HOVER_COLOR;
-extern std::vector<int> POPUP_COLOR;
-extern std::vector<int> POPUP_HOVER_COLOR;
-extern std::vector<int> POPUP_PROGRESS_COLOR;
-extern std::vector<int> BUTTON_COLOR;
-extern std::vector<int> BUTTON_HOVER_COLOR;
-extern std::vector<int> BUTTON_SELECTED_COLOR;
-extern std::vector<int> BUTTON_SELECTED_HOVER_COLOR;
-extern std::vector<int> SWITCH_COLOR;
-extern std::vector<int> SWITCH_KNOB_COLOR;
-extern std::vector<int> SWITCH_HOVER_COLOR;
-extern std::vector<int> SWITCH_ENABLED_COLOR;
-extern std::vector<int> SWITCH_ENABLED_HOVER_COLOR;
-extern std::vector<int> DROPDOWN_COLOR;
-extern std::vector<int> DROPDOWN_HOVER_COLOR;
+extern cv::Scalar TEXT_COLOR;
+extern cv::Scalar DRAW_COLOR;
+extern cv::Scalar GRAYED_TEXT_COLOR;
+extern cv::Scalar BACKGROUND_COLOR;
+extern cv::Scalar TAB_BAR_COLOR;
+extern cv::Scalar TAB_BUTTON_COLOR;
+extern cv::Scalar TAB_BUTTON_HOVER_COLOR;
+extern cv::Scalar TAB_BUTTON_SELECTED_COLOR;
+extern cv::Scalar TAB_BUTTON_SELECTED_HOVER_COLOR;
+extern cv::Scalar POPUP_COLOR;
+extern cv::Scalar POPUP_HOVER_COLOR;
+extern cv::Scalar POPUP_PROGRESS_COLOR;
+extern cv::Scalar BUTTON_COLOR;
+extern cv::Scalar BUTTON_HOVER_COLOR;
+extern cv::Scalar BUTTON_SELECTED_COLOR;
+extern cv::Scalar BUTTON_SELECTED_HOVER_COLOR;
+extern cv::Scalar SWITCH_COLOR;
+extern cv::Scalar SWITCH_KNOB_COLOR;
+extern cv::Scalar SWITCH_HOVER_COLOR;
+extern cv::Scalar SWITCH_ENABLED_COLOR;
+extern cv::Scalar SWITCH_ENABLED_HOVER_COLOR;
+extern cv::Scalar DROPDOWN_COLOR;
+extern cv::Scalar DROPDOWN_HOVER_COLOR;
 
 #endif
