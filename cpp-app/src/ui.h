@@ -1,10 +1,11 @@
 #ifndef UI_H
 #define UI_H
 
-#include <iostream>
+#include "uicomponents.h"
+#include "opencv.h"
 
 class UI {
-    public: 
+public:
     static void Initialize();
 };
 

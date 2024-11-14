@@ -10,7 +10,7 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe",
-                "CMAKE_PREFIX_PATH":  "$env{LIBTORCH}"
+                "OpenCV_DIR": "$env{OpenCV_DIR}"
             },
             "condition": {
                 "type": "equals",
@@ -27,7 +27,8 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PREFIX_PATH":  "$env{LIBTORCHDEBUG}"
             }
         },
         {
@@ -35,7 +36,8 @@
             "displayName": "x64 Release",
             "inherits": "x64-debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_PREFIX_PATH":  "$env{LIBTORCH}"
             }
         },
         {
@@ -47,7 +49,8 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PREFIX_PATH":  "$env{LIBTORCHDEBUG}"
             }
         },
         {
@@ -55,7 +58,8 @@
             "displayName": "x86 Release",
             "inherits": "x86-debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_PREFIX_PATH":  "$env{LIBTORCH}"
             }
         }
     ]
