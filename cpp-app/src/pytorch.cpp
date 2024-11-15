@@ -40,11 +40,6 @@ void PyTorch::LoadExampleModel() {
     }
 }
 
-const std::string RED = "\033[91m";
-const std::string GREEN = "\033[92m";
-const std::string GRAY = "\033[90m";
-const std::string NORMAL = "\033[0m";
-
 std::map<std::string, std::string> MODELS;
 std::map<std::string, std::map<std::string, std::unique_ptr<std::thread>>> THREADS;
 std::map<std::string, std::map<std::string, std::string>> STRINGS;

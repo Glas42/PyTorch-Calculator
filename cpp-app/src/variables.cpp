@@ -25,6 +25,20 @@ std::string PATH = GetExePath();
 #endif
 
 
+std::string BOLD = "\033[1m";
+std::string ITALIC = "\033[3m";
+std::string UNDERLINE = "\033[4m";
+
+std::string RED = "\033[91m";
+std::string GRAY = "\033[90m";
+std::string BLUE = "\033[94m";
+std::string CYAN = "\033[96m";
+std::string GREEN = "\033[92m";
+std::string NORMAL = "\033[0m";
+std::string YELLOW = "\033[93m";
+std::string PURPLE = "\033[95m";
+
+
 int FONT_SIZE = 11;
 int FONT_TYPE = cv::FONT_HERSHEY_SIMPLEX;
 int POPUP_HEIGHT = 50;

@@ -10,6 +10,17 @@
 
 extern std::string PATH;
 extern std::string BUILD_TYPE;
+extern std::string BOLD;
+extern std::string ITALIC;
+extern std::string UNDERLINE;
+extern std::string RED;
+extern std::string GRAY;
+extern std::string BLUE;
+extern std::string CYAN;
+extern std::string GREEN;
+extern std::string NORMAL;
+extern std::string YELLOW;
+extern std::string PURPLE;
 
 extern cv::Mat FRAME;
 
