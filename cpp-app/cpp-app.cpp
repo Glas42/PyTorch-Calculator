@@ -1,8 +1,8 @@
 ﻿#include "cpp-app.h"
 
 int main() {
-	if (std::filesystem::exists(PATH + "cache") == false) {
-		std::filesystem::create_directory(PATH + "cache");
+	if (std::filesystem::exists(Variables::PATH + "cache") == false) {
+		std::filesystem::create_directory(Variables::PATH + "cache");
 	}
 
 	UI::Initialize();
@@ -21,13 +21,15 @@ int main() {
 	//PyTorch::Initialize("Glas42", "PyTorch-Calculator", true);
 	//PyTorch::Loaded("PyTorch-Calculator");
 
+    SimpleWindow::Initialize(Variables::NAME, std::make_tuple(700, 400), std::make_tuple(100, 100), std::make_tuple(Variables::TAB_BAR_COLOR[0], Variables::TAB_BAR_COLOR[1], Variables::TAB_BAR_COLOR[2]), true, false, false, Variables::PATH + "app/assets/" + Variables::THEME == "Dark" ? "icon_dark.ico" : "icon_light.ico");
+
 	while (true) {
 		UI::Example();
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 
-	if (BUILD_TYPE == "Release") {
+	if (Variables::BUILD_TYPE == "Release") {
 		system("pause");
 	}
 }

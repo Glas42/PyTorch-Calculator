@@ -16,9 +16,9 @@ cv::Mat PyTorch::TensorToMat(torch::Tensor Tensor, int Width, int Height) {
 }
 
 void PyTorch::LoadExampleModel() {
-    std::cout << "Loading the example model...\n > " << PATH + "Model.pt" << std::endl;
+    std::cout << "Loading the example model...\n > " << Variables::PATH + "Model.pt" << std::endl;
     try {
-        auto Model = torch::jit::load(PATH + "Model.pt", c10::kCPU);
+        auto Model = torch::jit::load(Variables::PATH + "Model.pt", c10::kCPU);
         auto Input = torch::rand({1, 1, 220, 420});
         auto Output = Model.forward({Input}).toTensor();
         std::cout << Output << std::endl;
@@ -59,7 +59,7 @@ void PyTorch::Initialize(std::string Owner, std::string Model, bool Threaded) {
     } else {
         SetString(Model, "Device", "cpu");
     }
-    SetString(Model, "Path", PATH + "cache/" + Model);
+    SetString(Model, "Path", Variables::PATH + "cache/" + Model);
     SetBool(Model, "Threaded", Threaded);
     SetString(Model, "ModelOwner", Owner);
     MODELS[Model] = "";

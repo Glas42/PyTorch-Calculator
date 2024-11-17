@@ -16,8 +16,8 @@ public:
         int X2=100,
         int Y2=100,
         std::string Align="Center",
-        int Fontsize=FONT_SIZE,
-        cv::Scalar TextColor=TEXT_COLOR);
+        int Fontsize=Variables::FONT_SIZE,
+        cv::Scalar TextColor=Variables::TEXT_COLOR);
     static std::tuple<bool, bool, bool> Button(std::string Text="NONE",
         int X1=0,
         int Y1=0,
@@ -26,11 +26,11 @@ public:
         int Fontsize=11,
         int RoundCorners=5,
         bool ButtonSelected=false,
-        cv::Scalar TextColor=TEXT_COLOR,
-        cv::Scalar ButtonColor=BUTTON_COLOR,
-        cv::Scalar ButtonHoverColor=BUTTON_HOVER_COLOR,
-        cv::Scalar ButtonSelectedColor=BUTTON_SELECTED_COLOR,
-        cv::Scalar ButtonSelectedHoverColor=BUTTON_SELECTED_HOVER_COLOR);
+        cv::Scalar TextColor=Variables::TEXT_COLOR,
+        cv::Scalar ButtonColor=Variables::BUTTON_COLOR,
+        cv::Scalar ButtonHoverColor=Variables::BUTTON_HOVER_COLOR,
+        cv::Scalar ButtonSelectedColor=Variables::BUTTON_SELECTED_COLOR,
+        cv::Scalar ButtonSelectedHoverColor=Variables::BUTTON_SELECTED_HOVER_COLOR);
 };
 
 #endif
