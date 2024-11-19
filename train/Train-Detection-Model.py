@@ -50,6 +50,9 @@ for File in os.listdir(DATA_PATH):
 if IMG_COUNT == 0:
     print("No images found, exiting...")
     exit()
+elif int(IMG_COUNT * TRAIN_VAL_RATIO) < BATCH_SIZE:
+    print("Not enough images for training, exiting...")
+    exit()
 
 CLASSES = []
 for File in os.listdir(DATA_PATH):
@@ -118,7 +121,7 @@ if CACHE:
                     Labels.append(Label)
 
             if len(Images) % (round(len(Files) / 100) if round(len(Files) / 100) > 0 else 1) == 0:
-                print(f"\r{timestamp()}Caching {Type} dataset... ({round(100 * len(Images) / len(Files))}%)", end='', flush=True)
+                print(f"\r{timestamp()}Caching {Type} dataset... ({(round(100 * len(Images) / len(Files))) if len(Files) != 0 else 100}%)", end='', flush=True)
 
         return np.array(Images, dtype=np.float32), np.array(Labels, dtype=np.float32)
 

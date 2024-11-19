@@ -11,7 +11,7 @@ import cv2
 import os
 
 
-PATH = os.path.dirname(__file__)
+PATH = os.path.dirname(__file__).replace("\\", "/")
 if PATH[-1] != "/":
     PATH += "/"
 
@@ -48,7 +48,7 @@ CLASSES = [
 
 AMOUNT = [0] * len(CLASSES)
 if os.path.exists(f"{DATA_FOLDER}") == False:
-    os.mkdir(f"{DATA_FOLDER}")
+    os.makedirs(f"{DATA_FOLDER}")
 for File in os.listdir(f"{DATA_FOLDER}"):
     if File.endswith(".txt"):
         with open(f"{DATA_FOLDER}{File}", "r") as F:
