@@ -53,15 +53,15 @@ if not exist cache (
     mkdir cache
 )
 curl -L https://github.com/Glas42/PyTorch-Calculator/archive/refs/heads/main.zip -o cache/PyTorch-Calculator-Update.zip >nul 2>&1
-powershell -command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath 'cache/PyTorch-Calculator-Update.zip' -DestinationPath 'UpdateCache' -Force"
+powershell -command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath 'cache/PyTorch-Calculator-Update.zip' -DestinationPath 'cache/UpdateCache' -Force"
 for /d %%d in (*) do (
-    if not "%%d"=="venv" if not "%%d"=="UpdateCache" (
+    if not "%%d"=="venv" if not "%%d"=="cache" if not "%%d"=="config" if not "%%d"==".vs" if not "%%d"==".vscode" (
         echo Deleting folder %%d
         rmdir /s /q "%%d"
     )
 )
-xcopy /s /y UpdateCache\PyTorch-Calculator-main\* .
-rmdir /s /q UpdateCache
+xcopy /s /y cache/UpdateCache/PyTorch-Calculator-main/* .
+rmdir /s /q cache/UpdateCache
 rmdir /s /q cache/PyTorch-Calculator-Update.zip
 
 echo.
