@@ -52,9 +52,14 @@ if os.path.exists(f"{DATA_FOLDER}") == False:
 for File in os.listdir(f"{DATA_FOLDER}"):
     if File.endswith(".txt"):
         with open(f"{DATA_FOLDER}{File}", "r") as F:
-            Content = F.read()
-            Class, ClassIndex, CanvasContent = Content.split("###")
-            AMOUNT[CLASSES.index(Class)] += 1
+            try:
+                Content = F.read()
+                Class, ClassIndex, CanvasContent = Content.split("###")
+                AMOUNT[CLASSES.index(Class)] += 1
+            except:
+                print(f"Error reading file: {File}")
+    else:
+        os.remove(f"{DATA_FOLDER}{File}")
 
 print("Starting with the following dataset:")
 Largest = max(len(Class) for Class in CLASSES)
