@@ -61,7 +61,7 @@ for /d %%d in (*) do (
 )
 xcopy /s /y cache\UpdateCache\PyTorch-Calculator-main\* .
 rmdir /s /q cache\UpdateCache
-del /s /q cache\PyTorch-Calculator-Update
+del /s /q cache\PyTorch-Calculator-Update.zip
 
 echo.
 echo App Updated
