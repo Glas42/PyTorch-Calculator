@@ -56,7 +56,6 @@ curl -L https://github.com/Glas42/PyTorch-Calculator/archive/refs/heads/main.zip
 powershell -command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath 'cache/PyTorch-Calculator-Update.zip' -DestinationPath 'cache/UpdateCache' -Force"
 for /d %%d in (*) do (
     if not "%%d"=="venv" if not "%%d"=="cache" if not "%%d"=="config" if not "%%d"==".vs" if not "%%d"==".vscode" (
-        echo Deleting folder %%d
         rmdir /s /q "%%d"
     )
 )
