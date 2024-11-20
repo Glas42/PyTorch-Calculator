@@ -21,8 +21,8 @@ import cv2
 def Initialize():
     WindowWidth = settings.Get("UI", "Width", 960)
     WindowHeight = settings.Get("UI", "Height", 540)
-    WindowX = settings.Get("UI", "X", 0)
-    WindowY = settings.Get("UI", "Y", 0)
+    WindowX = settings.Get("UI", "X", 100)
+    WindowY = settings.Get("UI", "Y", 100)
 
     if WindowWidth < 50 or WindowHeight < 50:
         WindowWidth = 700
