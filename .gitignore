@@ -23,7 +23,7 @@
 /train/dataset/final/*.png
 
 # Ignore the models
-/train/models/*
+/train/models/*.pt
 
 # Ignore the tensorboard logs
 /train/tensorboard
