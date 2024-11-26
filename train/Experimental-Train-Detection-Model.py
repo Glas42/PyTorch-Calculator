@@ -23,10 +23,10 @@ PATH = os.path.dirname(__file__).replace("\\", "/") + ("/" if os.path.dirname(__
 DATA_PATH = PATH + "dataset/final/"
 MODEL_PATH = PATH + "models/"
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-NUM_EPOCHS = 50000
+NUM_EPOCHS = 500
 BATCH_SIZE = 100
-LEARNING_RATE = 0.01
-MAX_LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
+MAX_LEARNING_RATE = 0.001
 TRAIN_VAL_RATIO = 0.8
 NUM_WORKERS = 0
 DROPOUT = 0.3
@@ -168,6 +168,7 @@ class NeuralNetwork(nn.Module):
         self.linear3 = nn.Linear(8 * RESOLUTION, 4 * RESOLUTION)
         self.linear4 = nn.Linear(4 * RESOLUTION, 2 * RESOLUTION)
         self.linear5 = nn.Linear(2 * RESOLUTION, CLASSES)
+        self.dropout = nn.Dropout(DROPOUT)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
@@ -176,6 +177,7 @@ class NeuralNetwork(nn.Module):
         x = self.linear3(x)
         x = self.linear4(x)
         x = self.linear5(x)
+        x = self.dropout(x)
         x = self.softmax(x)
         return x
 
