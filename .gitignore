@@ -18,8 +18,9 @@
 /.vs
 
 # Ignore the dataset
-/train/raw_dataset/*
-/train/dataset/*
+/train/dataset/raw/*.txt
+/train/dataset/final/*.txt
+/train/dataset/final/*.png
 
 # Ignore the models
 /train/models/*
