@@ -7,6 +7,7 @@ import itertools
 import threading
 import traceback
 import numpy
+import math
 import time
 import cv2
 
@@ -98,6 +99,27 @@ def Initialize():
     CleanFrame = EmptyFrame.copy()
 
 
+    # To test the experimental new model, put the model in the cache folder for it to use the experimental model
+    import os
+    global MODEL
+    MODEL = None
+    for File in os.listdir(f"{variables.PATH}cache"):
+        if File.endswith(".pt"):
+            global torch, METADATA, RESOLUTION, CLASS_LIST
+            print(PURPLE + "Using experimental model!" + NORMAL)
+            import torch
+            METADATA = {"data": []}
+            MODEL = torch.jit.load(os.path.join(f"{variables.PATH}cache", File), _extra_files=METADATA, map_location="cuda" if torch.cuda.is_available() else "cpu")
+            MODEL.eval()
+            METADATA = eval(METADATA["data"])
+            for Item in METADATA:
+                Item = str(Item)
+                if "resolution" in Item:
+                    RESOLUTION = int(Item.split("#")[1])
+                if "class_list" in Item:
+                    CLASS_LIST = eval(Item.split("#")[1])
+
+
 def ClassifyImage(Image):
     if pytorch.TorchAvailable == False: return None, 0
     while pytorch.Loaded("PyTorch-Calculator") == False and pytorch.TorchAvailable == True: time.sleep(0.1)
@@ -171,6 +193,7 @@ def Update():
                     print(BLUE + "Interpreting combinations..." + NORMAL)
 
                     Images = []
+                    Objects = []
                     Coordinates = []
 
                     for Combination in Combinations:
@@ -193,6 +216,7 @@ def Update():
                                     cv2.line(Image, (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (round((Point[0] - MinX) * Scale + XOffset), round((Point[1] - MinY) * Scale + YOffset)), (255, 255, 255), LineThickness)
                                 LastPoint = Point
                         Images.append(Image)
+                        Objects.append(Combination)
                         Coordinates.append((MinX, MinY, MaxX, MaxY, Combinations.index(Combination)))
 
                     NumRows = int(numpy.ceil(numpy.sqrt(len(Images))))
@@ -205,7 +229,98 @@ def Update():
 
                         for i, Image in enumerate(Images):
                             MinX, MinY, MaxX, MaxY, Index = Coordinates[i]
-                            Class, Confidence = ClassifyImage(Image)
+                            if MODEL == None:
+                                Class, Confidence = ClassifyImage(Image)
+                            else:
+
+                                CanvasContent = Objects[i].copy()
+
+                                MinX = min([Point[0] if len(Point) == 2 else float("inf") for Line in CanvasContent for Point in Line])
+                                MinY = min([Point[1] if len(Point) == 2 else float("inf") for Line in CanvasContent for Point in Line])
+                                MaxX = max([Point[0] if len(Point) == 2 else float("-inf") for Line in CanvasContent for Point in Line])
+                                MaxY = max([Point[1] if len(Point) == 2 else float("-inf") for Line in CanvasContent for Point in Line])
+                                ScaleX = (MaxX - MinX) if MaxX - MinX != 0 else 1e-9
+                                ScaleY = (MaxY - MinY) if MaxY - MinY != 0 else 1e-9
+                                Scale = max(ScaleX, ScaleY)
+                                NewCanvasContent = []
+                                for Line in CanvasContent:
+                                    NewLine = []
+                                    if len(Line[0]) == 4:
+                                        Line = Line[1:]
+                                    for Point in Line:
+                                        X, Y = Point
+                                        X -= MinX
+                                        Y -= MinY
+                                        X = X / Scale
+                                        Y = Y / Scale
+                                        NewLine.append((X, Y))
+                                    NewCanvasContent.append(NewLine)
+                                CanvasContent = NewCanvasContent
+
+
+                                if sum(len(Line) for Line in CanvasContent) <= 2:
+                                    if len(CanvasContent) == 1:
+                                        while sum(len(Line) for Line in CanvasContent) < RESOLUTION:
+                                            CanvasContent[0].insert(1, ((CanvasContent[0][0][0] + CanvasContent[0][-1][0]) / 2, (CanvasContent[0][0][1] + CanvasContent[0][-1][1]) / 2))
+                                    else:
+                                        while sum(len(Line) for Line in CanvasContent) < RESOLUTION:
+                                            for Tempi, Line in enumerate(CanvasContent):
+                                                CanvasContent[0].append((CanvasContent[Tempi][0][0], CanvasContent[Tempi][0][1]))
+
+                                elif sum(len(Line) for Line in CanvasContent) > RESOLUTION:
+                                    while sum(len(Line) for Line in CanvasContent) > RESOLUTION:
+                                        Distances = []
+                                        for Tempi, Line in enumerate(CanvasContent):
+                                            for Tempj, Point in enumerate(Line):
+                                                if 1 <= Tempj <= len(Line) - 2:
+                                                    DistanceToPrevious = math.sqrt((Line[Tempj - 1][0] - Point[0]) ** 2 + (Line[Tempj - 1][1] - Point[1]) ** 2)
+                                                    DistanceToNext = math.sqrt((Line[Tempj + 1][0] - Point[0]) ** 2 + (Line[Tempj + 1][1] - Point[1]) ** 2)
+                                                    Distances.append((DistanceToPrevious + DistanceToNext, Tempi, Tempj))
+                                        _, Tempi, Tempj = min(Distances, key=lambda x: x[0])
+                                        del CanvasContent[Tempi][Tempj]
+
+                                elif sum(len(Line) for Line in CanvasContent) < RESOLUTION:
+                                    while sum(len(Line) for Line in CanvasContent) < RESOLUTION:
+                                        Distances = []
+                                        for Tempi, Line in enumerate(CanvasContent):
+                                            for Tempj, Point in enumerate(Line):
+                                                if 1 <= Tempj <= len(Line) - 2:
+                                                    DistanceToPrevious = math.sqrt((Line[Tempj - 1][0] - Point[0]) ** 2 + (Line[Tempj - 1][1] - Point[1]) ** 2)
+                                                    DistanceToNext = math.sqrt((Line[Tempj + 1][0] - Point[0]) ** 2 + (Line[Tempj + 1][1] - Point[1]) ** 2)
+                                                    Distances.append((DistanceToPrevious + DistanceToNext, Tempi, Tempj))
+                                        _, Tempi, Tempj = max(Distances, key=lambda x: x[0])
+                                        CanvasContent[Tempi].insert(Tempj, ((CanvasContent[Tempi][Tempj - 1][0] + CanvasContent[Tempi][Tempj][0]) / 2, (CanvasContent[Tempi][Tempj - 1][1] + CanvasContent[Tempi][Tempj][1]) / 2))
+
+                                NewCanvasContent = []
+                                for Line in CanvasContent:
+                                    for Point in Line:
+                                        X, Y = Point
+                                        NewCanvasContent.append((X, Y))
+                                CanvasContent = NewCanvasContent
+
+                                CanvasContent.sort(key=lambda x: x[1])
+                                SortedCanvasContent = []
+                                while len(CanvasContent) > 0:
+                                    LowestY = min(CanvasContent, key=lambda x: x[1])
+                                    SortedCanvasContent.extend(sorted([p for p in CanvasContent if p[1] == LowestY[1]], key=lambda x: x[0]))
+                                    CanvasContent = [p for p in CanvasContent if p[1] > LowestY[1]]
+                                CanvasContent = SortedCanvasContent
+
+                                NewCanvasContent = []
+                                for Point in CanvasContent:
+                                    NewCanvasContent.append(Point[0])
+                                    NewCanvasContent.append(Point[1])
+                                CanvasContent = NewCanvasContent
+
+                                Input = torch.as_tensor([CanvasContent], dtype=torch.float32).to("cuda" if torch.cuda.is_available() else "cpu")
+                                with pytorch.torch.no_grad():
+                                    Output = numpy.array(MODEL(Input)[0].tolist())
+                                Confidence = max(Output)
+                                Output = numpy.argmax(Output)
+                                Class = CLASS_LIST[Output] if Confidence > 0.8 else "None"
+
+
+
                             if Class != "None":
                                 CleanContent.append((MinX, MinY, MaxX, MaxY, Index, Class, Confidence))
 

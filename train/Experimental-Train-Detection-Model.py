@@ -23,10 +23,10 @@ PATH = os.path.dirname(__file__).replace("\\", "/") + ("/" if os.path.dirname(__
 DATA_PATH = PATH + "dataset/final/"
 MODEL_PATH = PATH + "models/"
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-NUM_EPOCHS = 500
+NUM_EPOCHS = 5000
 BATCH_SIZE = 100
-LEARNING_RATE = 0.001
-MAX_LEARNING_RATE = 0.001
+LEARNING_RATE = 0.00001
+MAX_LEARNING_RATE = 0.00001
 TRAIN_VAL_RATIO = 0.8
 NUM_WORKERS = 0
 DROPOUT = 0.3
@@ -163,10 +163,10 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
         # input is in the format [(something, something), (something, something), (something, something), ...] of lenght RESOLUTION
-        self.linear1 = nn.Linear(2 * RESOLUTION, 4 * RESOLUTION)
-        self.linear2 = nn.Linear(4 * RESOLUTION, 8 * RESOLUTION)
-        self.linear3 = nn.Linear(8 * RESOLUTION, 4 * RESOLUTION)
-        self.linear4 = nn.Linear(4 * RESOLUTION, 2 * RESOLUTION)
+        self.linear1 = nn.Linear(2 * RESOLUTION, 32 * RESOLUTION)
+        self.linear2 = nn.Linear(32 * RESOLUTION, 64 * RESOLUTION)
+        self.linear3 = nn.Linear(64 * RESOLUTION, 32 * RESOLUTION)
+        self.linear4 = nn.Linear(32 * RESOLUTION, 2 * RESOLUTION)
         self.linear5 = nn.Linear(2 * RESOLUTION, CLASSES)
         self.dropout = nn.Dropout(DROPOUT)
         self.softmax = nn.Softmax(dim=1)
@@ -239,7 +239,7 @@ def main():
     ValDataLoader = DataLoader(ValDataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
 
     Scaler = GradScaler(device=str(DEVICE))
-    Criterion = nn.CrossEntropyLoss()
+    Criterion = nn.MSELoss()
     Optimizer = optim.Adam(Model.parameters(), lr=LEARNING_RATE)
     Scheduler = lr_scheduler.OneCycleLR(Optimizer, max_lr=MAX_LEARNING_RATE, steps_per_epoch=len(TrainDataLoader), epochs=NUM_EPOCHS)
 

@@ -10,7 +10,7 @@ PATH += "/" if PATH[-1] != "/" else ""
 SRC_DATA_FOLDER = PATH + "dataset/raw/"
 DST_DATA_FOLDER = PATH + "dataset/final/"
 
-RESOLUTION = 500
+RESOLUTION = 50
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -74,6 +74,9 @@ for File in os.listdir(SRC_DATA_FOLDER):
                 MinY = min([Point[1] if len(Point) == 2 else float("inf") for Line in CanvasContent for Point in Line])
                 MaxX = max([Point[0] if len(Point) == 2 else float("-inf") for Line in CanvasContent for Point in Line])
                 MaxY = max([Point[1] if len(Point) == 2 else float("-inf") for Line in CanvasContent for Point in Line])
+                ScaleX = (MaxX - MinX) if MaxX - MinX != 0 else 1e-9
+                ScaleY = (MaxY - MinY) if MaxY - MinY != 0 else 1e-9
+                Scale = max(ScaleX, ScaleY)
                 NewCanvasContent = []
                 for Line in CanvasContent:
                     NewLine = []
@@ -83,19 +86,28 @@ for File in os.listdir(SRC_DATA_FOLDER):
                         X, Y = Point
                         X -= MinX
                         Y -= MinY
-                        X = X / (MaxX - MinX)
-                        Y = Y / (MaxY - MinY)
+                        X = X / Scale
+                        Y = Y / Scale
                         NewLine.append((X, Y))
                     NewCanvasContent.append(NewLine)
                 CanvasContent = NewCanvasContent
 
 
-                if sum(len(Line) for Line in CanvasContent) > RESOLUTION:
+                if sum(len(Line) for Line in CanvasContent) <= 2:
+                    if len(CanvasContent) == 1:
+                        while sum(len(Line) for Line in CanvasContent) < RESOLUTION:
+                            CanvasContent[0].insert(1, ((CanvasContent[0][0][0] + CanvasContent[0][-1][0]) / 2, (CanvasContent[0][0][1] + CanvasContent[0][-1][1]) / 2))
+                    else:
+                        while sum(len(Line) for Line in CanvasContent) < RESOLUTION:
+                            for i, Line in enumerate(CanvasContent):
+                                CanvasContent[0].append((CanvasContent[i][0][0], CanvasContent[i][0][1]))
+
+                elif sum(len(Line) for Line in CanvasContent) > RESOLUTION:
                     while sum(len(Line) for Line in CanvasContent) > RESOLUTION:
                         Distances = []
                         for i, Line in enumerate(CanvasContent):
                             for j, Point in enumerate(Line):
-                                if 0 < j < len(Line) - 2:
+                                if 1 <= j <= len(Line) - 2:
                                     DistanceToPrevious = math.sqrt((Line[j - 1][0] - Point[0]) ** 2 + (Line[j - 1][1] - Point[1]) ** 2)
                                     DistanceToNext = math.sqrt((Line[j + 1][0] - Point[0]) ** 2 + (Line[j + 1][1] - Point[1]) ** 2)
                                     Distances.append((DistanceToPrevious + DistanceToNext, i, j))
@@ -107,7 +119,7 @@ for File in os.listdir(SRC_DATA_FOLDER):
                         Distances = []
                         for i, Line in enumerate(CanvasContent):
                             for j, Point in enumerate(Line):
-                                if 0 < j < len(Line) - 2:
+                                if 1 <= j <= len(Line) - 2:
                                     DistanceToPrevious = math.sqrt((Line[j - 1][0] - Point[0]) ** 2 + (Line[j - 1][1] - Point[1]) ** 2)
                                     DistanceToNext = math.sqrt((Line[j + 1][0] - Point[0]) ** 2 + (Line[j + 1][1] - Point[1]) ** 2)
                                     Distances.append((DistanceToPrevious + DistanceToNext, i, j))
