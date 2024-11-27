@@ -162,12 +162,11 @@ else:
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
-        # input is in the format [(something, something), (something, something), (something, something), ...] of lenght RESOLUTION
-        self.linear1 = nn.Linear(2 * RESOLUTION, 32 * RESOLUTION)
-        self.linear2 = nn.Linear(32 * RESOLUTION, 64 * RESOLUTION)
-        self.linear3 = nn.Linear(64 * RESOLUTION, 32 * RESOLUTION)
-        self.linear4 = nn.Linear(32 * RESOLUTION, 2 * RESOLUTION)
-        self.linear5 = nn.Linear(2 * RESOLUTION, CLASSES)
+        self.linear1 = nn.Linear(2 * RESOLUTION, 32 * RESOLUTION, bias=False)
+        self.linear2 = nn.Linear(32 * RESOLUTION, 64 * RESOLUTION, bias=False)
+        self.linear3 = nn.Linear(64 * RESOLUTION, 32 * RESOLUTION, bias=False)
+        self.linear4 = nn.Linear(32 * RESOLUTION, 2 * RESOLUTION, bias=False)
+        self.linear5 = nn.Linear(2 * RESOLUTION, CLASSES, bias=False)
         self.dropout = nn.Dropout(DROPOUT)
         self.softmax = nn.Softmax(dim=1)
 
@@ -239,7 +238,7 @@ def main():
     ValDataLoader = DataLoader(ValDataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
 
     Scaler = GradScaler(device=str(DEVICE))
-    Criterion = nn.MSELoss()
+    Criterion = nn.CrossEntropyLoss()
     Optimizer = optim.Adam(Model.parameters(), lr=LEARNING_RATE)
     Scheduler = lr_scheduler.OneCycleLR(Optimizer, max_lr=MAX_LEARNING_RATE, steps_per_epoch=len(TrainDataLoader), epochs=NUM_EPOCHS)
 
