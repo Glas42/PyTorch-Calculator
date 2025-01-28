@@ -341,7 +341,7 @@ def Update():
             "Type": "Switch",
             "Text": "Smooth Lines",
             "State": variables.SMOOTH_LINES,
-            "Function": lambda: {setattr(variables, "SMOOTH_LINES", not variables.SMOOTH_LINES), print("hello from func"), setattr(variables, "RENDER_FRAME", True)},
+            "Function": lambda: {setattr(variables, "SMOOTH_LINES", not variables.SMOOTH_LINES), setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
             "Y1": 11,
             "X2": variables.CANVAS_RIGHT - 10,
