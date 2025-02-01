@@ -21,7 +21,7 @@ import torch
 import time
 import cv2
 
-PATH = os.path.dirname(__file__).replace("\\", "/") + ("/" if os.path.dirname(__file__).replace("\\", "/")[-1] != "/" else "")
+PATH = os.path.dirname(os.path.dirname(__file__)).replace("\\", "/") + ("/" if os.path.dirname(__file__).replace("\\", "/")[-1] != "/" else "")
 DATA_PATH = PATH + "dataset/final/"
 MODEL_PATH = PATH + "models/"
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -1,10 +1,9 @@
-import random
 import numpy
 import cv2
 import sys
 import os
 
-PATH = os.path.dirname(__file__).replace("\\", "/")
+PATH = os.path.dirname(os.path.dirname(__file__)).replace("\\", "/")
 PATH += "/" if PATH[-1] != "/" else ""
 SRC_DATA_FOLDER = PATH + "dataset/raw/"
 DST_DATA_FOLDER = PATH + "dataset/final/"
