@@ -59,7 +59,7 @@ for File in os.listdir(f"{DATA_FOLDER}"):
                 AMOUNT[CLASSES.index(Class)] += 1
             except:
                 print(f"Error reading file: {File}")
-    else:
+    elif File.endswith(".md") == False:
         os.remove(f"{DATA_FOLDER}{File}")
 
 print("Starting with the following dataset:")
@@ -455,30 +455,9 @@ while True:
           Y2=WINDOW_HEIGHT - 85 - SIDEBAR)
 
     Changed, Pressed, Hovered = Button(Text="Continue",
-                                       X1=CanvasFrame.shape[1] + (WINDOW_WIDTH - CanvasFrame.shape[1]) / 3 + 2.5,
-                                       Y1=WINDOW_HEIGHT - 50,
-                                       X2=WINDOW_WIDTH - 5,
-                                       Y2=WINDOW_HEIGHT - 5)
-
-    if Changed:
-        if len(CANVAS_CONTENT) > 0:
-            if os.path.exists(f"{DATA_FOLDER}") == False:
-                os.mkdir(f"{DATA_FOLDER}")
-            Name = len(os.listdir(DATA_FOLDER)) + 1
-            while os.path.exists(f"{DATA_FOLDER}{Name}.txt"):
-                Name += 1
-            with open(f"{DATA_FOLDER}{Name}.txt", "w") as F:
-                F.write(f"{CurrentClass}###{CurrentClassIndex}###{CANVAS_CONTENT}")
-            CANVAS_CONTENT = []
-            CANVAS_TEMP = []
-            CANVAS_DELETE_LIST = []
-            AMOUNT[CurrentClassIndex] += 1
-            NoneExample = random.sample([Item for Item in CLASSES if Item != "None"], random.randint(2, 4))
-
-    Changed, Pressed, Hovered = Button(Text="Back",
                                        X1=CanvasFrame.shape[1] + 5,
                                        Y1=WINDOW_HEIGHT - 50,
-                                       X2=CanvasFrame.shape[1] + (WINDOW_WIDTH - CanvasFrame.shape[1]) / 3 - 2.5,
+                                       X2=WINDOW_WIDTH - 5,
                                        Y2=WINDOW_HEIGHT - 5)
 
     if Changed:
