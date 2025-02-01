@@ -6,12 +6,13 @@ import pynput
 import random
 import mouse
 import numpy
+import math
 import time
 import cv2
 import os
 
 
-PATH = os.path.dirname(__file__).replace("\\", "/")
+PATH = os.path.dirname(os.path.dirname(__file__)).replace("\\", "/")
 if PATH[-1] != "/":
     PATH += "/"
 
@@ -286,7 +287,7 @@ def Button(Text="NONE", X1=0, Y1=0, X2=100, Y2=100, Fontsize=FONT_SIZE, RoundCor
         return False, False, False
 
 
-SimpleWindow.Initialize(Name=WINDOWNAME, Size=(WINDOW_WIDTH, WINDOW_HEIGHT), Position=(WINDOW_X, WINDOW_Y), TitleBarColor=BACKGROUND_COLOR, Resizable=True, Icon=f"{PATH}icon.ico")
+SimpleWindow.Initialize(Name=WINDOWNAME, Size=(WINDOW_WIDTH, WINDOW_HEIGHT), Position=(WINDOW_X, WINDOW_Y), TitleBarColor=BACKGROUND_COLOR, Resizable=True, Icon=f"{PATH}assets/icon.ico")
 
 LastLeftClicked = False
 LastRightClicked = False
@@ -345,8 +346,8 @@ while True:
         CanvasFrame = CANVAS.copy()
         if CANVAS_SHOW_GRID == True:
             GridSize = 50
-            GridWidth = round(CanvasFrame.shape[1] / (GridSize * CANVAS_ZOOM))
-            GridHeight = round(CanvasFrame.shape[0] / (GridSize * CANVAS_ZOOM))
+            GridWidth = math.ceil(CanvasFrame.shape[1] / (GridSize * CANVAS_ZOOM))
+            GridHeight = math.ceil(CanvasFrame.shape[0] / (GridSize * CANVAS_ZOOM))
             if CANVAS_ZOOM > 0.05:
                 if CANVAS_LINE_GRID == True:
                     for X in range(0, GridWidth):
@@ -454,9 +455,30 @@ while True:
           Y2=WINDOW_HEIGHT - 85 - SIDEBAR)
 
     Changed, Pressed, Hovered = Button(Text="Continue",
-                                       X1=CanvasFrame.shape[1] + 5,
+                                       X1=CanvasFrame.shape[1] + (WINDOW_WIDTH - CanvasFrame.shape[1]) / 3 + 2.5,
                                        Y1=WINDOW_HEIGHT - 50,
                                        X2=WINDOW_WIDTH - 5,
+                                       Y2=WINDOW_HEIGHT - 5)
+
+    if Changed:
+        if len(CANVAS_CONTENT) > 0:
+            if os.path.exists(f"{DATA_FOLDER}") == False:
+                os.mkdir(f"{DATA_FOLDER}")
+            Name = len(os.listdir(DATA_FOLDER)) + 1
+            while os.path.exists(f"{DATA_FOLDER}{Name}.txt"):
+                Name += 1
+            with open(f"{DATA_FOLDER}{Name}.txt", "w") as F:
+                F.write(f"{CurrentClass}###{CurrentClassIndex}###{CANVAS_CONTENT}")
+            CANVAS_CONTENT = []
+            CANVAS_TEMP = []
+            CANVAS_DELETE_LIST = []
+            AMOUNT[CurrentClassIndex] += 1
+            NoneExample = random.sample([Item for Item in CLASSES if Item != "None"], random.randint(2, 4))
+
+    Changed, Pressed, Hovered = Button(Text="Back",
+                                       X1=CanvasFrame.shape[1] + 5,
+                                       Y1=WINDOW_HEIGHT - 50,
+                                       X2=CanvasFrame.shape[1] + (WINDOW_WIDTH - CanvasFrame.shape[1]) / 3 - 2.5,
                                        Y2=WINDOW_HEIGHT - 5)
 
     if Changed:

@@ -2,6 +2,7 @@ from src.crashreport import CrashReport
 import src.variables as variables
 import traceback
 import numpy
+import math
 import cv2
 
 LastContent = None
@@ -31,8 +32,8 @@ def Update():
             CANVAS_ZOOM = variables.CANVAS_ZOOM
             if variables.CANVAS_SHOW_GRID == True:
                 GridSize = 50
-                GridWidth = round(Frame.shape[1] / (GridSize * CANVAS_ZOOM))
-                GridHeight = round(Frame.shape[0] / (GridSize * CANVAS_ZOOM))
+                GridWidth = math.ceil(Frame.shape[1] / (GridSize * CANVAS_ZOOM))
+                GridHeight = math.ceil(Frame.shape[0] / (GridSize * CANVAS_ZOOM))
                 if CANVAS_ZOOM > 0.05:
                     if variables.CANVAS_LINE_GRID == True:
                         for X in range(0, GridWidth):

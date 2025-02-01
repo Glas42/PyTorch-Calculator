@@ -1,4 +1,4 @@
 @echo off
 cd %~dp0
-python Dataset-Creator.py
+python scripts/Dataset-Creator.py
 pause

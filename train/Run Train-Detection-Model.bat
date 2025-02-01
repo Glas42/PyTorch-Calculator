@@ -1,4 +1,4 @@
 @echo off
 cd %~dp0
-python Train-Detection-Model.py
+python scripts/Train-Detection-Model.py
 pause
