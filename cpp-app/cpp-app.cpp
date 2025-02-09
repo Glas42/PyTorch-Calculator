@@ -18,7 +18,7 @@ int main() {
 	//PyTorch::LoadExampleModel();
 
 	//PyTorch::ExampleTensor();
-	//PyTorch::Initialize("Glas42", "PyTorch-Calculator", true);
+	//PyTorch::Initialize("OleFranz", "PyTorch-Calculator", true);
 	//PyTorch::Loaded("PyTorch-Calculator");
 
     SimpleWindow::Initialize(Variables::NAME, std::make_tuple(700, 400), std::make_tuple(100, 100), std::make_tuple(Variables::TAB_BAR_COLOR[0], Variables::TAB_BAR_COLOR[1], Variables::TAB_BAR_COLOR[2]), true, false, false, Variables::PATH + "app/assets/" + Variables::THEME == "Dark" ? "icon_dark.ico" : "icon_light.ico");

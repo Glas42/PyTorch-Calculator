@@ -1,2 +1,3 @@
-- Improved the analyzer by a lot
-(Rules applied, so a '=' is displayed not as '-', '-' and '=' anymore but only as '=')
+0.8: - Improved the analyzer by a lot
+0.8: (Rules applied, so a '=' is displayed not as '-', '-' and '=' anymore but only as '=')
+0.9: GitHub profile name changed

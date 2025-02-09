@@ -37,7 +37,7 @@ def Initialize():
 
     SimpleWindow.Initialize(Name="PyTorch-Calculator Detection", Size=(400, 400), Position=(variables.X + variables.WIDTH + 5, variables.Y), Resizable=False, TopMost=False, Undestroyable=False, Icon=f"{variables.PATH}app/assets/{'icon_dark' if variables.THEME == 'Dark' else 'icon_light'}.ico")
 
-    pytorch.Initialize(Owner="Glas42", Model="PyTorch-Calculator")
+    pytorch.Initialize(Owner="OleFranz", Model="PyTorch-Calculator")
     pytorch.Load("PyTorch-Calculator")
 
 

@@ -15,8 +15,8 @@ def CheckForUpdates():
             return
         if settings.Get("Updater", "LastRemoteCheck", 0) + 600 < time.time():
             try:
-                RemoteVersion = requests.get("https://raw.githubusercontent.com/Glas42/PyTorch-Calculator/main/config/version.txt").text.strip()
-                Changelog = requests.get("https://raw.githubusercontent.com/Glas42/PyTorch-Calculator/main/config/changelog.txt").text.strip()
+                RemoteVersion = requests.get("https://raw.githubusercontent.com/OleFranz/PyTorch-Calculator/main/config/version.txt").text.strip()
+                Changelog = requests.get("https://raw.githubusercontent.com/OleFranz/PyTorch-Calculator/main/config/changelog.txt").text.strip()
             except:
                 RemoteVersion = "404: Not Found"
                 Changelog = "404: Not Found"
