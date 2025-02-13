@@ -24,7 +24,7 @@ where curl >nul 2>&1
 if %errorlevel% equ 0 (
     curl -s -o "%PythonSavePath%" "%PythonUrl%" >nul 2>&1
 ) else (
-    powershell -Command "$wc = New-Object System.Net.WebClient; $wc.DownloadFile('%PythonUrl%', '%PythonSavePath%')"
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('%PythonUrl%', '%PythonSavePath%')"
 )
 
 
@@ -38,10 +38,10 @@ if exist "%PythonExtractPath%" (
 )
 
 mkdir "%PythonExtractPath%" >nul 2>&1
-powershell -Command "Expand-Archive -Path '%PythonZipPath%' -DestinationPath '%PythonExtractPath%' -Force"
+powershell -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path '%PythonZipPath%' -DestinationPath '%PythonExtractPath%' -Force"
 
 
-echo Getting pip...
+echo Installing pip...
 
 set "PipUrl=https://bootstrap.pypa.io/get-pip.py"
 set "PipSavePath=%PythonExtractPath%\get-pip.py"
@@ -50,7 +50,7 @@ where curl >nul 2>&1
 if %errorlevel% equ 0 (
     curl -s -o "%PipSavePath%" "%PipUrl%" >nul 2>&1
 ) else (
-    powershell -Command "$wc = New-Object System.Net.WebClient; $wc.DownloadFile('%PipUrl%', '%PipSavePath%')"
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; $wc = New-Object System.Net.WebClient; $wc.DownloadFile('%PipUrl%', '%PipSavePath%')"
 )
 
 "%PythonExtractPath%\python.exe" "%PipSavePath%" >nul 2>&1
@@ -62,7 +62,7 @@ set "PthFilePath=%PythonExtractPath%\python311._pth"
 
 if exist "%PthFilePath%" (
     echo Lib\site-packages >> "%PthFilePath%"
-    powershell -Command "(gc '%PthFilePath%') -replace '#import site','import site' | Out-File -encoding ASCII '%PthFilePath%'"
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; (gc '%PthFilePath%') -replace '#import site','import site' | Out-File -encoding ASCII '%PthFilePath%'"
 ) else (
     echo ERROR: File not found: %PthFilePath%
     pause

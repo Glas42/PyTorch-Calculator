@@ -2,10 +2,11 @@ from src.crashreport import CrashReport
 import src.variables as variables
 import src.settings as settings
 
-from tkinter import filedialog
 import SimpleWindow
 import threading
 import traceback
+import win32con
+import win32gui
 import time
 import os
 
@@ -71,6 +72,7 @@ def New():
                 while SAVING or OPENING:
                     time.sleep(0.1)
                 print(GREEN + "Creating new file..." + NORMAL)
+                variables.FILE_PATH = ""
                 variables.POPUP = ["Creating new file...", -1, 0.5]
                 variables.CANVAS_POSITION = variables.WIDTH // 2, variables.HEIGHT // 2
                 variables.CANVAS_ZOOM = 1
@@ -107,29 +109,40 @@ def New():
 
 def Save(Path=""):
     try:
-        def SaveThread():
+        def SaveThread(Path=""):
             global SAVING
             try:
                 print(GREEN + "Saving file..." + NORMAL)
                 variables.POPUP = ["Saving file...", -1, 0.5]
                 if Path == "":
                     MovePathPopup(Title="Select a path to save to")
-                    variables.FILE_PATH = filedialog.asksaveasfilename(initialdir=settings.Get("File", "LastDirectory", os.path.dirname(os.path.dirname(variables.PATH))), title="Select a path to save to", filetypes=((".txt","*.txt"), ("all files","*.*")))
-                else:
-                    variables.FILE_PATH = Path
-                if variables.FILE_PATH == "":
+                    try:
+                        variables.FILE_PATH, _, _ = win32gui.GetSaveFileNameW(
+                            InitialDir=settings.Get("File", "LastDirectory", os.path.dirname(os.path.dirname(variables.PATH))),
+                            Flags=win32con.OFN_OVERWRITEPROMPT | win32con.OFN_EXPLORER,
+                            DefExt="txt",
+                            Title="Select a path to save to",
+                            Filter="PyTorch-Calculator Text Files\0*.txt\0"
+                        )
+                        Path = variables.FILE_PATH
+                    except win32gui.error:
+                        print(RED + "File not saved!\n" + NORMAL)
+                        variables.POPUP = ["File not saved!", 0, 0.5]
+                        SAVING = False
+                        return
+                if Path == "":
                     print(RED + "File not saved!\n" + NORMAL)
                     variables.POPUP = ["File not saved!", 0, 0.5]
                     SAVING = False
                     return
-                if variables.FILE_PATH.endswith(".txt") == False:
-                    variables.FILE_PATH += ".txt"
-                if os.path.exists(os.path.dirname(variables.FILE_PATH)) == False:
-                    os.makedirs(os.path.dirname(variables.FILE_PATH))
-                if f"{variables.PATH}cache" not in variables.FILE_PATH:
-                    settings.Set("File", "LastDirectory", os.path.dirname(variables.FILE_PATH))
-                print(GRAY + f"-> {variables.FILE_PATH}" + NORMAL)
-                with open(variables.FILE_PATH, "w") as F:
+                if Path.endswith(".txt") == False:
+                    Path += ".txt"
+                if os.path.exists(os.path.dirname(Path)) == False:
+                    os.makedirs(os.path.dirname(Path))
+                if f"{variables.PATH}cache" not in Path:
+                    settings.Set("File", "LastDirectory", os.path.dirname(Path))
+                print(GRAY + f"-> {Path}" + NORMAL)
+                with open(Path, "w") as F:
                     F.write(f"""
                         CANVAS_POSITION#{variables.CANVAS_POSITION}###
                         CANVAS_ZOOM#{variables.CANVAS_ZOOM}###
@@ -146,7 +159,7 @@ def Save(Path=""):
                         CANVAS_DELETE_LIST#{variables.CANVAS_DELETE_LIST}
                     """.replace(" ", "").replace("\n", ""))
                 print(GREEN + "File saved successfully!\n" + NORMAL)
-                if f"{variables.PATH}cache" not in variables.FILE_PATH:
+                if f"{variables.PATH}cache" not in Path:
                     variables.POPUP = ["File saved successfully!", 0, 0.5]
                 else:
                     variables.POPUP = POPUP = [None, 0, 0.5]
@@ -157,32 +170,43 @@ def Save(Path=""):
             SAVING = False
         global SAVING
         SAVING = True
-        threading.Thread(target=SaveThread, daemon=True).start()
+        threading.Thread(target=SaveThread, args=(Path,), daemon=True).start()
     except:
         CrashReport("File - Error in function Save.", str(traceback.format_exc()))
 
 
 def Open(Path=""):
     try:
-        def OpenThread():
+        def OpenThread(Path=""):
             global OPENING
             try:
                 print(GREEN + "Opening file..." + NORMAL)
                 variables.POPUP = ["Opening file...", -1, 0.5]
                 if Path == "" or os.path.exists(Path) == False:
                     MovePathPopup(Title="Select a text file to open")
-                    variables.FILE_PATH = filedialog.askopenfilename(initialdir=settings.Get("File", "LastDirectory", os.path.dirname(os.path.dirname(variables.PATH))), title="Select a text file to open", filetypes=((".txt","*.txt"), ("all files","*.*")))
-                else:
-                    variables.FILE_PATH = Path
-                if variables.FILE_PATH == "" or os.path.exists(variables.FILE_PATH) == False:
+                    try:
+                        variables.FILE_PATH, _, _ = win32gui.GetOpenFileNameW(
+                            InitialDir=settings.Get("File", "LastDirectory", os.path.dirname(os.path.dirname(variables.PATH))),
+                            Flags=win32con.OFN_OVERWRITEPROMPT | win32con.OFN_EXPLORER,
+                            DefExt="txt",
+                            Title="Select a text file to open",
+                            Filter="PyTorch-Calculator Text Files\0*.txt\0"
+                        )
+                        Path = variables.FILE_PATH
+                    except win32gui.error:
+                        print(RED + "File not opened!\n" + NORMAL)
+                        variables.POPUP = ["File not opened!", 0, 0.5]
+                        OPENING = False
+                        return
+                if Path == "" or os.path.exists(Path) == False:
                     print(RED + "File not opened!\n" + NORMAL)
                     variables.POPUP = ["File not opened!", 0, 0.5]
                     OPENING = False
                     return
-                if f"{variables.PATH}cache" not in variables.FILE_PATH:
-                    settings.Set("File", "LastDirectory", os.path.dirname(variables.FILE_PATH))
-                print(GRAY + f"-> {variables.FILE_PATH}" + NORMAL)
-                with open(variables.FILE_PATH, "r") as F:
+                if f"{variables.PATH}cache" not in Path:
+                    settings.Set("File", "LastDirectory", os.path.dirname(Path))
+                print(GRAY + f"-> {Path}" + NORMAL)
+                with open(Path, "r") as F:
                     Content = str(F.read()).replace("\n", "").replace(" ", "")
                     for Item in Content.split("###"):
                         Key, Value = Item.split("#")
@@ -190,7 +214,7 @@ def Open(Path=""):
                 variables.DROPDOWNS = {}
                 variables.SWITCHES = {}
                 print(GREEN + "File opened successfully!\n" + NORMAL)
-                if f"{variables.PATH}cache" not in variables.FILE_PATH:
+                if f"{variables.PATH}cache" not in Path:
                     variables.POPUP = ["File opened successfully!", 0, 0.5]
                 else:
                     variables.POPUP = POPUP = [None, 0, 0.5]
@@ -201,6 +225,6 @@ def Open(Path=""):
             OPENING = False
         global OPENING
         OPENING = True
-        threading.Thread(target=OpenThread, daemon=True).start()
+        threading.Thread(target=OpenThread, args=(Path,), daemon=True).start()
     except:
         CrashReport("File - Error in function Open.", str(traceback.format_exc()))
