@@ -43,6 +43,8 @@ def Initialize(Owner="", Model="", Threaded=True):
 
 def InstallCUDA():
     try:
+        print("InstallCUDA() - Feature currently disabled.")
+        return
         def InstallCUDAThread():
             try:
                 Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--index-url", "https://download.pytorch.org/whl/cu124", "--progress-bar", "raw", "--force-reinstall"]
@@ -87,6 +89,8 @@ def InstallCUDA():
 
 def UninstallCUDA():
     try:
+        print("UninstallCUDA() - Feature currently disabled.")
+        return
         def UninstallCUDAThread():
             try:
                 Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--progress-bar", "raw", "--force-reinstall"]
@@ -131,6 +135,8 @@ def UninstallCUDA():
 
 def CheckCuda():
     try:
+        print("CheckCuda() - Feature currently disabled.")
+        return
         variables.CUDA_INSTALLED = "Loading..."
         variables.CUDA_AVAILABLE = "Loading..."
         variables.CUDA_COMPATIBLE = "Loading..."

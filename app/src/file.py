@@ -89,13 +89,13 @@ def New():
                 variables.CANVAS_DELETE_LIST = []
                 variables.DROPDOWNS = {}
                 variables.SWITCHES = {}
-                print(GRAY + f"-> Show Grid: {variables.CANVAS_SHOW_GRID}" + NORMAL)
-                print(GRAY + f"-> Line Grid: {variables.CANVAS_LINE_GRID}" + NORMAL)
+                print(GRAY + f"-> Show grid: {variables.CANVAS_SHOW_GRID}" + NORMAL)
+                print(GRAY + f"-> Line grid: {variables.CANVAS_LINE_GRID}" + NORMAL)
                 print(GRAY + f"-> Color: {variables.DRAW_COLOR}" + NORMAL)
-                print(GRAY + f"-> Smooth Lines: {variables.SMOOTH_LINES}" + NORMAL)
-                print(GRAY + f"-> Upscale Lines: {variables.UPSCALE_LINES}" + NORMAL)
-                print(GRAY + f"-> Anti-Aliasing Lines: {variables.ANTI_ALIASING_LINES}" + NORMAL)
-                print(GRAY + f"-> Smooth Interpolation: {variables.SMOOTH_INTERPOLATION}" + NORMAL)
+                print(GRAY + f"-> Smooth lines: {variables.SMOOTH_LINES}" + NORMAL)
+                print(GRAY + f"-> Upscale lines: {variables.UPSCALE_LINES}" + NORMAL)
+                print(GRAY + f"-> Anti-aliased lines: {variables.ANTI_ALIASING_LINES}" + NORMAL)
+                print(GRAY + f"-> Smooth interpolation: {variables.SMOOTH_INTERPOLATION}" + NORMAL)
                 print(GREEN + "Created new file successfully!\n" + NORMAL)
                 variables.POPUP = ["Created new file successfully!", 0, 0.5]
                 variables.PAGE = "Canvas"

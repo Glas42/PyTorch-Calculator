@@ -198,7 +198,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Button",
-            "Text": "Don't Update",
+            "Text": "Don't update",
             "Function": lambda: {SetTitleBarHeight(50), setattr(variables, "PAGE", "Canvas")},
             "X1": 10,
             "Y1": variables.CANVAS_BOTTOM - 60,
@@ -339,7 +339,7 @@ def Update():
     if variables.PAGE == "File":
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Smooth Lines",
+            "Text": "Smooth lines",
             "State": variables.SMOOTH_LINES,
             "Function": lambda: {setattr(variables, "SMOOTH_LINES", not variables.SMOOTH_LINES), setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -349,7 +349,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Upscale Lines",
+            "Text": "Upscale lines",
             "State": variables.UPSCALE_LINES,
             "Function": lambda: {setattr(variables, "UPSCALE_LINES", not variables.UPSCALE_LINES), setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -359,7 +359,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Anti-Aliasing Lines",
+            "Text": "Anti-aliased lines",
             "State": variables.ANTI_ALIASING_LINES,
             "Function": lambda: {setattr(variables, "ANTI_ALIASING_LINES", not variables.ANTI_ALIASING_LINES), setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -369,7 +369,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Smooth Interpolation",
+            "Text": "Smooth interpolation",
             "State": variables.SMOOTH_INTERPOLATION,
             "Function": lambda: {setattr(variables, "SMOOTH_INTERPOLATION", not variables.SMOOTH_INTERPOLATION), setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -416,7 +416,7 @@ def Update():
     if variables.PAGE == "Settings":
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Hide Console",
+            "Text": "Hide console",
             "Setting": ("Console", "HideConsole", False),
             "Function": lambda: {console.HideConsole() if settings.Get("Console", "HideConsole", False) else console.RestoreConsole()},
             "X1": 10,
@@ -426,7 +426,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Button",
-            "Text": "Check Cuda (GPU) Support",
+            "Text": "Check CUDA (GPU) support",
             "Function": lambda: {pytorch.CheckCuda(), setattr(variables, "PAGE", "CUDA")},
             "X1": 10,
             "Y1": 41,
@@ -435,7 +435,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Button",
-            "Text": "Restart App in Dev Mode" if variables.DEVMODE == False else "Restart App in Normal Mode",
+            "Text": "Restart app in development mode" if variables.DEVMODE == False else "Restart app in normal mode",
             "Function": lambda: {
                 file.Save(Path=f"{variables.PATH}cache/LastSession.txt"),
                 subprocess.Popen(f"{variables.PATH}Start.bat --dev {variables.PATH}cache/LastSession.txt" if variables.DEVMODE == False else f"{variables.PATH}Start.bat {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE),
@@ -479,7 +479,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Smooth Lines",
+            "Text": "Smooth lines",
             "Setting": ("Draw", "SmoothLines", False),
             "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -489,7 +489,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Upscale Lines",
+            "Text": "Upscale lines",
             "Setting": ("Draw", "UpscaleLines", True),
             "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -499,7 +499,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Anti-Aliasing Lines",
+            "Text": "Anti-aliased lines",
             "Setting": ("Draw", "AntiAliasingLines", True),
             "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -509,7 +509,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Switch",
-            "Text": "Smooth Interpolation",
+            "Text": "Smooth interpolation",
             "Setting": ("Draw", "SmoothInterpolation", False),
             "Function": lambda: {setattr(variables, "RENDER_FRAME", True)},
             "X1": 10,
@@ -519,7 +519,7 @@ def Update():
 
         variables.ITEMS.append({
             "Type": "Button",
-            "Text": "Apply Global Canvas Settings to Current File",
+            "Text": "Apply global canvas settings to current file",
             "Function": lambda: {
                 setattr(variables, "SMOOTH_LINES", settings.Get("Draw", "SmoothLines", False)),
                 setattr(variables, "UPSCALE_LINES", settings.Get("Draw", "UpscaleLines", True)),
