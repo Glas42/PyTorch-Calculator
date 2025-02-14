@@ -4,11 +4,11 @@
 # Ignore the python installation
 /python
 
-# Ignore the settings
-/config/settings.json
-
 # Ignore the cache
 /cache
+
+# Ignore the settings
+/config/settings.json
 
 # Ignore the C++ app builds and VS files
 /cpp-app/build
@@ -18,9 +18,9 @@
 /.vs
 
 # Ignore the dataset
-/train/dataset/raw/*.txt
 /train/dataset/final/*.txt
 /train/dataset/final/*.png
+/train/dataset/raw/*.txt
 
 # Ignore the models
 /train/models/*.pt
