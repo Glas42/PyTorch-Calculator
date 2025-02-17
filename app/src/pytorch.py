@@ -43,11 +43,9 @@ def Initialize(Owner="", Model="", Threaded=True):
 
 def InstallCUDA():
     try:
-        print("InstallCUDA() - Feature currently disabled.")
-        return
         def InstallCUDAThread():
             try:
-                Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--index-url", "https://download.pytorch.org/whl/cu124", "--progress-bar", "raw", "--force-reinstall"]
+                Command = ["cmd", "/c", f"{variables.PATH}python/python.exe -m pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124 --progress-bar raw --force-reinstall"]
                 Process = subprocess.Popen(Command, cwd=variables.PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 with open(LOCK_FILE_PATH, "w") as f:
                     f.write(str(Process.pid))
@@ -89,11 +87,9 @@ def InstallCUDA():
 
 def UninstallCUDA():
     try:
-        print("UninstallCUDA() - Feature currently disabled.")
-        return
         def UninstallCUDAThread():
             try:
-                Command = ["cmd", "/c", "cd", variables.PATH + "venv/Scripts", "&&", ".\\activate.bat", "&&", "cd", variables.PATH, "&&", "pip", "install", "torch", "torchvision", "torchaudio", "--progress-bar", "raw", "--force-reinstall"]
+                Command = ["cmd", "/c", f"{variables.PATH}python/python.exe -m pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --progress-bar raw --force-reinstall"]
                 Process = subprocess.Popen(Command, cwd=variables.PATH, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 with open(LOCK_FILE_PATH, "w") as f:
                     f.write(str(Process.pid))
@@ -135,15 +131,13 @@ def UninstallCUDA():
 
 def CheckCuda():
     try:
-        print("CheckCuda() - Feature currently disabled.")
-        return
         variables.CUDA_INSTALLED = "Loading..."
         variables.CUDA_AVAILABLE = "Loading..."
         variables.CUDA_COMPATIBLE = "Loading..."
         variables.CUDA_DETAILS = "Loading..."
         def CheckCudaThread():
             try:
-                Result = subprocess.run("cd " + variables.PATH + "venv/Scripts & .\\activate.bat & cd " + variables.PATH + " & pip list", shell=True, capture_output=True, text=True)
+                Result = subprocess.run(f"{variables.PATH}python/python.exe -m pip list", shell=True, capture_output=True, text=True)
                 Modules = Result.stdout
                 CUDA_INSTALLED = True
                 PYTORCH_MODULES = []

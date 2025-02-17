@@ -76,7 +76,7 @@ def Resize(WindowX, WindowY, WindowWidth, WindowHeight):
 def Restart():
     file.Save(Path=f"{variables.PATH}cache/LastSession.txt")
     if variables.DEVMODE == True:
-        subprocess.Popen(f"python {variables.PATH}app/main.py --dev {variables.PATH}cache/LastSession.txt", cwd=variables.PATH)
+        subprocess.Popen(f"{variables.PATH}python/python.exe {variables.PATH}app/main.py --dev {variables.PATH}cache/LastSession.txt", cwd=variables.PATH)
     else:
         subprocess.Popen(f"{variables.PATH}Start.bat {variables.PATH}cache/LastSession.txt", cwd=variables.PATH, creationflags=subprocess.CREATE_NEW_CONSOLE)
     Close(SaveCanvas=False)
@@ -220,7 +220,7 @@ def Update():
             elif variables.CUDA_INSTALLED == True and variables.CUDA_AVAILABLE == True and variables.CUDA_COMPATIBLE == True:
                 Message = "CUDA is installed, available and compatible."
             else:
-                Message = f"INSTALLED: {variables.CUDA_INSTALLED} AVAILABLE: {variables.CUDA_AVAILABLE} COMPATIBLE: {variables.CUDA_COMPATIBLE}"
+                Message = f"Installed: {variables.CUDA_INSTALLED} Available: {variables.CUDA_AVAILABLE} Compatible: {variables.CUDA_COMPATIBLE}"
             variables.ITEMS.append({
                 "Type": "Label",
                 "Text": "When CUDA is installed and available, the app will run AI models\non your NVIDIA GPU which will result in a significant speed increase.",
